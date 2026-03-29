@@ -132,33 +132,28 @@ export function createWorksNavigation(config: WorksNavigationConfig): Navigation
 }
 
 /**
- * Create standard navigation for Entities
+ * Create standard navigation for Taxonomies
  */
-export interface EntitiesNavigationConfig {
-	currentPath: "/entities/clients" | "/entities/disciplines" | "/entities/sectors" | "/entities/photo-categories";
+export interface TaxonomiesNavigationConfig {
+	currentPath: "/taxonomies/clients" | "/taxonomies/disciplines" | "/taxonomies/sectors";
 }
 
-export function createEntitiesNavigation(config: EntitiesNavigationConfig): NavigationItem[] {
+export function createTaxonomiesNavigation(config: TaxonomiesNavigationConfig): NavigationItem[] {
 	return [
 		{
 			label: "Clients",
-			href: "/entities/clients",
-			isActive: config.currentPath === "/entities/clients",
+			href: "/taxonomies/clients",
+			isActive: config.currentPath === "/taxonomies/clients",
 		},
 		{
 			label: "Disciplines",
-			href: "/entities/disciplines",
-			isActive: config.currentPath === "/entities/disciplines",
+			href: "/taxonomies/disciplines",
+			isActive: config.currentPath === "/taxonomies/disciplines",
 		},
 		{
 			label: "Sectors",
-			href: "/entities/sectors",
-			isActive: config.currentPath === "/entities/sectors",
-		},
-		{
-			label: "Photo Categories",
-			href: "/entities/photo-categories",
-			isActive: config.currentPath === "/entities/photo-categories",
+			href: "/taxonomies/sectors",
+			isActive: config.currentPath === "/taxonomies/sectors",
 		},
 	];
 }
@@ -167,7 +162,7 @@ export function createEntitiesNavigation(config: EntitiesNavigationConfig): Navi
  * Create standard navigation for Photographer/Categories
  */
 export interface PhotographyNavigationConfig {
-	currentPath: "/photography" | "/photography/photographers" | "/entities/photo-categories";
+	currentPath: "/photography" | "/photography/photographers" | "/photography/categories";
 }
 
 export function createPhotographyNavigation(config: PhotographyNavigationConfig): NavigationItem[] {
@@ -184,8 +179,8 @@ export function createPhotographyNavigation(config: PhotographyNavigationConfig)
 		},
 		{
 			label: "Categories",
-			href: "/entities/photo-categories",
-			isActive: config.currentPath === "/entities/photo-categories",
+			href: "/photography/categories",
+			isActive: config.currentPath === "/photography/categories",
 		},
 	];
 }

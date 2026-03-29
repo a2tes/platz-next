@@ -141,7 +141,7 @@ router.get(
 		const director = d as any;
 		const avatarFile = director.avatar ? serializeMediaFile(director.avatar) : null;
 
-		// Build OG image URL from mediable crop data
+		// Build Preview Image URL from mediable crop data
 		let ogImageUrl: string | null = null;
 		if (director.ogImage) {
 			const mediable = await prisma.mediable.findUnique({

@@ -25,11 +25,10 @@ const worksLinks = [
 	{ name: "Directors", href: "/works/directors" },
 ];
 
-const entitiesLinks = [
-	{ name: "Clients", href: "/entities/clients" },
-	{ name: "Disciplines", href: "/entities/disciplines" },
-	{ name: "Sectors", href: "/entities/sectors" },
-	{ name: "Photo Categories", href: "/entities/photo-categories" },
+const taxonomiesLinks = [
+	{ name: "Clients", href: "/taxonomies/clients" },
+	{ name: "Disciplines", href: "/taxonomies/disciplines" },
+	{ name: "Sectors", href: "/taxonomies/sectors" },
 ];
 
 function NavSection({
@@ -81,9 +80,9 @@ function NavSection({
 function SidebarContent({ pathname, user }: { pathname: string; user: { role?: string } | null }) {
 	const { openModal } = useMediaLibraryStore();
 
-	const sections = ["Pages", "Works", "Entities"] as const;
+	const sections = ["Pages", "Works", "Taxonomies"] as const;
 	const initialOpen = sections.find((s) => {
-		const links = { Pages: pages, Works: worksLinks, Entities: entitiesLinks }[s];
+		const links = { Pages: pages, Works: worksLinks, Taxonomies: taxonomiesLinks }[s];
 		return links.some((l) => pathname.startsWith(l.href));
 	});
 	const [openSection, setOpenSection] = React.useState<string | null>(initialOpen ?? null);
@@ -160,11 +159,11 @@ function SidebarContent({ pathname, user }: { pathname: string; user: { role?: s
 				</Link>
 			)}
 			<NavSection
-				label="Entities"
-				links={entitiesLinks}
+				label="Taxonomies"
+				links={taxonomiesLinks}
 				pathname={pathname}
-				open={openSection === "Entities"}
-				onToggle={() => toggle("Entities")}
+				open={openSection === "Taxonomies"}
+				onToggle={() => toggle("Taxonomies")}
 			/>
 
 			<button

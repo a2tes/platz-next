@@ -6,7 +6,7 @@ import { EntityListPage, EntityListConfig, EntityService } from "@/components/pa
 import { getTaxonomyService, Taxonomy, TaxonomyTypeSlug } from "@/services/taxonomyService";
 import { createStandardActions } from "@/lib/entity-list-helpers";
 import { TaxonomyModal } from "@/components/entities/TaxonomyModal";
-import { IconUsers, IconBriefcase, IconCategory, IconPhoto } from "@tabler/icons-react";
+import { IconUsers, IconBriefcase, IconCategory } from "@tabler/icons-react";
 import { Column, renderDateColumn } from "@/components/ui/data-list";
 import { NavigationItem } from "@/components/page/entity-list-page";
 
@@ -41,13 +41,6 @@ const TAXONOMY_TYPES: Record<string, TaxonomyTypeConfig> = {
 		description: "Manage sectors that can be associated with Works.",
 		icon: <IconCategory className="h-8 w-8 text-muted-foreground" />,
 	},
-	"photo-categories": {
-		typeSlug: "photo-categories",
-		displayName: "Photo Category",
-		displayNamePlural: "Photo Categories",
-		description: "Manage categories for Photography items.",
-		icon: <IconPhoto className="h-8 w-8 text-muted-foreground" />,
-	},
 };
 
 // Extended type with title for BaseEntity compatibility
@@ -58,7 +51,7 @@ interface TaxonomyWithTitle extends Taxonomy {
 function createTaxonomyNavigation(currentType: string): NavigationItem[] {
 	return Object.entries(TAXONOMY_TYPES).map(([key, config]) => ({
 		label: config.displayNamePlural,
-		href: `/entities/${key}`,
+		href: `/taxonomies/${key}`,
 		isActive: key === currentType,
 	}));
 }

@@ -125,7 +125,7 @@ export function SeoSettingsModal({ open, onOpenChange, pageKey, pageTitle }: Seo
 						</div>
 						<CroppableMediaField
 							ref={croppableRef}
-							label="OG Image"
+							label="Preview Image"
 							value={ogImageId}
 							onChange={setOgImageId}
 							subjectType="PageSeo"

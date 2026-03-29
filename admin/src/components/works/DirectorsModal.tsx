@@ -213,13 +213,13 @@ export function DirectorsModal({ open, onOpenChange, director, onSaved }: Direct
 
 		if (isEditing) {
 			await updateMutation.mutateAsync(payload);
-			// Save OG image crop after update
+			// Save Preview Image crop after update
 			if (ogImageRef.current?.hasPendingChanges && director?.id) {
 				await ogImageRef.current.saveCrop(director.id);
 			}
 		} else {
 			const saved = await createMutation.mutateAsync(payload as CreateDirectorData);
-			// Save OG image crop after create
+			// Save Preview Image crop after create
 			if (ogImageRef.current?.hasPendingChanges && saved?.id) {
 				await ogImageRef.current.saveCrop(saved.id);
 			}
@@ -513,7 +513,7 @@ export function DirectorsModal({ open, onOpenChange, director, onSaved }: Direct
 							</div>
 							<CroppableMediaField
 								ref={ogImageRef}
-								label="OG Image"
+								label="Preview Image"
 								value={watchedValues.ogImageId ?? null}
 								onChange={(id) => setValue("ogImageId", id, { shouldDirty: true })}
 								subjectType="Director"

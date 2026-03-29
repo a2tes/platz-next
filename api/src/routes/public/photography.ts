@@ -96,7 +96,7 @@ router.get(
 				q: 90,
 			});
 
-			// Build OG image URL from previewImage
+			// Build Preview Image URL from previewImage
 			const ogImageUrl = (p as any).previewImage
 				? buildCroppedUrl((p as any).previewImage, previewMediable, { w: 1200, h: 630 })
 				: null;
