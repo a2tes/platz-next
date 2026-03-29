@@ -146,7 +146,6 @@ export class DashboardController {
 			const [
 				totalWorks,
 				totalDirectors,
-				totalStarrings,
 				totalPhotography,
 				totalPhotographers,
 				totalMediaFiles,
@@ -156,7 +155,6 @@ export class DashboardController {
 			] = await Promise.all([
 				prisma.work.count(),
 				prisma.director.count(),
-				prisma.starring.count(),
 				prisma.photography.count(),
 				prisma.photographer.count(),
 				prisma.mediaFile.count(),
@@ -179,11 +177,6 @@ export class DashboardController {
 			const [publishedDirectors, draftDirectors] = await Promise.all([
 				prisma.director.count({ where: { status: "PUBLISHED" } }),
 				prisma.director.count({ where: { status: "DRAFT" } }),
-			]);
-
-			const [publishedStarrings, draftStarrings] = await Promise.all([
-				prisma.starring.count({ where: { status: "PUBLISHED" } }),
-				prisma.starring.count({ where: { status: "DRAFT" } }),
 			]);
 
 			const [publishedPhotographers, draftPhotographers] = await Promise.all([
@@ -223,11 +216,6 @@ export class DashboardController {
 						published: publishedDirectors,
 						draft: draftDirectors,
 						total: totalDirectors,
-					},
-					starrings: {
-						published: publishedStarrings,
-						draft: draftStarrings,
-						total: totalStarrings,
 					},
 					photographers: {
 						published: publishedPhotographers,
@@ -406,11 +394,11 @@ export class DashboardController {
 
 				if (interval === "hour") {
 					key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-						date.getDate()
+						date.getDate(),
 					).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:00`;
 				} else {
 					key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-						date.getDate()
+						date.getDate(),
 					).padStart(2, "0")}`;
 				}
 

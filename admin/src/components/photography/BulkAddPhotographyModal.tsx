@@ -13,7 +13,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { X, Loader2 } from "lucide-react";
 import type { MediaFile } from "@/services/mediaService";
 import clientsService from "@/services/clientsService";
-import starringsService from "@/services/starringsService";
 import { PhotographyService } from "@/services/photographyService";
 
 export type ImageItemCardMode = "photographer" | "category";
@@ -30,7 +29,6 @@ export interface BulkAddValues {
 	client?: string;
 	// New relation IDs
 	clientIds?: number[];
-	starringIds?: number[];
 	categoryIds?: number[];
 	categoryId?: number;
 	photographerId?: number;
@@ -71,24 +69,16 @@ export function BulkAddPhotographyModal({
 
 	// Search state for autocomplete
 	const [clientSearch, setClientSearch] = React.useState("");
-	const [starringSearch, setStarringSearch] = React.useState("");
 	const [categorySearch, setCategorySearch] = React.useState("");
 
 	// Selected entities state
 	const [selectedClients, setSelectedClients] = React.useState<AutocompleteOption[]>([]);
-	const [selectedStarrings, setSelectedStarrings] = React.useState<AutocompleteOption[]>([]);
 	const [selectedCategories, setSelectedCategories] = React.useState<AutocompleteOption[]>([]);
 
 	// Fetch options for autocomplete
 	const { data: clientOptions = [] } = useQuery({
 		queryKey: ["clients-search", clientSearch],
 		queryFn: () => clientsService.searchClients(clientSearch || "", 20),
-		staleTime: 30000,
-	});
-
-	const { data: starringOptions = [] } = useQuery({
-		queryKey: ["starrings-search", starringSearch],
-		queryFn: () => starringsService.searchStarrings(starringSearch || "", 20),
 		staleTime: 30000,
 	});
 
@@ -127,7 +117,6 @@ export function BulkAddPhotographyModal({
 			);
 			// Reset selected entities
 			setSelectedClients([]);
-			setSelectedStarrings([]);
 			setSelectedCategories([]);
 			setPerFileCategories({});
 		}
@@ -171,11 +160,6 @@ export function BulkAddPhotographyModal({
 		setValues((v) => ({ ...v, clientIds: clients.map((c) => c.id) }));
 	};
 
-	const handleStarringsChange = (starrings: AutocompleteOption[]) => {
-		setSelectedStarrings(starrings);
-		setValues((v) => ({ ...v, starringIds: starrings.map((s) => s.id) }));
-	};
-
 	const handleCategoriesChange = (categories: AutocompleteOption[]) => {
 		setSelectedCategories(categories);
 		setValues((v) => ({ ...v, categoryIds: categories.map((c) => c.id) }));
@@ -185,12 +169,6 @@ export function BulkAddPhotographyModal({
 	const handleCreateClient = async (name: string): Promise<AutocompleteOption> => {
 		const created = await clientsService.findOrCreateClient(name);
 		await queryClient.invalidateQueries({ queryKey: ["clients-search"] });
-		return { id: created.id, name: created.name };
-	};
-
-	const handleCreateStarring = async (name: string): Promise<AutocompleteOption> => {
-		const created = await starringsService.findOrCreateStarring(name);
-		await queryClient.invalidateQueries({ queryKey: ["starrings-search"] });
 		return { id: created.id, name: created.name };
 	};
 
@@ -410,22 +388,6 @@ export function BulkAddPhotographyModal({
 									emptyMessage="No clients found"
 									allowCreate
 									single
-								/>
-							</div>
-
-							{/* Starrings */}
-							<div className="space-y-1">
-								<Label className="pl-1">Starrings</Label>
-								<MultiAutocomplete
-									values={selectedStarrings}
-									onValuesChange={handleStarringsChange}
-									options={starringOptions.map((s) => ({ id: s.id, name: s.name }))}
-									onSearch={setStarringSearch}
-									onCreateNew={handleCreateStarring}
-									placeholder="Select starring..."
-									searchPlaceholder="Search or create starring..."
-									emptyMessage="No starring found"
-									allowCreate
 								/>
 							</div>
 

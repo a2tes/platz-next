@@ -31,7 +31,6 @@ model User {
   createdWorks         Work[]          @relation("WorkCreatedBy")
   createdAnimations    Animation[]     @relation("AnimationCreatedBy")
   createdDirectors     Director[]      @relation("DirectorCreatedBy")
-  createdStarrings     Starring[]      @relation("StarringCreatedBy")
   createdPhotographers Photographer[]  @relation("PhotographerCreatedBy")
   createdPhotoCategories PhotoCategory[] @relation("PhotoCategoryCreatedBy")
   createdContentPages   ContentPage[]    @relation("ContentPageCreatedBy")
@@ -80,7 +79,6 @@ model MediaFile {
   directorsAvatar          Director[]     @relation("DirectorAvatar")
   directorsOgImage         Director[]     @relation("DirectorOgImage")
   directorsHeroMedia       Director[]     @relation("DirectorHeroMedia")
-  starringsAvatar          Starring[]     @relation("StarringAvatar")
   photographyImage         Photography[]  @relation("PhotographyImage")
   photographyPreviewImage  Photography[]  @relation("PhotographyPreviewImage")
   photographersAvatar      Photographer[] @relation("PhotographerAvatar")
@@ -142,7 +140,6 @@ model Work {
   videoFile         MediaFile?         @relation("WorkVideoFile", fields: [videoFileId], references: [id])
   previewImage      MediaFile?         @relation("WorkPreviewImage", fields: [previewImageId], references: [id])
   directors         WorkDirector[]
-  starrings         WorkStarring[]
   clients           WorkClient[]
   disciplines       WorkDiscipline[]
   sectors           WorkSector[]
@@ -214,30 +211,6 @@ model Director {
   @@map("directors")
 }
 
-model Starring {
-  id               Int       @id @default(autoincrement())
-  title            String
-  slug             String    @unique
-  shortDescription String?   @map("short_description") @db.Text
-  biography        String?   @db.Text
-  avatarId         Int?      @map("avatar_id")
-  status           Status    @default(DRAFT)
-  publishedAt      DateTime? @map("published_at")
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-  deletedAt        DateTime? @map("deleted_at")
-  purgedAt         DateTime? @map("purged_at")
-  createdBy        Int?      @map("created_by")
-
-  // Relations
-  avatar MediaFile?     @relation("StarringAvatar", fields: [avatarId], references: [id])
-  creator User?              @relation("StarringCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  works  WorkStarring[]
-  photography PhotographyStarring[]
-
-  @@map("starrings")
-}
-
 model WorkDirector {
   workId     Int @map("work_id")
   directorId Int @map("director_id")
@@ -249,18 +222,6 @@ model WorkDirector {
 
   @@id([workId, directorId])
   @@map("work_directors")
-}
-
-model WorkStarring {
-  workId     Int @map("work_id")
-  starringId Int @map("starring_id")
-
-  // Relations
-  work     Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
-  starring Starring @relation(fields: [starringId], references: [id], onDelete: Cascade)
-
-  @@id([workId, starringId])
-  @@map("work_starrings")
 }
 
 model Photography {
@@ -290,7 +251,6 @@ model Photography {
   photographer Photographer  @relation(fields: [photographerId], references: [id])
   previewImage MediaFile?    @relation("PhotographyPreviewImage", fields: [previewImageId], references: [id])
   clients           PhotographyClient[]
-  starrings         PhotographyStarring[]
   categories        PhotographyCategory[]
   presentationItems PresentationItem[]
 
@@ -933,18 +893,6 @@ model PhotographyClient {
 
   @@id([photographyId, clientId])
   @@map("photography_clients")
-}
-
-model PhotographyStarring {
-  photographyId Int @map("photography_id")
-  starringId    Int @map("starring_id")
-
-  // Relations
-  photography   Photography @relation(fields: [photographyId], references: [id], onDelete: Cascade)
-  starring      Starring    @relation(fields: [starringId], references: [id], onDelete: Cascade)
-
-  @@id([photographyId, starringId])
-  @@map("photography_starrings")
 }
 
 model PhotographyCategory {

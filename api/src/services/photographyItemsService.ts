@@ -25,7 +25,6 @@ export interface UpdatePhotographyItemData {
 	location?: string;
 	status?: Status;
 	clientIds?: number[];
-	starringIds?: number[];
 	categoryIds?: number[];
 }
 
@@ -45,7 +44,6 @@ export class PhotographyItemsService {
 				photographer: true,
 				categories: { include: { category: true } },
 				clients: { include: { client: true } },
-				starrings: { include: { starring: true } },
 			},
 		});
 
@@ -113,10 +111,10 @@ export class PhotographyItemsService {
 	}
 
 	async updateItem(id: number, data: UpdatePhotographyItemData) {
-		const { clientIds, starringIds, categoryIds, ...updateData } = data;
+		const { clientIds, categoryIds, ...updateData } = data;
 		const current = await prisma.photography.findUnique({ where: { id } });
 
-		console.log("updateItem called with:", { id, clientIds, starringIds, categoryIds });
+		console.log("updateItem called with:", { id, clientIds, categoryIds });
 
 		// Update photography item and manage relations in a transaction
 		const item = await prisma.$transaction(async (tx) => {
@@ -140,18 +138,6 @@ export class PhotographyItemsService {
 				}
 			}
 
-			// Update starring relations if provided
-			if (starringIds !== undefined) {
-				console.log("Updating starring relations:", starringIds);
-				await tx.photographyStarring.deleteMany({ where: { photographyId: id } });
-				if (starringIds.length > 0) {
-					const result = await tx.photographyStarring.createMany({
-						data: starringIds.map((starringId) => ({ photographyId: id, starringId })),
-					});
-					console.log("Created starring relations:", result);
-				}
-			}
-
 			// Update category relations if provided
 			if (categoryIds !== undefined) {
 				console.log("Updating category relations:", categoryIds);
@@ -172,7 +158,6 @@ export class PhotographyItemsService {
 					photographer: true,
 					categories: { include: { category: true } },
 					clients: { include: { client: true } },
-					starrings: { include: { starring: true } },
 				},
 			});
 			console.log("Re-fetched item clients:", fetched.clients);
@@ -253,7 +238,7 @@ export class PhotographyItemsService {
 		photographerId?: number;
 		categoryIds?: number[];
 		clientIds?: number[];
-		starringIds?: number[];
+
 		items: Array<{
 			imageId: number;
 			title: string;
@@ -312,13 +297,6 @@ export class PhotographyItemsService {
 					});
 				}
 
-				// Create starring relations (shared across all items)
-				if (data.starringIds && data.starringIds.length > 0) {
-					await tx.photographyStarring.createMany({
-						data: data.starringIds.map((starringId) => ({ photographyId: created.id, starringId })),
-					});
-				}
-
 				return tx.photography.findUniqueOrThrow({
 					where: { id: created.id },
 					include: {
@@ -326,7 +304,6 @@ export class PhotographyItemsService {
 						photographer: true,
 						categories: { include: { category: true } },
 						clients: { include: { client: true } },
-						starrings: { include: { starring: true } },
 					},
 				});
 			});

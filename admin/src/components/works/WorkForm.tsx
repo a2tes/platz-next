@@ -39,7 +39,6 @@ const workSchema = z.object({
 	previewImageId: z.number().nullable().optional(),
 	status: z.enum(["DRAFT", "PUBLISHED"]),
 	directorIds: z.array(z.number()),
-	starringIds: z.array(z.number()),
 	clientIds: z.array(z.number()).optional(),
 	disciplineIds: z.array(z.number()).optional(),
 	sectorIds: z.array(z.number()).optional(),
@@ -77,7 +76,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 			tags: work?.tags.join(", ") || "",
 			status: work?.status || "DRAFT",
 			directorIds: work?.directors.map((d) => d.director.id) || [],
-			starringIds: work?.starrings.map((s) => s.starring.id) || [],
 			clientIds: work?.clients?.map((c: any) => c.client.id) || [],
 			disciplineIds: work?.disciplines?.map((d: any) => d.discipline.id) || [],
 			sectorIds: work?.sectors?.map((s: any) => s.sector.id) || [],
@@ -106,7 +104,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 				tags: work.tags.join(", "),
 				status: work.status,
 				directorIds: (work.directors || []).map((d) => d.director.id),
-				starringIds: (work.starrings || []).map((s) => s.starring.id),
 				clientIds: (work.clients || []).map((c: any) => c.client.id),
 				disciplineIds: (work.disciplines || []).map((d: any) => d.discipline.id),
 				sectorIds: (work.sectors || []).map((s: any) => s.sector.id),
@@ -120,15 +117,10 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 
 	// No-op
 
-	// Fetch directors and starrings
+	// Fetch directors
 	const { data: directorsData } = useQuery({
 		queryKey: ["directors"],
 		queryFn: () => WorksService.getDirectors({ limit: 100 }),
-	});
-
-	const { data: starringsData } = useQuery({
-		queryKey: ["starrings"],
-		queryFn: () => WorksService.getStarrings({ limit: 100 }),
 	});
 
 	// Fetch all clients once
@@ -270,12 +262,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 		setValue("directorIds", updated);
 	};
 
-	const toggleStarring = (starringId: number) => {
-		const current = watchedValues.starringIds || [];
-		const updated = current.includes(starringId) ? current.filter((id) => id !== starringId) : [...current, starringId];
-		setValue("starringIds", updated);
-	};
-
 	const handleRevertRevision = async (revisionId: number) => {
 		try {
 			if (!work?.id) return;
@@ -298,7 +284,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 	};
 
 	const directors = directorsData?.data || [];
-	const starrings = starringsData?.data || [];
 
 	return (
 		<>
@@ -527,71 +512,37 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 						</div>
 					</div>
 
-					{/* Directors & Starrings */}
+					{/* Directors */}
 					<div className="border rounded-xl">
-						<h3 className="text-lg font-semibold border-b p-4">Directors & Cast</h3>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
-							{/* Directors */}
-							<div>
-								<Label className="justify-between">
-									Directors{" "}
-									<span className=" text-gray-500 font-normal">
-										{watchedValues.directorIds?.length ? `(${watchedValues.directorIds.length} selected)` : ""}
-									</span>
-								</Label>
-								<ScrollArea className="mt-3 space-y-2 border rounded-md p-2">
-									<div className="space-y-2 max-h-48">
-										{directors.length === 0 ? (
-											<p className="text-sm text-muted-foreground text-center py-4">No directors available</p>
-										) : (
-											directors.map((director) => (
-												<div
-													key={director.id}
-													className={`p-3 rounded-md cursor-pointer transition-colors ${
-														(watchedValues.directorIds || []).includes(director.id)
-															? "bg-primary text-primary-foreground"
-															: "bg-muted hover:bg-muted/80"
-													}`}
-													onClick={() => toggleDirector(director.id)}
-												>
-													<p className="font-medium">{director.title}</p>
-												</div>
-											))
-										)}
-									</div>
-								</ScrollArea>
-							</div>
-
-							{/* Starrings */}
-							<div>
-								<Label className="justify-between">
-									Starrings{" "}
-									<span className=" text-gray-500 font-normal">
-										{watchedValues.starringIds?.length ? `(${watchedValues.starringIds.length} selected)` : ""}
-									</span>
-								</Label>
-								<ScrollArea className="mt-3 space-y-2 border rounded-md p-2">
-									<div className="space-y-2 max-h-48">
-										{starrings.length === 0 ? (
-											<p className="text-sm text-muted-foreground text-center py-4">No starrings available</p>
-										) : (
-											starrings.map((starring) => (
-												<div
-													key={starring.id}
-													className={`p-3 rounded-md cursor-pointer transition-colors ${
-														(watchedValues.starringIds || []).includes(starring.id)
-															? "bg-primary text-primary-foreground"
-															: "bg-muted hover:bg-muted/80"
-													}`}
-													onClick={() => toggleStarring(starring.id)}
-												>
-													<p className="font-medium">{starring.title}</p>
-												</div>
-											))
-										)}
-									</div>
-								</ScrollArea>
-							</div>
+						<h3 className="text-lg font-semibold border-b p-4">Directors</h3>
+						<div className="p-4">
+							<Label className="justify-between">
+								Directors{" "}
+								<span className=" text-gray-500 font-normal">
+									{watchedValues.directorIds?.length ? `(${watchedValues.directorIds.length} selected)` : ""}
+								</span>
+							</Label>
+							<ScrollArea className="mt-3 space-y-2 border rounded-md p-2">
+								<div className="space-y-2 max-h-48">
+									{directors.length === 0 ? (
+										<p className="text-sm text-muted-foreground text-center py-4">No directors available</p>
+									) : (
+										directors.map((director) => (
+											<div
+												key={director.id}
+												className={`p-3 rounded-md cursor-pointer transition-colors ${
+													(watchedValues.directorIds || []).includes(director.id)
+														? "bg-primary text-primary-foreground"
+														: "bg-muted hover:bg-muted/80"
+												}`}
+												onClick={() => toggleDirector(director.id)}
+											>
+												<p className="font-medium">{director.title}</p>
+											</div>
+										))
+									)}
+								</div>
+							</ScrollArea>
 						</div>
 					</div>
 				</div>

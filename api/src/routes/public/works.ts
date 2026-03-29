@@ -36,13 +36,6 @@ router.get(
 						},
 					},
 				},
-				starrings: {
-					select: {
-						starring: {
-							select: { title: true, slug: true },
-						},
-					},
-				},
 			},
 		});
 
@@ -81,8 +74,6 @@ router.get(
 						...(wd.director.status === "PUBLISHED" ? { slug: wd.director.slug } : {}),
 					},
 				})),
-			// Starrings
-			starrings: (work as any).starrings,
 		};
 
 		res.json({ success: true, data });

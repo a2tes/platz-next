@@ -206,11 +206,6 @@ router.get(
 						client: { select: { name: true, slug: true } },
 					},
 				},
-				starrings: {
-					include: {
-						starring: { select: { title: true, slug: true } },
-					},
-				},
 			},
 		});
 
@@ -220,8 +215,6 @@ router.get(
 			const firstClient = (it as any).clients?.[0]?.client;
 			// Get first category from junction table
 			const firstCategory = (it as any).categories?.[0]?.category;
-			// Get starrings from junction table
-			const starrings = (it as any).starrings?.map((s: any) => s.starring?.title).filter(Boolean) || [];
 			return {
 				title: it.title,
 				slug: it.slug,
@@ -230,7 +223,6 @@ router.get(
 				location: it.location,
 				client: firstClient?.name || it.client, // Prefer junction table client
 				clientSlug: firstClient?.slug || null,
-				starring: starrings.join(", ") || null,
 				images: image?.images || null,
 				photographer: (it as any).photographer,
 				category: firstCategory || null,

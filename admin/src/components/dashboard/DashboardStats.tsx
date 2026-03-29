@@ -116,12 +116,6 @@ export default function DashboardStats({ className = "" }: DashboardStatsProps) 
 			subtext: formatPubDraft(stats.contentStats.directors.published, stats.contentStats.directors.draft),
 		},
 		{
-			title: "Starrings",
-			url: "/works/starrings",
-			value: stats.contentStats.starrings.total,
-			subtext: formatPubDraft(stats.contentStats.starrings.published, stats.contentStats.starrings.draft),
-		},
-		{
 			title: "Photography",
 			url: "/photography",
 			value: stats.contentStats.photography.total,

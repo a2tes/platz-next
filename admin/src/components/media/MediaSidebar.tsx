@@ -704,7 +704,6 @@ function MediaFileUsage() {
 	const hasUsage =
 		usage.works.length > 0 ||
 		usage.directors.length > 0 ||
-		usage.starrings.length > 0 ||
 		usage.photography.length > 0 ||
 		usage.photographers.length > 0 ||
 		usage.contentPages.length > 0 ||
@@ -764,11 +763,10 @@ function MediaFileUsage() {
 			)}
 
 			{/* People */}
-			{(usage.directors.length > 0 || usage.starrings.length > 0 || usage.photographers.length > 0) && (
+			{(usage.directors.length > 0 || usage.photographers.length > 0) && (
 				<div className="space-y-1">
 					<div className="text-xs uppercase tracking-wide text-muted-foreground">People</div>
 					{renderList(usage.directors, "Directors")}
-					{renderList(usage.starrings, "Starrings")}
 					{renderList(usage.photographers, "Photographers")}
 				</div>
 			)}

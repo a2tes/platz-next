@@ -68,7 +68,6 @@ export interface Work {
 	tags: string[];
 	videoFile?: MediaFile;
 	directors: Director[];
-	starrings: Starring[];
 	metaDescription?: string;
 	metaKeywords?: string;
 	previewImage?: MediaFile;
@@ -80,17 +79,6 @@ export interface Work {
 }
 
 export interface Director {
-	id: number;
-	title: string;
-	shortDescription: string;
-	biography: string;
-	avatar?: MediaFile;
-	works: Work[];
-	createdAt: string;
-	updatedAt: string;
-}
-
-export interface Starring {
 	id: number;
 	title: string;
 	shortDescription: string;
@@ -182,7 +170,6 @@ export interface WorkForm {
 	tags: string[];
 	videoFileId?: number;
 	directorIds: number[];
-	starringIds: number[];
 	metaDescription?: string;
 	metaKeywords?: string;
 	previewImageId?: number;

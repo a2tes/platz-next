@@ -43,7 +43,6 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 			shortDescription: w.shortDescription,
 			subtitle: w.subtitle,
 			caseStudy: w.caseStudy,
-			starring: w.starrings.map((s) => s.title).join(", "),
 			directors: w.directors,
 			videoUrl: w.videoUrl || "",
 			hlsUrl: w.hlsUrl || "",

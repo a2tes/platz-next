@@ -114,24 +114,6 @@ router.get(
 						shortDescription: true,
 						client: true,
 						videoFile: true,
-						starrings: {
-							where: {
-								starring: {
-									status: "PUBLISHED",
-									purgedAt: null,
-									deletedAt: null,
-								},
-							},
-							select: {
-								starring: {
-									select: {
-										id: true,
-										title: true,
-										slug: true,
-									},
-								},
-							},
-						},
 					},
 				},
 				works: {
@@ -147,24 +129,6 @@ router.get(
 								shortDescription: true,
 								client: true,
 								videoFile: true,
-								starrings: {
-									where: {
-										starring: {
-											status: "PUBLISHED",
-											purgedAt: null,
-											deletedAt: null,
-										},
-									},
-									select: {
-										starring: {
-											select: {
-												id: true,
-												title: true,
-												slug: true,
-											},
-										},
-									},
-								},
 							},
 						},
 					},
@@ -225,11 +189,6 @@ router.get(
 				hlsUrl: hwVideoFile?.video?.hls || null,
 				optimizedVideoUrl: hwVideoFile?.video?.mp4 || null,
 				images: hwVideoFile?.images || null,
-				starrings:
-					hw.starrings?.map((s: any) => ({
-						title: s.starring.title,
-						slug: s.starring.slug,
-					})) || [],
 			};
 		}
 
@@ -264,10 +223,6 @@ router.get(
 						hlsUrl: videoFile?.video?.hls || null,
 						optimizedVideoUrl: videoFile?.video?.mp4 || null,
 						images: videoFile?.images || null,
-						starrings: w.work.starrings.map((s: any) => ({
-							title: s.starring.title,
-							slug: s.starring.slug,
-						})),
 					},
 				};
 			}),

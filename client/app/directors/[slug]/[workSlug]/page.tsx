@@ -41,10 +41,6 @@ interface Work {
 		large: string;
 		original: string;
 	} | null;
-	starrings?: Array<{
-		title: string;
-		slug: string;
-	}>;
 }
 
 interface DirectorWork {
@@ -121,7 +117,6 @@ function DirectorWorkContent() {
 		slug: work.slug,
 		client: work.client || "",
 		shortDescription: work.shortDescription || "",
-		starring: work.starrings?.map((s) => s.title).join(", ") || "",
 		directors: [{ title: directorTitle, slug: directorSlug }],
 		// Use 720p for background videos
 		videoUrl: work.videoUrl720p || work.videoUrl || "",

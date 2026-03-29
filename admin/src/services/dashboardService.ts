@@ -57,11 +57,6 @@ export interface DashboardStats {
 			draft: number;
 			total: number;
 		};
-		starrings: {
-			published: number;
-			draft: number;
-			total: number;
-		};
 		photographers: {
 			published: number;
 			draft: number;

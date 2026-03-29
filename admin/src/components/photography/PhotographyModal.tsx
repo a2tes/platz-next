@@ -10,9 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MultiAutocomplete, type AutocompleteOption } from "@/components/ui/multi-autocomplete";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { PhotographyItem, ClientEntity, StarringEntity } from "@/services/photographyItemsService";
+import type { PhotographyItem, ClientEntity } from "@/services/photographyItemsService";
 import clientsService from "@/services/clientsService";
-import starringsService from "@/services/starringsService";
 import { PhotographyService } from "@/services/photographyService";
 
 export type ImageItemCardMode = "photographer" | "category";
@@ -33,7 +32,6 @@ export interface EditValues {
 	client?: string;
 	// New relation IDs
 	clientIds?: number[];
-	starringIds?: number[];
 }
 
 export function PhotographyItemEditModal({
@@ -53,19 +51,12 @@ export function PhotographyItemEditModal({
 }) {
 	// Search state for autocomplete
 	const [clientSearch, setClientSearch] = React.useState("");
-	const [starringSearch, setStarringSearch] = React.useState("");
 	const [categorySearch, setCategorySearch] = React.useState("");
 
 	// Fetch options for autocomplete
 	const { data: clientOptions = [] } = useQuery({
 		queryKey: ["clients-search", clientSearch],
 		queryFn: () => clientsService.searchClients(clientSearch || "", 20),
-		staleTime: 30000,
-	});
-
-	const { data: starringOptions = [] } = useQuery({
-		queryKey: ["starrings-search", starringSearch],
-		queryFn: () => starringsService.searchStarrings(starringSearch || "", 20),
 		staleTime: 30000,
 	});
 
@@ -77,7 +68,6 @@ export function PhotographyItemEditModal({
 
 	// Selected entities state
 	const [selectedClients, setSelectedClients] = React.useState<AutocompleteOption[]>([]);
-	const [selectedStarrings, setSelectedStarrings] = React.useState<AutocompleteOption[]>([]);
 	const [selectedCategory, setSelectedCategory] = React.useState<AutocompleteOption[]>([]);
 
 	const [values, setValues] = React.useState<EditValues>(() => ({
@@ -89,7 +79,6 @@ export function PhotographyItemEditModal({
 		photographerId: item.photographerId,
 		client: item.client || "",
 		clientIds: item.clients?.map((c) => c.client?.id ?? c.clientId) || [],
-		starringIds: item.starrings?.map((s) => s.starring?.id ?? s.starringId) || [],
 	}));
 
 	React.useEffect(() => {
@@ -103,20 +92,12 @@ export function PhotographyItemEditModal({
 			photographerId: item.photographerId,
 			client: item.client || "",
 			clientIds: item.clients?.map((c) => c.client?.id ?? c.clientId) || [],
-			starringIds: item.starrings?.map((s) => s.starring?.id ?? s.starringId) || [],
 		});
 		// Set selected entities from item (handle junction table format)
 		setSelectedClients(
 			item.clients?.map((c) => ({
 				id: c.client?.id ?? c.clientId,
 				name: c.client?.name ?? "",
-			})) || [],
-		);
-		setSelectedStarrings(
-			item.starrings?.map((s) => ({
-				id: s.starring?.id ?? s.starringId,
-				// Starring uses 'title' in DB but search maps it to 'name'
-				name: s.starring?.title ?? s.starring?.name ?? "",
 			})) || [],
 		);
 		// Set selected categories from item (handle junction table format)
@@ -153,12 +134,6 @@ export function PhotographyItemEditModal({
 		setValues((v) => ({ ...v, clientIds: clients.map((c) => c.id) }));
 	};
 
-	// Handle starring selection change
-	const handleStarringsChange = (starrings: AutocompleteOption[]) => {
-		setSelectedStarrings(starrings);
-		setValues((v) => ({ ...v, starringIds: starrings.map((s) => s.id) }));
-	};
-
 	const queryClient = useQueryClient();
 
 	// Create new client
@@ -166,13 +141,6 @@ export function PhotographyItemEditModal({
 		const created = await clientsService.findOrCreateClient(name);
 		// Invalidate cache so new client appears in dropdown
 		await queryClient.invalidateQueries({ queryKey: ["clients-search"] });
-		return { id: created.id, name: created.name };
-	};
-
-	// Create new starring
-	const handleCreateStarring = async (name: string): Promise<AutocompleteOption> => {
-		const created = await starringsService.findOrCreateStarring(name);
-		await queryClient.invalidateQueries({ queryKey: ["starrings-search"] });
 		return { id: created.id, name: created.name };
 	};
 
@@ -304,22 +272,6 @@ export function PhotographyItemEditModal({
 									single
 								/>
 							</div>
-						</div>
-
-						{/* Starrings */}
-						<div className="space-y-1">
-							<Label className="pl-1">Starrings</Label>
-							<MultiAutocomplete
-								values={selectedStarrings}
-								onValuesChange={handleStarringsChange}
-								options={starringOptions.map((s) => ({ id: s.id, name: s.name }))}
-								onSearch={setStarringSearch}
-								onCreateNew={handleCreateStarring}
-								placeholder="Select starring..."
-								searchPlaceholder="Search or create starring..."
-								emptyMessage="No starring found"
-								allowCreate
-							/>
 						</div>
 
 						{/* Year & Location - 2 columns */}

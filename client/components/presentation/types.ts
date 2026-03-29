@@ -16,7 +16,6 @@ export interface PresentationWork {
 		original?: string;
 	} | null;
 	directors: Array<{ title: string; slug: string }>;
-	starrings: Array<{ title: string; slug: string }>;
 	clients: string[];
 	agencies: string[];
 }

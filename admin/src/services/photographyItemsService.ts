@@ -8,24 +8,11 @@ export interface ClientEntity {
 	slug: string;
 }
 
-export interface StarringEntity {
-	id: number;
-	title: string; // Starring uses 'title' not 'name'
-	name?: string; // Mapped from title in search endpoint
-	slug: string;
-}
-
 // Junction table types (as returned from API)
 export interface PhotographyClientJunction {
 	photographyId: number;
 	clientId: number;
 	client: ClientEntity;
-}
-
-export interface PhotographyStarringJunction {
-	photographyId: number;
-	starringId: number;
-	starring: StarringEntity;
 }
 
 export interface PhotographyCategoryJunction {
@@ -51,7 +38,6 @@ export interface PhotographyItem {
 	client?: string;
 	// New relation fields (junction table format from API)
 	clients?: PhotographyClientJunction[];
-	starrings?: PhotographyStarringJunction[];
 	categories?: PhotographyCategoryJunction[];
 	year?: number;
 	location?: string;
@@ -105,7 +91,6 @@ export class PhotographyItemsService {
 		photographerId?: number;
 		categoryIds?: number[];
 		clientIds?: number[];
-		starringIds?: number[];
 		items: Array<{
 			imageId: number;
 			title?: string;

@@ -10,7 +10,6 @@ export interface BlockWork {
 	shortDescription: string;
 	subtitle?: string;
 	caseStudy?: string;
-	starring: string;
 	directors?: Array<{ title: string; slug?: string }>;
 	videoUrl: string | null;
 	videoAspectRatio: number;

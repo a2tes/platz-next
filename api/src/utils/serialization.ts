@@ -209,13 +209,6 @@ export function serializeWork(work: any) {
 				avatar: serializeMediaFile(wd.director?.avatar),
 			},
 		})),
-		starrings: work.starrings?.map((ws: any) => ({
-			...ws,
-			starring: {
-				...ws.starring,
-				avatar: serializeMediaFile(ws.starring?.avatar),
-			},
-		})),
 	};
 }
 
@@ -236,7 +229,7 @@ export function serializeContentPage(page: any) {
 export function buildCroppedUrl(
 	mediaFile: any,
 	mediable: any,
-	options?: { w?: number; h?: number; q?: number }
+	options?: { w?: number; h?: number; q?: number },
 ): string | null {
 	if (!mediaFile?.uuid) return null;
 

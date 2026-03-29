@@ -37,7 +37,6 @@ const updateSchema = z.object({
 	status: z.enum(["DRAFT", "PUBLISHED"]).optional(),
 	// Relation IDs
 	clientIds: z.array(z.number().int()).optional(),
-	starringIds: z.array(z.number().int()).optional(),
 	categoryIds: z.array(z.number().int()).optional(),
 });
 
@@ -220,7 +219,6 @@ export class PhotographyItemsController {
 				photographerId: z.number().int().optional(),
 				categoryIds: z.array(z.number().int()).optional(),
 				clientIds: z.array(z.number().int()).optional(),
-				starringIds: z.array(z.number().int()).optional(),
 				items: z
 					.array(
 						z.object({

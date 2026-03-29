@@ -40,7 +40,6 @@ export interface Photo {
 	description?: string;
 	location?: string;
 	client?: string;
-	starring?: string;
 	images: {
 		original: string;
 		large: string;
@@ -345,14 +344,6 @@ export default function PhotoModal({
 										<div>
 											<span className="uppercase text-gray-600 text-sm">LOCATION</span>
 											<p>{photo.location}</p>
-										</div>
-									)}
-									{photo.starring && (
-										<div>
-											<span className="uppercase text-gray-600 text-sm">
-												{photo.starring.includes(",") ? "STARRINGS" : "STARRING"}
-											</span>
-											<p>{photo.starring}</p>
 										</div>
 									)}
 								</motion.div>

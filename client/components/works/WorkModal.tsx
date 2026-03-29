@@ -19,7 +19,6 @@ interface Work {
 	shortDescription: string;
 	subtitle?: string;
 	caseStudy?: string;
-	starring: string;
 	directors?: Array<{ title: string; slug?: string }>;
 	videoUrl: string;
 	hlsUrl?: string;
@@ -114,7 +113,7 @@ export default function WorkModal({ work, cardRect, onClose }: WorkModalProps) {
 
 			// Rotate details every 3 seconds
 			rotateDetailsIntervalRef.current = setInterval(() => {
-				const detailsCount = [work.client, work.directors?.length, work.starring].filter(Boolean).length;
+				const detailsCount = [work.client, work.directors?.length].filter(Boolean).length;
 				setVisibleDetailIndex((prev) => (prev + 1) % detailsCount);
 			}, 5000);
 
@@ -440,15 +439,6 @@ export default function WorkModal({ work, cardRect, onClose }: WorkModalProps) {
 										</div>
 									)}
 
-									{work.starring && (
-										<div className="hidden md:block">
-											<div>
-												<span className="uppercase text-gray-200 text-xs md:text-sm">STARRING</span>
-												<p className="text-sm md:text-base">{work.starring}</p>
-											</div>
-										</div>
-									)}
-
 									{/* Mobile: show rotating items */}
 									<div className="block md:hidden relative min-h-[4rem]">
 										{(() => {
@@ -461,7 +451,6 @@ export default function WorkModal({ work, cardRect, onClose }: WorkModalProps) {
 														label: "DIRECTOR",
 														directors: work.directors,
 													},
-												work.starring && { key: "starring", label: "STARRING", value: work.starring },
 											].filter(Boolean) as {
 												key: string;
 												label: string;

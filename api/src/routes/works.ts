@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { worksController } from "../controllers/worksController";
 import { directorsController } from "../controllers/directorsController";
-import { starringsController } from "../controllers/starringsController";
 import { authenticateToken } from "../middleware/auth";
 
 const router = Router();
@@ -35,22 +34,6 @@ router.post("/directors/:id/restore", directorsController.restoreDirector.bind(d
 router.post("/directors/:id/purge", directorsController.purgeDirector.bind(directorsController));
 router.patch("/directors/:id/publish", directorsController.publishDirector.bind(directorsController));
 router.patch("/directors/:id/unpublish", directorsController.unpublishDirector.bind(directorsController));
-
-// Starrings routes (must be before /:id routes)
-router.post("/starrings", starringsController.createStarring.bind(starringsController));
-router.get("/starrings", starringsController.getStarrings.bind(starringsController));
-router.post("/starrings/bulk/delete", starringsController.bulkDeleteStarrings.bind(starringsController));
-router.post("/starrings/bulk/purge", starringsController.bulkPurgeStarrings.bind(starringsController));
-router.get("/starrings/counts", starringsController.getCounts.bind(starringsController));
-router.get("/starrings/trash", starringsController.getTrashedStarrings.bind(starringsController));
-router.get("/starrings/:id", starringsController.getStarring.bind(starringsController));
-router.put("/starrings/:id", starringsController.updateStarring.bind(starringsController));
-router.delete("/starrings/:id", starringsController.deleteStarring.bind(starringsController));
-router.post("/starrings/:id/trash", starringsController.trashStarring.bind(starringsController));
-router.post("/starrings/:id/restore", starringsController.restoreStarring.bind(starringsController));
-router.post("/starrings/:id/purge", starringsController.purgeStarring.bind(starringsController));
-router.patch("/starrings/:id/publish", starringsController.publishStarring.bind(starringsController));
-router.patch("/starrings/:id/unpublish", starringsController.unpublishStarring.bind(starringsController));
 
 // Works routes (/:id routes must be last)
 router.post("/", worksController.createWork.bind(worksController));

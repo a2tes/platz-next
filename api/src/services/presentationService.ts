@@ -223,9 +223,6 @@ export const getPresentationByToken = async (token: string) => {
 									directors: {
 										include: { director: true },
 									},
-									starrings: {
-										include: { starring: true },
-									},
 									clients: {
 										include: { client: true },
 									},
@@ -278,11 +275,6 @@ export const getPresentationByToken = async (token: string) => {
 								include: {
 									previewImage: true,
 									videoFile: true,
-									starrings: {
-										include: {
-											starring: true,
-										},
-									},
 								},
 							},
 						},

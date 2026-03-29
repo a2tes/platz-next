@@ -1,10 +1,10 @@
-import { api } from '../lib/api';
+import { api } from "../lib/api";
 
 export interface SearchResult {
 	id: number;
 	title: string;
 	description?: string;
-	module: 'works' | 'photography' | 'directors' | 'starrings' | 'content';
+	module: "works" | "photography" | "directors" | "content";
 	type: string;
 	url: string;
 	createdAt: string;
@@ -28,7 +28,7 @@ export class SearchService {
 		});
 
 		if (modules && modules.length > 0) {
-			params.append('modules', modules.join(','));
+			params.append("modules", modules.join(","));
 		}
 
 		const response = await api.get(`/search/global?${params.toString()}`);

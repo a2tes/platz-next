@@ -541,9 +541,6 @@ export class BlockPageService {
 								orderBy: { sortOrder: "asc" },
 								include: { director: true },
 							},
-							starrings: {
-								include: { starring: true },
-							},
 						},
 					})
 				: [],
@@ -583,10 +580,6 @@ export class BlockPageService {
 						client: w.client || "",
 
 						shortDescription: w.shortDescription || "",
-						starring: (w.starrings as any[])
-							.map((ws: any) => ws.starring?.title)
-							.filter(Boolean)
-							.join(", "),
 						directors: (w.directors as any[])
 							.filter((wd: any) => wd.director?.status !== "DRAFT")
 							.map((wd: any) => ({

@@ -68,37 +68,6 @@ export interface DirectorWorkLink {
 	};
 }
 
-export interface Starring {
-	id: number;
-	title: string;
-	slug: string;
-	shortDescription: string;
-	biography: string;
-	avatarId?: number;
-	avatar?: MediaFile;
-	status: "DRAFT" | "PUBLISHED";
-	publishedAt?: string;
-	createdBy?: number;
-	creator?: {
-		id: number;
-		name: string;
-		email: string;
-	};
-	createdAt: string;
-	updatedAt: string;
-	_count?: {
-		works: number;
-		photography: number;
-	};
-	works?: Array<{
-		work: {
-			id: number;
-			title: string;
-			status: "DRAFT" | "PUBLISHED";
-		};
-	}>;
-}
-
 export interface Work {
 	id: number;
 	title: string;
@@ -129,9 +98,6 @@ export interface Work {
 	directors: Array<{
 		director: Director;
 	}>;
-	starrings: Array<{
-		starring: Starring;
-	}>;
 	clients?: Array<{
 		client: { id: number; name: string; slug: string };
 	}>;
@@ -156,7 +122,6 @@ export interface CreateWorkData {
 	previewImageId?: number;
 	status: "DRAFT" | "PUBLISHED";
 	directorIds: number[];
-	starringIds: number[];
 	clientIds?: number[];
 	disciplineIds?: number[];
 	sectorIds?: number[];
@@ -175,7 +140,6 @@ export interface UpdateWorkData {
 	previewImageId?: number;
 	status?: "DRAFT" | "PUBLISHED";
 	directorIds?: number[];
-	starringIds?: number[];
 	clientIds?: number[];
 	disciplineIds?: number[];
 	sectorIds?: number[];
@@ -205,22 +169,6 @@ export interface UpdateDirectorData {
 	metaDescription?: string;
 	metaKeywords?: string;
 	status?: "DRAFT" | "PUBLISHED" | "UNLISTED";
-}
-
-export interface CreateStarringData {
-	title: string;
-	slug?: string;
-	shortDescription?: string;
-	biography?: string;
-	avatarId?: number;
-}
-
-export interface UpdateStarringData {
-	title?: string;
-	slug?: string;
-	shortDescription?: string;
-	biography?: string;
-	avatarId?: number;
 }
 
 export interface PaginatedResponse<T> {
@@ -528,86 +476,6 @@ export class WorksService {
 		await api.patch(`/api/works/directors/${id}/unpublish`);
 	}
 
-	// Starrings API methods
-	static async createStarring(data: CreateStarringData): Promise<Starring> {
-		const response = await api.post<ApiResponse<Starring>>("/api/works/starrings", data);
-		return response.data.data;
-	}
-
-	static async getStarrings(
-		params: {
-			page?: number;
-			limit?: number;
-			search?: string;
-			sortBy?: "title" | "createdAt" | "updatedAt";
-			sortOrder?: "asc" | "desc";
-			status?: "DRAFT" | "PUBLISHED";
-			mine?: boolean;
-		} = {},
-	): Promise<PaginatedResponse<Starring>> {
-		const searchParams = new URLSearchParams();
-
-		if (params.page) searchParams.append("page", params.page.toString());
-		if (params.limit) searchParams.append("limit", params.limit.toString());
-		if (params.search) searchParams.append("search", params.search);
-		if (params.sortBy) searchParams.append("sortBy", params.sortBy);
-		if (params.sortOrder) searchParams.append("sortOrder", params.sortOrder);
-		if (params.status) searchParams.append("status", params.status);
-		if (params.mine) searchParams.append("mine", "true");
-
-		const response = await api.get<PaginatedResponse<Starring>>(`/api/works/starrings?${searchParams}`);
-		return response.data;
-	}
-
-	static async getStarring(id: number): Promise<Starring> {
-		const response = await api.get<ApiResponse<Starring>>(`/api/works/starrings/${id}`);
-		return response.data.data;
-	}
-
-	static async updateStarring(id: number, data: UpdateStarringData): Promise<Starring> {
-		const response = await api.put<ApiResponse<Starring>>(`/api/works/starrings/${id}`, data);
-		return response.data.data;
-	}
-
-	static async deleteStarring(id: number): Promise<void> {
-		await api.delete(`/api/works/starrings/${id}`);
-	}
-
-	// Bulk operations - Starrings
-	static async bulkDeleteStarrings(ids: number[]): Promise<void> {
-		try {
-			await api.post(`/api/works/starrings/bulk/delete`, { ids });
-		} catch (err: unknown) {
-			const e = err as { response?: { status?: number } };
-			if (e?.response?.status === 404) {
-				await Promise.all(ids.map((id) => this.deleteStarring(id)));
-				return;
-			}
-			throw err;
-		}
-	}
-
-	static async bulkPurgeStarrings(ids: number[]): Promise<void> {
-		try {
-			await api.post(`/api/works/starrings/bulk/purge`, { ids });
-		} catch (err: unknown) {
-			const e = err as { response?: { status?: number } };
-			if (e?.response?.status === 404) {
-				await Promise.all(ids.map((id) => this.purgeStarring(id)));
-				return;
-			}
-			throw err;
-		}
-	}
-
-	static async publishStarring(id: number): Promise<void> {
-		await api.patch(`/api/works/starrings/${id}/publish`);
-	}
-
-	static async unpublishStarring(id: number): Promise<void> {
-		await api.patch(`/api/works/starrings/${id}/unpublish`);
-	}
-
 	// Trash methods for Works
 	static async getTrashedWorks(
 		params: {
@@ -668,38 +536,6 @@ export class WorksService {
 
 	static async getDirectorsCounts(): Promise<WorksCounts> {
 		const response = await api.get<ApiResponse<WorksCounts>>("/api/works/directors/counts");
-		return response.data.data;
-	}
-
-	// Trash methods for Starrings
-	static async getTrashedStarrings(
-		params: {
-			page?: number;
-			limit?: number;
-			search?: string;
-		} = {},
-	): Promise<PaginatedResponse<Starring>> {
-		const searchParams = new URLSearchParams();
-
-		if (params.page) searchParams.append("page", params.page.toString());
-		if (params.limit) searchParams.append("limit", params.limit.toString());
-		if (params.search) searchParams.append("search", params.search);
-
-		const response = await api.get<PaginatedResponse<Starring>>(`/api/works/starrings/trash?${searchParams}`);
-		return response.data;
-	}
-
-	static async restoreStarring(id: number): Promise<Starring> {
-		const response = await api.post<ApiResponse<Starring>>(`/api/works/starrings/${id}/restore`);
-		return response.data.data;
-	}
-
-	static async purgeStarring(id: number): Promise<void> {
-		await api.post(`/api/works/starrings/${id}/purge`);
-	}
-
-	static async getStarringsCounts(): Promise<WorksCounts> {
-		const response = await api.get<ApiResponse<WorksCounts>>("/api/works/starrings/counts");
 		return response.data.data;
 	}
 

@@ -437,7 +437,6 @@ export function ImagesManager({
 				photographerId: parentType === "photographer" ? parentId : undefined,
 				categoryIds: parentType === "category" ? [parentId] : commonValues.categoryIds,
 				clientIds: commonValues.clientIds,
-				starringIds: commonValues.starringIds,
 				items,
 			});
 

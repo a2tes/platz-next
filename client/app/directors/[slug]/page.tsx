@@ -41,10 +41,6 @@ interface Work {
 		large: string;
 		original: string;
 	} | null;
-	starrings?: Array<{
-		title: string;
-		slug: string;
-	}>;
 }
 
 interface DirectorWork {
@@ -191,7 +187,6 @@ function DirectorContent() {
 		client: work.client || "",
 
 		shortDescription: work.shortDescription || "",
-		starring: work.starrings?.map((s) => s.title).join(", ") || "",
 		directors: [{ title: directorTitle, slug: directorSlug }],
 		videoUrl: work.videoUrl720p || work.videoUrl || "",
 		previewVideoUrl: work.previewVideoUrl || "",
@@ -219,7 +214,6 @@ function DirectorContent() {
 			client: item.work.client,
 
 			shortDescription: item.work.shortDescription,
-			starring: item.work.starring,
 			directors: item.work.directors,
 			videoUrl: item.work.videoUrl || "",
 			videoThumbnailUrl: item.work.thumbnail || "",

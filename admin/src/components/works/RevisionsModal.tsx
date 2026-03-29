@@ -1,12 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IconX, IconColumns, IconList } from "@tabler/icons-react";
@@ -37,18 +32,12 @@ function formatFieldName(field: string): string {
 		sortOrder: "Sort Order",
 		publishedAt: "Published At",
 		directorIds: "Directors",
-		starringIds: "Cast",
 	};
 	return fieldNameMap[field] || field;
 }
 
 // Helper to format field values
-function formatFieldValue(
-	value: unknown,
-	fieldName: string,
-	work?: Work,
-	payload?: Record<string, unknown>
-): string {
+function formatFieldValue(value: unknown, fieldName: string, work?: Work, payload?: Record<string, unknown>): string {
 	if (value === null || value === undefined) return "—";
 
 	// Handle media file IDs - first check payload for *Name fields, then fall back to work object
@@ -81,30 +70,8 @@ function formatFieldValue(
 			if (work?.directors) {
 				const titles = value
 					.map((id) => {
-						const director = work.directors.find(
-							(d) => d.director.id === Number(id)
-						);
+						const director = work.directors.find((d) => d.director.id === Number(id));
 						return director?.director.title;
-					})
-					.filter(Boolean);
-				return titles.length > 0 ? titles.join(", ") : "—";
-			}
-			return "—";
-		}
-
-		// Handle starringIds - first check payload for starringNames, then fall back to work object
-		if (fieldName === "starringIds") {
-			const namesFromPayload = payload?.["starringNames"];
-			if (Array.isArray(namesFromPayload) && namesFromPayload.length > 0) {
-				return namesFromPayload.join(", ");
-			}
-			if (work?.starrings) {
-				const titles = value
-					.map((id) => {
-						const starring = work.starrings.find(
-							(s) => s.starring.id === Number(id)
-						);
-						return starring?.starring.title;
 					})
 					.filter(Boolean);
 				return titles.length > 0 ? titles.join(", ") : "—";
@@ -117,9 +84,7 @@ function formatFieldValue(
 			// Check if items have originalName property
 			const items = value as Array<{ originalName?: string; id?: number }>;
 			if (items[0]?.originalName) {
-				return items
-					.map((item) => item.originalName || `Item ${item.id}`)
-					.join(", ");
+				return items.map((item) => item.originalName || `Item ${item.id}`).join(", ");
 			}
 			// Just show count for other complex objects
 			return `${value.length} item${value.length > 1 ? "s" : ""}`;
@@ -132,25 +97,15 @@ function formatFieldValue(
 	return String(value);
 }
 
-export function RevisionsModal({
-	open,
-	onOpenChange,
-	revisions,
-	work,
-	onRevert,
-	isLoading,
-}: RevisionsModalProps) {
-	const [selectedRevisionId, setSelectedRevisionId] = React.useState<
-		number | null
-	>(null);
+export function RevisionsModal({ open, onOpenChange, revisions, work, onRevert, isLoading }: RevisionsModalProps) {
+	const [selectedRevisionId, setSelectedRevisionId] = React.useState<number | null>(null);
 	const [compareMode, setCompareMode] = React.useState(false);
 
 	// Include all revisions including V0 (Initial State)
 	const visibleRevisions = revisions;
 
 	// Find the latest (current) revision - the one with highest version number
-	const latestRevision =
-		visibleRevisions.length > 0 ? visibleRevisions[0] : null;
+	const latestRevision = visibleRevisions.length > 0 ? visibleRevisions[0] : null;
 
 	// Auto-select the latest revision when modal opens
 	React.useEffect(() => {
@@ -168,16 +123,9 @@ export function RevisionsModal({
 		}
 	}, [open]);
 
-	const selectedRevision = selectedRevisionId
-		? visibleRevisions.find((r) => r.id === selectedRevisionId)
-		: null;
-	const selectedIndex = selectedRevision
-		? visibleRevisions.findIndex((r) => r.id === selectedRevisionId)
-		: -1;
-	const previousRevision =
-		selectedIndex < visibleRevisions.length - 1
-			? visibleRevisions[selectedIndex + 1]
-			: null;
+	const selectedRevision = selectedRevisionId ? visibleRevisions.find((r) => r.id === selectedRevisionId) : null;
+	const selectedIndex = selectedRevision ? visibleRevisions.findIndex((r) => r.id === selectedRevisionId) : -1;
+	const previousRevision = selectedIndex < visibleRevisions.length - 1 ? visibleRevisions[selectedIndex + 1] : null;
 
 	// If no previousRevision in visible list, check if V0 exists in original revisions
 	const v0Revision = revisions.find((r) => r.version === 0);
@@ -210,12 +158,7 @@ export function RevisionsModal({
 									</Button>
 								</>
 							)}
-							<Button
-								size="sm"
-								variant="ghost"
-								onClick={() => onOpenChange(false)}
-								className="h-8 w-8 p-0"
-							>
+							<Button size="sm" variant="ghost" onClick={() => onOpenChange(false)} className="h-8 w-8 p-0">
 								<IconX className="h-4 w-4" />
 							</Button>
 						</div>
@@ -225,9 +168,7 @@ export function RevisionsModal({
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
 					{/* List of revisions */}
 					<div className="lg:col-span-1 border-r pr-4 max-h-[60vh] overflow-y-auto">
-						<p className="text-xs font-semibold text-muted-foreground mb-3 uppercase">
-							Versions
-						</p>
+						<p className="text-xs font-semibold text-muted-foreground mb-3 uppercase">Versions</p>
 						<div className="space-y-2">
 							{visibleRevisions.map((revision) => (
 								<button
@@ -238,16 +179,12 @@ export function RevisionsModal({
 										setCompareMode(revision.version !== 0);
 									}}
 									className={`w-full text-left p-2 rounded-md transition-colors text-sm ${
-										selectedRevisionId === revision.id
-											? "bg-primary text-primary-foreground"
-											: "hover:bg-muted"
+										selectedRevisionId === revision.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
 									}`}
 								>
 									<div className="flex items-center justify-between">
 										<span className="font-medium">
-											{revision.version === 0
-												? "Initial State"
-												: `Version ${revision.version}`}
+											{revision.version === 0 ? "Initial State" : `Version ${revision.version}`}
 										</span>
 										{latestRevision && revision.id === latestRevision.id && (
 											<Badge variant="default" className="bg-green-600 text-xs">
@@ -255,17 +192,11 @@ export function RevisionsModal({
 											</Badge>
 										)}
 									</div>
-									<p className="text-xs text-muted-foreground mt-1">
-										{getTimeAgo(revision.createdAt)}
-									</p>
+									<p className="text-xs text-muted-foreground mt-1">{getTimeAgo(revision.createdAt)}</p>
 									{revision.revertedFromId && (
 										<p className="text-xs text-muted-foreground mt-1 italic">
 											Reverted from Version&nbsp;
-											{
-												visibleRevisions.find(
-													(r) => r.id === revision.revertedFromId
-												)?.version
-											}
+											{visibleRevisions.find((r) => r.id === revision.revertedFromId)?.version}
 										</p>
 									)}
 								</button>
@@ -276,9 +207,7 @@ export function RevisionsModal({
 					{/* Content area */}
 					<div className="lg:col-span-2 max-h-[60vh] overflow-y-auto">
 						{!selectedRevision ? (
-							<p className="text-sm text-muted-foreground text-center py-8">
-								Select a version to view details
-							</p>
+							<p className="text-sm text-muted-foreground text-center py-8">Select a version to view details</p>
 						) : compareMode && selectedRevision.version !== 0 ? (
 							// Compare View
 							<div className="space-y-4">
@@ -290,8 +219,8 @@ export function RevisionsModal({
 												{effectivePreviousRevision?.version === 0
 													? "Initial State"
 													: effectivePreviousRevision
-													? `Version ${effectivePreviousRevision.version}`
-													: "Initial State"}
+														? `Version ${effectivePreviousRevision.version}`
+														: "Initial State"}
 											</p>
 											{effectivePreviousRevision && (
 												<>
@@ -299,9 +228,7 @@ export function RevisionsModal({
 														{getTimeAgo(effectivePreviousRevision.createdAt)}
 													</p>
 													{effectivePreviousRevision.user && (
-														<p className="text-xs text-muted-foreground mt-1">
-															by {effectivePreviousRevision.user}
-														</p>
+														<p className="text-xs text-muted-foreground mt-1">by {effectivePreviousRevision.user}</p>
 													)}
 												</>
 											)}
@@ -316,22 +243,13 @@ export function RevisionsModal({
 												{selectedRevision.revertedFromId && (
 													<span className="ml-2 text-muted-foreground font-normal italic">
 														(reverted from Ver.
-														{
-															visibleRevisions.find(
-																(r) => r.id === selectedRevision.revertedFromId
-															)?.version
-														}
-														)
+														{visibleRevisions.find((r) => r.id === selectedRevision.revertedFromId)?.version})
 													</span>
 												)}
 											</p>
-											<p className="text-xs text-muted-foreground">
-												{getTimeAgo(selectedRevision.createdAt)}
-											</p>
+											<p className="text-xs text-muted-foreground">{getTimeAgo(selectedRevision.createdAt)}</p>
 											{selectedRevision.user && (
-												<p className="text-xs text-muted-foreground mt-1">
-													by {selectedRevision.user}
-												</p>
+												<p className="text-xs text-muted-foreground mt-1">by {selectedRevision.user}</p>
 											)}
 										</div>
 									</div>
@@ -341,8 +259,7 @@ export function RevisionsModal({
 								<div className="border rounded-lg overflow-hidden">
 									{(() => {
 										const currentPayload =
-											typeof selectedRevision.payload === "object" &&
-											selectedRevision.payload
+											typeof selectedRevision.payload === "object" && selectedRevision.payload
 												? selectedRevision.payload
 												: {};
 										const previousPayload =
@@ -353,37 +270,25 @@ export function RevisionsModal({
 												: {};
 
 										// Get all unique keys from both payloads
-										const allKeys = new Set([
-											...Object.keys(currentPayload),
-											...Object.keys(previousPayload),
-										]);
+										const allKeys = new Set([...Object.keys(currentPayload), ...Object.keys(previousPayload)]);
 
 										const changes = Array.from(allKeys)
 											.filter(
 												(key) =>
 													// Filter out *Name fields as they're used internally for display
-													!key.endsWith("Name") && !key.endsWith("Names")
+													!key.endsWith("Name") && !key.endsWith("Names"),
 											)
 											.map((key) => {
-												const newValue = (
-													currentPayload as Record<string, unknown>
-												)[key];
-												const oldValue = (
-													previousPayload as Record<string, unknown>
-												)[key];
-												const hasChanged =
-													JSON.stringify(oldValue) !== JSON.stringify(newValue);
+												const newValue = (currentPayload as Record<string, unknown>)[key];
+												const oldValue = (previousPayload as Record<string, unknown>)[key];
+												const hasChanged = JSON.stringify(oldValue) !== JSON.stringify(newValue);
 
 												return { key, newValue, oldValue, hasChanged };
 											})
 											.filter((item) => item.hasChanged);
 
 										if (changes.length === 0) {
-											return (
-												<p className="text-sm text-muted-foreground text-center py-4">
-													No changes detected
-												</p>
-											);
+											return <p className="text-sm text-muted-foreground text-center py-4">No changes detected</p>;
 										}
 
 										return changes.map((item) => (
@@ -400,21 +305,14 @@ export function RevisionsModal({
 															item.oldValue,
 															item.key,
 															work,
-															previousPayload as Record<string, unknown>
+															previousPayload as Record<string, unknown>,
 														)}
 													</p>
 												</div>
 												<div>
-													<p className="text-xs font-semibold text-muted-foreground mb-1">
-														→
-													</p>
+													<p className="text-xs font-semibold text-muted-foreground mb-1">→</p>
 													<p className="text-sm font-medium text-foreground">
-														{formatFieldValue(
-															item.newValue,
-															item.key,
-															work,
-															currentPayload as Record<string, unknown>
-														)}
+														{formatFieldValue(item.newValue, item.key, work, currentPayload as Record<string, unknown>)}
 													</p>
 												</div>
 											</div>
@@ -422,18 +320,17 @@ export function RevisionsModal({
 									})()}
 								</div>
 
-								{latestRevision &&
-									selectedRevision.id !== latestRevision.id && (
-										<Button
-											size="sm"
-											variant="outline"
-											onClick={() => onRevert(selectedRevision.id)}
-											disabled={isLoading}
-											className="w-full mt-4"
-										>
-											{isLoading ? "Reverting..." : `Revert to this version`}
-										</Button>
-									)}
+								{latestRevision && selectedRevision.id !== latestRevision.id && (
+									<Button
+										size="sm"
+										variant="outline"
+										onClick={() => onRevert(selectedRevision.id)}
+										disabled={isLoading}
+										className="w-full mt-4"
+									>
+										{isLoading ? "Reverting..." : `Revert to this version`}
+									</Button>
+								)}
 							</div>
 						) : (
 							// List View - Single revision details
@@ -441,43 +338,30 @@ export function RevisionsModal({
 								<div className="bg-muted/50 rounded-md p-3">
 									<div className="flex items-center gap-2 mb-2">
 										<span className="font-semibold">
-											{selectedRevision.version === 0
-												? "Initial Version"
-												: `Version ${selectedRevision.version}`}
+											{selectedRevision.version === 0 ? "Initial Version" : `Version ${selectedRevision.version}`}
 										</span>
-										{latestRevision &&
-											selectedRevision.id === latestRevision.id && (
-												<Badge variant="default" className="bg-green-600">
-													Current
-												</Badge>
-											)}
+										{latestRevision && selectedRevision.id === latestRevision.id && (
+											<Badge variant="default" className="bg-green-600">
+												Current
+											</Badge>
+										)}
 									</div>
 									{selectedRevision.revertedFromId && (
 										<p className="text-xs text-muted-foreground mb-2 italic">
 											Reverted from Version{" "}
-											{
-												visibleRevisions.find(
-													(r) => r.id === selectedRevision.revertedFromId
-												)?.version
-											}
+											{visibleRevisions.find((r) => r.id === selectedRevision.revertedFromId)?.version}
 										</p>
 									)}
-									<p className="text-sm text-muted-foreground">
-										{getTimeAgo(selectedRevision.createdAt)}
-									</p>
+									<p className="text-sm text-muted-foreground">{getTimeAgo(selectedRevision.createdAt)}</p>
 									{selectedRevision.user && (
-										<p className="text-xs text-muted-foreground mt-1">
-											by {selectedRevision.user}
-										</p>
+										<p className="text-xs text-muted-foreground mt-1">by {selectedRevision.user}</p>
 									)}
 								</div>
 
 								{selectedRevision.payload && (
 									<div className="border rounded-lg overflow-hidden">
 										<div className="bg-muted/50 p-3 border-b">
-											<p className="text-xs font-semibold uppercase">
-												Revision Data
-											</p>
+											<p className="text-xs font-semibold uppercase">Revision Data</p>
 										</div>
 										{typeof selectedRevision.payload === "object" &&
 											Object.entries(selectedRevision.payload)
@@ -503,7 +387,7 @@ export function RevisionsModal({
 														value,
 														key,
 														work,
-														selectedRevision.payload as Record<string, unknown>
+														selectedRevision.payload as Record<string, unknown>,
 													);
 													if (formatted === "—") {
 														return false;
@@ -511,14 +395,9 @@ export function RevisionsModal({
 													return true;
 												})
 												.map(([key, value]) => (
-													<div
-														key={key}
-														className="grid grid-cols-3 gap-4 p-3 border-b last:border-b-0"
-													>
+													<div key={key} className="grid grid-cols-3 gap-4 p-3 border-b last:border-b-0">
 														<div className="col-span-1">
-															<p className="text-xs font-semibold text-muted-foreground">
-																{formatFieldName(key)}
-															</p>
+															<p className="text-xs font-semibold text-muted-foreground">{formatFieldName(key)}</p>
 														</div>
 														<div className="col-span-2">
 															<p className="text-sm">
@@ -526,10 +405,7 @@ export function RevisionsModal({
 																	value,
 																	key,
 																	work,
-																	selectedRevision.payload as Record<
-																		string,
-																		unknown
-																	>
+																	selectedRevision.payload as Record<string, unknown>,
 																)}
 															</p>
 														</div>
@@ -538,18 +414,17 @@ export function RevisionsModal({
 									</div>
 								)}
 
-								{latestRevision &&
-									selectedRevision.id !== latestRevision.id && (
-										<Button
-											size="sm"
-											variant="outline"
-											onClick={() => onRevert(selectedRevision.id)}
-											disabled={isLoading}
-											className="w-full"
-										>
-											{isLoading ? "Reverting..." : `Revert to this version`}
-										</Button>
-									)}
+								{latestRevision && selectedRevision.id !== latestRevision.id && (
+									<Button
+										size="sm"
+										variant="outline"
+										onClick={() => onRevert(selectedRevision.id)}
+										disabled={isLoading}
+										className="w-full"
+									>
+										{isLoading ? "Reverting..." : `Revert to this version`}
+									</Button>
+								)}
 							</div>
 						)}
 					</div>

@@ -40,12 +40,6 @@ interface Work {
 			slug?: string;
 		};
 	}>;
-	starrings?: Array<{
-		starring: {
-			title: string;
-			slug: string;
-		};
-	}>;
 }
 
 export default function WorkDetailPage() {
@@ -96,7 +90,6 @@ export default function WorkDetailPage() {
 		slug: work.slug,
 		client: work.client || "",
 		shortDescription: work.shortDescription || "",
-		starring: work.starrings?.map((s) => s.starring.title).join(", ") || "",
 		directors:
 			work.directors?.map((d) => ({
 				title: d.director.title,

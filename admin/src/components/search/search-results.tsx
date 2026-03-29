@@ -2,12 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import {
-	IconBriefcase,
-	IconCamera,
-	IconUser,
-	IconFileText,
-} from "@tabler/icons-react";
+import { IconBriefcase, IconCamera, IconUser, IconFileText } from "@tabler/icons-react";
 import { SearchResult } from "@/services/searchService";
 import { Button } from "@/components/ui/button";
 
@@ -22,7 +17,6 @@ const moduleIcons = {
 	works: IconBriefcase,
 	photography: IconCamera,
 	directors: IconUser,
-	starrings: IconUser,
 	content: IconFileText,
 };
 
@@ -30,16 +24,10 @@ const moduleColors = {
 	works: "text-blue-600",
 	photography: "text-green-600",
 	directors: "text-purple-600",
-	starrings: "text-orange-600",
 	content: "text-gray-600",
 };
 
-export function SearchResults({
-	results,
-	query,
-	isLoading,
-	onResultClick,
-}: SearchResultsProps) {
+export function SearchResults({ results, query, isLoading, onResultClick }: SearchResultsProps) {
 	if (isLoading) {
 		return (
 			<div className="space-y-2">
@@ -56,12 +44,8 @@ export function SearchResults({
 	if (results.length === 0 && query) {
 		return (
 			<div className="text-center py-6">
-				<div className="text-muted-foreground">
-					No results found for &quot;{query}&quot;
-				</div>
-				<div className="text-sm text-muted-foreground mt-1">
-					Try searching with different keywords
-				</div>
+				<div className="text-muted-foreground">No results found for &quot;{query}&quot;</div>
+				<div className="text-sm text-muted-foreground mt-1">Try searching with different keywords</div>
 			</div>
 		);
 	}
@@ -75,21 +59,22 @@ export function SearchResults({
 	}
 
 	// Group results by module
-	const groupedResults = results.reduce((acc, result) => {
-		if (!acc[result.module]) {
-			acc[result.module] = [];
-		}
-		acc[result.module].push(result);
-		return acc;
-	}, {} as Record<string, SearchResult[]>);
+	const groupedResults = results.reduce(
+		(acc, result) => {
+			if (!acc[result.module]) {
+				acc[result.module] = [];
+			}
+			acc[result.module].push(result);
+			return acc;
+		},
+		{} as Record<string, SearchResult[]>,
+	);
 
 	return (
 		<div className="space-y-4">
 			{Object.entries(groupedResults).map(([module, moduleResults]) => {
-				const Icon =
-					moduleIcons[module as keyof typeof moduleIcons] || IconFileText;
-				const colorClass =
-					moduleColors[module as keyof typeof moduleColors] || "text-gray-600";
+				const Icon = moduleIcons[module as keyof typeof moduleIcons] || IconFileText;
+				const colorClass = moduleColors[module as keyof typeof moduleColors] || "text-gray-600";
 
 				return (
 					<div key={module} className="space-y-2">
@@ -107,20 +92,14 @@ export function SearchResults({
 									className="w-full justify-start h-auto p-3 text-left"
 									asChild
 								>
-									<Link
-										href={result.url}
-										onClick={() => onResultClick?.(result)}
-									>
+									<Link href={result.url} onClick={() => onResultClick?.(result)}>
 										<div className="space-y-1">
 											<div className="font-medium">{result.title}</div>
 											{result.description && (
-												<div className="text-sm text-muted-foreground line-clamp-2">
-													{result.description}
-												</div>
+												<div className="text-sm text-muted-foreground line-clamp-2">{result.description}</div>
 											)}
 											<div className="text-xs text-muted-foreground">
-												{result.type} • Updated{" "}
-												{new Date(result.updatedAt).toLocaleDateString()}
+												{result.type} • Updated {new Date(result.updatedAt).toLocaleDateString()}
 											</div>
 										</div>
 									</Link>

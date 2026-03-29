@@ -144,9 +144,7 @@ export class ActivityTimeHelpers {
 	/**
 	 * Get date range for common periods
 	 */
-	static getDateRange(
-		period: "today" | "yesterday" | "week" | "month" | "year"
-	): { start: Date; end: Date } {
+	static getDateRange(period: "today" | "yesterday" | "week" | "month" | "year"): { start: Date; end: Date } {
 		const now = new Date();
 		const start = new Date();
 		const end = new Date();
@@ -198,9 +196,7 @@ export class ActivityFormatHelpers {
 	 * Format activity description with user name and time
 	 */
 	static formatDescription(activity: any): string {
-		const timeAgo = ActivityTimeHelpers.getRelativeTime(
-			new Date(activity.createdAt)
-		);
+		const timeAgo = ActivityTimeHelpers.getRelativeTime(new Date(activity.createdAt));
 		const userName = activity.user?.name || "Unknown User";
 
 		switch (activity.action) {
@@ -286,8 +282,6 @@ export class ActivityFormatHelpers {
 				return "Work";
 			case "director":
 				return "Director";
-			case "starring":
-				return "Starring";
 			case "photography":
 				return "Photography";
 			case "photographer":
@@ -368,14 +362,7 @@ export class ActivitySearchHelpers {
 		const lowerQuery = query.toLowerCase();
 
 		// Module suggestions
-		const modules = [
-			"works",
-			"photography",
-			"media",
-			"homepage",
-			"content",
-			"users",
-		];
+		const modules = ["works", "photography", "media", "homepage", "content", "users"];
 		modules.forEach((module) => {
 			if (module.includes(lowerQuery)) {
 				suggestions.push(`module:${module}`);
@@ -383,15 +370,7 @@ export class ActivitySearchHelpers {
 		});
 
 		// Action suggestions
-		const actions = [
-			"create",
-			"update",
-			"delete",
-			"publish",
-			"unpublish",
-			"upload",
-			"move",
-		];
+		const actions = ["create", "update", "delete", "publish", "unpublish", "upload", "move"];
 		actions.forEach((action) => {
 			if (action.includes(lowerQuery)) {
 				suggestions.push(`action:${action}`);
@@ -399,16 +378,7 @@ export class ActivitySearchHelpers {
 		});
 
 		// Type suggestions
-		const types = [
-			"work",
-			"director",
-			"starring",
-			"photography",
-			"photographer",
-			"file",
-			"folder",
-			"page",
-		];
+		const types = ["work", "director", "photography", "photographer", "file", "folder", "page"];
 		types.forEach((type) => {
 			if (type.includes(lowerQuery)) {
 				suggestions.push(`type:${type}`);
