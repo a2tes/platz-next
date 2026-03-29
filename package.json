@@ -1,0 +1,17 @@
+{
+	"name": "platz",
+	"private": true,
+	"packageManager": "pnpm@9.15.4",
+	"scripts": {
+		"dev": "pnpm --parallel --filter api --filter admin --filter client run dev",
+		"dev:api": "pnpm --filter api dev",
+		"dev:admin": "pnpm --filter admin dev",
+		"dev:client": "pnpm --filter client dev",
+		"build": "pnpm run build:api && pnpm run build:admin && pnpm run build:client",
+		"build:api": "pnpm --filter api build",
+		"build:admin": "pnpm --filter admin build",
+		"build:client": "pnpm --filter client build",
+		"clean": "rm -rf node_modules admin/node_modules api/node_modules client/node_modules packages/shared/node_modules",
+		"clean:build": "rm -rf admin/.next client/.next api/dist"
+	}
+}

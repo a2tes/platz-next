@@ -1,0 +1,26 @@
+-- AlterTable
+ALTER TABLE `content_pages` MODIFY `status` ENUM('DRAFT', 'PUBLISHED', 'UNLISTED') NOT NULL DEFAULT 'DRAFT';
+
+-- AlterTable
+ALTER TABLE `directors` MODIFY `status` ENUM('DRAFT', 'PUBLISHED', 'UNLISTED') NOT NULL DEFAULT 'DRAFT';
+
+-- AlterTable
+ALTER TABLE `mediables` ALTER COLUMN `updated_at` DROP DEFAULT;
+
+-- AlterTable
+ALTER TABLE `photo_categories` MODIFY `status` ENUM('DRAFT', 'PUBLISHED', 'UNLISTED') NOT NULL DEFAULT 'DRAFT';
+
+-- AlterTable
+ALTER TABLE `photographers` MODIFY `status` ENUM('DRAFT', 'PUBLISHED', 'UNLISTED') NOT NULL DEFAULT 'DRAFT';
+
+-- AlterTable
+ALTER TABLE `photography` MODIFY `status` ENUM('DRAFT', 'PUBLISHED', 'UNLISTED') NOT NULL DEFAULT 'DRAFT';
+
+-- AlterTable
+ALTER TABLE `starrings` MODIFY `status` ENUM('DRAFT', 'PUBLISHED', 'UNLISTED') NOT NULL DEFAULT 'DRAFT';
+
+-- AlterTable
+ALTER TABLE `users` MODIFY `status` ENUM('DRAFT', 'PUBLISHED', 'UNLISTED') NOT NULL DEFAULT 'PUBLISHED';
+
+-- AlterTable
+ALTER TABLE `works` MODIFY `status` ENUM('DRAFT', 'PUBLISHED', 'UNLISTED') NOT NULL DEFAULT 'DRAFT';

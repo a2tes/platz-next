@@ -1,0 +1,45 @@
+{
+	"name": "@platz/shared",
+	"version": "0.0.1",
+	"private": true,
+	"main": "./dist/index.js",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		},
+		"./components": {
+			"import": "./dist/components/index.mjs",
+			"require": "./dist/components/index.js",
+			"types": "./dist/components/index.d.ts"
+		},
+		"./types": {
+			"import": "./dist/types/index.mjs",
+			"require": "./dist/types/index.js",
+			"types": "./dist/types/index.d.ts"
+		}
+	},
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"lint": "eslint src/",
+		"typecheck": "tsc --noEmit"
+	},
+	"peerDependencies": {
+		"react": "^18.0.0 || ^19.0.0",
+		"react-dom": "^18.0.0 || ^19.0.0"
+	},
+	"devDependencies": {
+		"@types/react": "^18.2.0",
+		"@types/react-dom": "^18.2.0",
+		"tsup": "^8.0.0",
+		"typescript": "^5.0.0"
+	},
+	"dependencies": {
+		"clsx": "^2.0.0",
+		"tailwind-merge": "^2.0.0"
+	}
+}

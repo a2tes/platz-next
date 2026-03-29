@@ -1,0 +1,984 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  name          String
+  status        Status    @default(PUBLISHED)
+  role          UserRole  @default(EDITOR)
+  rememberToken String?   @map("remember_token")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+  purgedAt      DateTime? @map("purged_at")
+
+  // Relations
+  activities           Activity[]
+  sessions             Session[]
+  revisions            WorkRevision[]
+  animationRevisions   AnimationRevision[]
+  createdWorks         Work[]          @relation("WorkCreatedBy")
+  createdAnimations    Animation[]     @relation("AnimationCreatedBy")
+  createdDirectors     Director[]      @relation("DirectorCreatedBy")
+  createdStarrings     Starring[]      @relation("StarringCreatedBy")
+  createdPhotographers Photographer[]  @relation("PhotographerCreatedBy")
+  createdPhotoCategories PhotoCategory[] @relation("PhotoCategoryCreatedBy")
+  createdContentPages   ContentPage[]    @relation("ContentPageCreatedBy")
+  createdPresentations  Presentation[]   @relation("PresentationCreatedBy")
+  createdClients        Client[]         @relation("ClientCreatedBy")
+  createdAgencies       Agency[]         @relation("AgencyCreatedBy")
+
+  @@map("users")
+}
+
+model MediaFile {
+  id           Int       @id @default(autoincrement())
+  filename     String
+  originalName String    @map("original_name")
+  mimeType     String    @map("mime_type")
+  size         BigInt
+  uuid         String    @unique // UUID with format: 87083e35-ed09-4199-a209-229b6cee9390/filename.jpg
+  altText      String?   @map("alt_text")
+  thumbnailTime Float?   @map("thumbnail_time") // Time in seconds for video thumbnail
+  thumbnailPath String?  @map("thumbnail_path") // Path to generated thumbnail image (e.g., uuid/thumbnail-123456.jpg)
+  folderId     Int?      @map("folder_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+  purgedAt     DateTime? @map("purged_at")
+
+  // Video processing fields
+  processingStatus      String?   @map("processing_status") // pending, processing, completed, failed
+  processingError       String?   @map("processing_error") @db.Text
+  processingJobId       String?   @map("processing_job_id") // MediaConvert job ID
+  hlsUrl                String?   @map("hls_url") // master.m3u8 URL
+  optimizedVideoUrl     String?   @map("optimized_video_url") // Primary optimized video (1080p)
+  optimizedUrls         Json?     @map("optimized_urls") // { "1080p": "...", "720p": "...", "480p": "..." }
+  processingStartedAt   DateTime? @map("processing_started_at")
+  processingCompletedAt DateTime? @map("processing_completed_at")
+  originalDeletedAt     DateTime? @map("original_deleted_at") // When original file was deleted from S3
+  metadata              Json?     @map("metadata") // Video/image metadata: { width, height, duration, fps, codec }
+
+  // Relations
+  folder                   MediaFolder?   @relation(fields: [folderId], references: [id])
+  worksVideoFile           Work[]         @relation("WorkVideoFile")
+  worksPreviewImage        Work[]         @relation("WorkPreviewImage")
+  animationsVideoFile      Animation[]    @relation("AnimationVideoFile")
+  animationsPreviewImage   Animation[]    @relation("AnimationPreviewImage")
+  directorsAvatar          Director[]     @relation("DirectorAvatar")
+  directorsOgImage         Director[]     @relation("DirectorOgImage")
+  directorsHeroMedia       Director[]     @relation("DirectorHeroMedia")
+  starringsAvatar          Starring[]     @relation("StarringAvatar")
+  photographyImage         Photography[]  @relation("PhotographyImage")
+  photographyPreviewImage  Photography[]  @relation("PhotographyPreviewImage")
+  photographersAvatar      Photographer[] @relation("PhotographerAvatar")
+  photographersCoverImage  Photographer[] @relation("PhotographerCoverImage")
+  photographersPreviewImage Photographer[] @relation("PhotographerPreviewImage")
+  contentPagesPreviewImage ContentPage[]  @relation("ContentPagePreviewImage")
+  pageSeoOgImages          PageSeo[]      @relation("PageSeoOgImage")
+  photoCategoriesOgImage   PhotoCategory[] @relation("PhotoCategoryOgImage")
+  mediables               Mediable[]
+  clipJobs                ClipJob[]      // Clip processing jobs using this video as source
+  presentationItemExternalThumbnails PresentationItem[] @relation("PresentationItemExternalThumbnail")
+
+  @@map("media_files")
+}
+
+model MediaFolder {
+  id        Int       @id @default(autoincrement())
+  name      String
+  parentId  Int?      @map("parent_id")
+  path      String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  purgedAt  DateTime? @map("purged_at")
+
+  // Relations
+  parent   MediaFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children MediaFolder[] @relation("FolderHierarchy")
+  files    MediaFile[]
+
+  @@map("media_folders")
+}
+
+model Work {
+  id               Int       @id @default(autoincrement())
+  title            String
+  slug             String    @unique
+  shortDescription String?   @map("short_description") @db.Text
+  // @deprecated - Use WorkClient junction table instead
+  client           String?   @map("client_legacy")
+  // @deprecated - Use WorkAgency junction table instead  
+  agency           String?   @map("agency_legacy")
+  tags             Json
+  videoFileId      Int?      @map("video_file_id")
+  metaDescription  String?   @map("meta_description") @db.Text
+  metaKeywords     String?   @map("meta_keywords") @db.Text
+  previewImageId   Int?      @map("preview_image_id")
+  status           Status    @default(DRAFT)
+  sortOrder        Int       @default(0) @map("sort_order")
+  createdBy        Int?      @map("created_by")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  publishedAt      DateTime? @map("published_at")
+  deletedAt        DateTime? @map("deleted_at")
+  purgedAt         DateTime? @map("purged_at")
+
+  // Relations
+  creator           User?              @relation("WorkCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  videoFile         MediaFile?         @relation("WorkVideoFile", fields: [videoFileId], references: [id])
+  previewImage      MediaFile?         @relation("WorkPreviewImage", fields: [previewImageId], references: [id])
+  directors         WorkDirector[]
+  starrings         WorkStarring[]
+  clients           WorkClient[]
+  agencies          WorkAgency[]
+  homepageDirectors HomepageDirector[]
+  directorsPageSelections DirectorsPageSelection[]
+  revisions         WorkRevision[]
+  presentationDirectorWorks PresentationDirectorWork[]
+  presentationItems PresentationItem[]
+  clipJobs          ClipJob[]
+  heroForDirectors  Director[]         @relation("DirectorHeroWork")
+
+  @@map("works")
+}
+
+model WorkRevision {
+  id             Int      @id @default(autoincrement())
+  workId         Int      @map("work_id")
+  userId         Int?     @map("user_id")
+  version        Int      @default(1)
+  payload        Json     @db.Json
+  revertedFromId Int?     @map("reverted_from_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  work         Work           @relation(fields: [workId], references: [id], onDelete: Cascade)
+  user         User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  revertedFrom WorkRevision?  @relation("RevisionRevert", fields: [revertedFromId], references: [id], onDelete: SetNull)
+  revertedTo   WorkRevision[] @relation("RevisionRevert")
+
+  @@index([workId])
+  @@index([workId, version(Sort.Desc)])
+  @@map("work_revisions")
+}
+
+model Director {
+  id               Int       @id @default(autoincrement())
+  title            String
+  slug             String    @unique
+  shortDescription String?   @map("short_description") @db.Text
+  biography        String?   @db.Text
+  links            Json?
+  avatarId         Int?      @map("avatar_id")
+  ogImageId        Int?      @map("og_image_id")
+  heroWorkId       Int?      @map("hero_work_id")
+  heroMediaId      Int?      @map("hero_media_id")
+  heroVideo        Json?     @map("hero_video")
+  metaDescription  String?   @map("meta_description") @db.Text
+  metaKeywords     String?   @map("meta_keywords") @db.Text
+  status           Status    @default(DRAFT)
+  createdBy        Int?      @map("created_by")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  publishedAt      DateTime? @map("published_at")
+  deletedAt        DateTime? @map("deleted_at")
+  purgedAt         DateTime? @map("purged_at")
+
+  // Relations
+  avatar            MediaFile?         @relation("DirectorAvatar", fields: [avatarId], references: [id])
+  ogImage           MediaFile?         @relation("DirectorOgImage", fields: [ogImageId], references: [id])
+  heroWork          Work?              @relation("DirectorHeroWork", fields: [heroWorkId], references: [id], onDelete: SetNull)
+  heroMedia         MediaFile?         @relation("DirectorHeroMedia", fields: [heroMediaId], references: [id])
+  creator           User?              @relation("DirectorCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  works             WorkDirector[]
+  homepageDirectors HomepageDirector[]
+  directorsPageSelection DirectorsPageSelection?
+  presentationDirectors PresentationDirector[]
+  presentationItems     PresentationItem[] @relation("PresentationItemDirector")
+
+  @@map("directors")
+}
+
+model Starring {
+  id               Int       @id @default(autoincrement())
+  title            String
+  slug             String    @unique
+  shortDescription String?   @map("short_description") @db.Text
+  biography        String?   @db.Text
+  avatarId         Int?      @map("avatar_id")
+  status           Status    @default(DRAFT)
+  publishedAt      DateTime? @map("published_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+  purgedAt         DateTime? @map("purged_at")
+  createdBy        Int?      @map("created_by")
+
+  // Relations
+  avatar MediaFile?     @relation("StarringAvatar", fields: [avatarId], references: [id])
+  creator User?              @relation("StarringCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  works  WorkStarring[]
+  photography PhotographyStarring[]
+
+  @@map("starrings")
+}
+
+model WorkDirector {
+  workId     Int @map("work_id")
+  directorId Int @map("director_id")
+  sortOrder  Int @default(0) @map("sort_order")
+
+  // Relations
+  work     Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  director Director @relation(fields: [directorId], references: [id], onDelete: Cascade)
+
+  @@id([workId, directorId])
+  @@map("work_directors")
+}
+
+model WorkStarring {
+  workId     Int @map("work_id")
+  starringId Int @map("starring_id")
+
+  // Relations
+  work     Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  starring Starring @relation(fields: [starringId], references: [id], onDelete: Cascade)
+
+  @@id([workId, starringId])
+  @@map("work_starrings")
+}
+
+model Photography {
+  id              Int       @id @default(autoincrement())
+  title           String
+  slug            String?   @unique
+  description     String?   @db.Text
+  imageId         Int       @map("image_id")
+  photographerId  Int       @map("photographer_id")
+  // @deprecated - Use PhotographyClient junction table instead
+  client          String?   @map("client_legacy")
+  // @deprecated - Use PhotographyAgency junction table instead
+  agency          String?   @map("agency_legacy")
+  year            Int?
+  location        String?
+  metaDescription String?   @map("meta_description") @db.Text
+  metaKeywords    String?   @map("meta_keywords") @db.Text
+  previewImageId  Int?      @map("preview_image_id")
+  status          Status    @default(DRAFT)
+  sortOrder       Int       @default(0) @map("sort_order")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  publishedAt     DateTime? @map("published_at")
+  deletedAt       DateTime? @map("deleted_at")
+  purgedAt        DateTime? @map("purged_at")
+
+  // Relations
+  image        MediaFile     @relation("PhotographyImage", fields: [imageId], references: [id])
+  photographer Photographer  @relation(fields: [photographerId], references: [id])
+  previewImage MediaFile?    @relation("PhotographyPreviewImage", fields: [previewImageId], references: [id])
+  clients           PhotographyClient[]
+  agencies          PhotographyAgency[]
+  starrings         PhotographyStarring[]
+  categories        PhotographyCategory[]
+  presentationItems PresentationItem[]
+
+  @@map("photography")
+}
+
+model Photographer {
+  id              Int       @id @default(autoincrement())
+  title           String
+  slug            String    @unique
+  bio             String?   @db.Text // EditorJS content stored as JSON string
+  avatarId        Int?      @map("avatar_id")
+  coverImageId    Int?      @map("cover_image_id")
+  previewImageId  Int?      @map("preview_image_id")
+  groupByClient   Boolean   @default(true) @map("group_by_client") // Presentation style: true = Client Groups, false = Single Feed
+  tags            Json      @default("[]")
+  metaDescription String?   @map("meta_description") @db.Text
+  metaKeywords    String?   @map("meta_keywords") @db.Text
+  status          Status    @default(DRAFT)
+  sortOrder       Int       @default(0) @map("sort_order")
+  createdBy       Int?      @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  publishedAt     DateTime? @map("published_at")
+  deletedAt       DateTime? @map("deleted_at")
+  purgedAt        DateTime? @map("purged_at")
+
+  // Relations
+  avatar       MediaFile?    @relation("PhotographerAvatar", fields: [avatarId], references: [id])
+  coverImage   MediaFile?    @relation("PhotographerCoverImage", fields: [coverImageId], references: [id])
+  previewImage MediaFile?    @relation("PhotographerPreviewImage", fields: [previewImageId], references: [id])
+  creator      User?         @relation("PhotographerCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  photography  Photography[]
+
+  @@map("photographers")
+}
+
+model PhotoCategory {
+  id              Int       @id @default(autoincrement())
+  title           String
+  slug            String    @unique
+  ogImageId       Int?      @map("og_image_id")
+  metaDescription String?   @map("meta_description") @db.Text
+  metaKeywords    String?   @map("meta_keywords") @db.Text
+  status          Status    @default(DRAFT)
+  sortOrder       Int       @default(0) @map("sort_order")
+  createdBy       Int?      @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+  purgedAt        DateTime? @map("purged_at")
+
+  // Relations
+  ogImage     MediaFile?    @relation("PhotoCategoryOgImage", fields: [ogImageId], references: [id])
+  creator     User?         @relation("PhotoCategoryCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  photography PhotographyCategory[]
+
+  @@map("photo_categories")
+}
+
+model HomepageDirector {
+  id          Int      @id @default(autoincrement())
+  directorId  Int      @map("director_id")
+  workId      Int      @map("work_id")
+  sortOrder   Int      @default(0) @map("sort_order")
+  videoSource String   @default("original") @map("video_source") // "original", "default_clip", "clip"
+  clipJobId   String?  @map("clip_job_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  director Director @relation(fields: [directorId], references: [id], onDelete: Cascade)
+  work     Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  clipJob  ClipJob? @relation(fields: [clipJobId], references: [id], onDelete: SetNull)
+
+  @@index([clipJobId])
+  @@map("homepage_directors")
+}
+
+model DirectorsPageSelection {
+  id          Int      @id @default(autoincrement())
+  directorId  Int      @unique @map("director_id")
+  workId      Int      @map("work_id")
+  sortOrder   Int      @default(0) @map("sort_order")
+  videoSource String   @default("original") @map("video_source") // "original", "default_clip", "clip"
+  clipJobId   String?  @map("clip_job_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  director Director @relation(fields: [directorId], references: [id], onDelete: Cascade)
+  work     Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  clipJob  ClipJob? @relation("DirectorsPageClipJob", fields: [clipJobId], references: [id], onDelete: SetNull)
+
+  @@index([clipJobId])
+  @@map("directors_page_selections")
+}
+
+model ContentPage {
+  id              Int       @id @default(autoincrement())
+  type            PageType
+  slug            String    @unique
+  title           String
+  contentBlocks   Json?     @map("content_blocks")
+  mapEmbed        String?   @map("map_embed") @db.Text
+  metaDescription String?   @map("meta_description") @db.Text
+  metaKeywords    String?   @map("meta_keywords") @db.Text
+  previewImageId  Int?      @map("preview_image_id")
+  status          Status    @default(DRAFT)
+  createdBy       Int?      @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  publishedAt     DateTime? @map("published_at")
+  deletedAt       DateTime? @map("deleted_at")
+  purgedAt        DateTime? @map("purged_at")
+
+  // Relations
+  previewImage  MediaFile? @relation("ContentPagePreviewImage", fields: [previewImageId], references: [id])
+  creator       User?       @relation("ContentPageCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@map("content_pages")
+}
+
+model Activity {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  action      String
+  module      String
+  itemType    String   @map("item_type")
+  itemId      Int      @map("item_id")
+  itemTitle   String   @map("item_title")
+  description String   @db.Text
+  metadata    String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activities")
+}
+
+model ApiKey {
+  id          Int       @id @default(autoincrement())
+  name        String
+  keyHash     String    @map("key_hash")
+  permissions Json
+  rateLimit   Int       @default(1000) @map("rate_limit")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  expiresAt   DateTime? @map("expires_at")
+
+  @@map("api_keys")
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum Status {
+  DRAFT
+  PUBLISHED
+  UNLISTED
+}
+
+enum PageType {
+  ABOUT
+  CONTACT
+  LEGAL
+}
+
+// SEO metadata for listing/index pages (not tied to a specific entity)
+model PageSeo {
+  id              Int       @id @default(autoincrement())
+  pageKey         String    @unique @map("page_key") // e.g., "homepage", "works", "animations", "directors", "photography"
+  title           String?   @db.Text
+  metaDescription String?   @map("meta_description") @db.Text
+  metaKeywords    String?   @map("meta_keywords") @db.Text
+  ogImageId       Int?      @map("og_image_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  ogImage         MediaFile? @relation("PageSeoOgImage", fields: [ogImageId], references: [id])
+
+  @@map("page_seo")
+}
+
+enum BlockPageType {
+  WORKS
+  ANIMATIONS
+}
+
+enum BlockType {
+  ONE_COLUMN
+  TWO_COLUMN
+  THREE_COLUMN
+  FOUR_COLUMN
+  ONE_TWO
+  TWO_ONE
+  CUSTOM_COLUMN
+  PARAGRAPH
+  QUOTE
+  MEDIA
+}
+
+// Crop usage for media across different subjects/slots
+model Mediable {
+  id          Int       @id @default(autoincrement())
+  mediaId     Int       @map("media_id")
+  subjectType String    @map("subject_type") // e.g., Work, ContentPage, Photographer
+  subjectId   Int       @map("subject_id")
+  usageKey    String    @map("usage_key") // e.g., cover, hero, galleryThumb
+
+  // Pixel-based crop rectangle
+  cropX       Int       @map("crop_x")
+  cropY       Int       @map("crop_y")
+  cropW       Int       @map("crop_w")
+  cropH       Int       @map("crop_h")
+
+  originalW   Int       @map("original_w")
+  originalH   Int       @map("original_h")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  media       MediaFile @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  // Ensure a single mediable per subject + usageKey. Media can change over time.
+  @@unique([subjectType, subjectId, usageKey])
+  @@index([mediaId])
+  @@map("mediables")
+}
+
+model Presentation {
+  id                 Int       @id @default(autoincrement())
+  title              String
+  token              String    @unique
+  description        String?   @db.Text
+  clientName         String?   @map("client_name")
+  clientNote         String?   @map("client_note") @db.Text
+  autoPlayEnabled    Boolean   @default(true) @map("auto_play_enabled")
+  photoSlideDuration Int       @default(5) @map("photo_slide_duration")
+  validUntil         DateTime? @map("valid_until")
+  isActive           Boolean   @default(true) @map("is_active")
+  publishedAt        DateTime? @map("published_at")
+  deletedAt          DateTime? @map("deleted_at")
+  purgedAt           DateTime? @map("purged_at")
+  createdBy          Int?      @map("created_by")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  directors   PresentationDirector[]
+  sections    PresentationSection[]
+  creator     User?     @relation("PresentationCreatedBy", fields: [createdBy], references: [id])
+
+  @@map("presentations")
+}
+
+model PresentationDirector {
+  id             Int @id @default(autoincrement())
+  presentationId Int @map("presentation_id")
+  directorId     Int @map("director_id")
+  sortOrder      Int @default(0) @map("sort_order")
+
+  // Relations
+  presentation Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+  director     Director     @relation(fields: [directorId], references: [id], onDelete: Cascade)
+  works        PresentationDirectorWork[]
+
+  @@unique([presentationId, directorId])
+  @@map("presentation_directors")
+}
+
+model PresentationDirectorWork {
+  presentationDirectorId Int @map("presentation_director_id")
+  workId                 Int @map("work_id")
+  sortOrder              Int @default(0) @map("sort_order")
+
+  // Relations
+  presentationDirector PresentationDirector @relation(fields: [presentationDirectorId], references: [id], onDelete: Cascade)
+  work                 Work                 @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  @@id([presentationDirectorId, workId])
+  @@map("presentation_director_works")
+}
+
+// ============================================
+// PRESENTATION SECTION SYSTEM (New)
+// ============================================
+
+enum PresentationSectionType {
+  DIRECTORS
+  ANIMATIONS
+  PHOTOGRAPHY
+  MIXED
+}
+
+enum PresentationItemType {
+  WORK
+  ANIMATION
+  PHOTOGRAPHY
+  EXTERNAL_LINK
+}
+
+model PresentationSection {
+  id             Int                      @id @default(autoincrement())
+  presentationId Int                      @map("presentation_id")
+  title          String
+  type           PresentationSectionType
+  sortOrder      Int                      @default(0) @map("sort_order")
+  createdAt      DateTime                 @default(now()) @map("created_at")
+  updatedAt      DateTime                 @updatedAt @map("updated_at")
+
+  // Relations
+  presentation Presentation       @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+  items        PresentationItem[]
+
+  @@map("presentation_sections")
+}
+
+model PresentationItem {
+  id                   Int                    @id @default(autoincrement())
+  sectionId            Int                    @map("section_id")
+  itemType             PresentationItemType
+  workId               Int?                   @map("work_id")
+  animationId          Int?                   @map("animation_id")
+  photographyId        Int?                   @map("photography_id")
+  directorId           Int?                   @map("director_id")
+  externalUrl          String?                @map("external_url")
+  externalTitle        String?                @map("external_title")
+  externalDescription  String?                @map("external_description") @db.Text
+  externalThumbnailId  Int?                   @map("external_thumbnail_id")
+  sortOrder            Int                    @default(0) @map("sort_order")
+  createdAt            DateTime               @default(now()) @map("created_at")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+
+  // Relations
+  section            PresentationSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  work               Work?               @relation(fields: [workId], references: [id], onDelete: Cascade)
+  animation          Animation?          @relation(fields: [animationId], references: [id], onDelete: Cascade)
+  photography        Photography?        @relation(fields: [photographyId], references: [id], onDelete: Cascade)
+  director           Director?           @relation("PresentationItemDirector", fields: [directorId], references: [id], onDelete: SetNull)
+  externalThumbnail  MediaFile?          @relation("PresentationItemExternalThumbnail", fields: [externalThumbnailId], references: [id], onDelete: SetNull)
+
+  @@map("presentation_items")
+}
+
+model Animation {
+  id               Int       @id @default(autoincrement())
+  title            String
+  slug             String    @unique
+  shortDescription String?   @map("short_description") @db.Text
+  // @deprecated - Use AnimationClient junction table instead
+  client           String?   @map("client_legacy")
+  // @deprecated - Use AnimationAgency junction table instead
+  agency           String?   @map("agency_legacy")
+  tags             Json
+  videoFileId      Int?      @map("video_file_id")
+  metaDescription  String?   @map("meta_description") @db.Text
+  metaKeywords     String?   @map("meta_keywords") @db.Text
+  previewImageId   Int?      @map("preview_image_id")
+  status           Status    @default(DRAFT)
+  sortOrder        Int       @default(0) @map("sort_order")
+  createdBy        Int?      @map("created_by")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  publishedAt      DateTime? @map("published_at")
+  deletedAt        DateTime? @map("deleted_at")
+  purgedAt         DateTime? @map("purged_at")
+
+  // Relations
+  creator      User?              @relation("AnimationCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  videoFile    MediaFile?         @relation("AnimationVideoFile", fields: [videoFileId], references: [id])
+  previewImage MediaFile?         @relation("AnimationPreviewImage", fields: [previewImageId], references: [id])
+  clients           AnimationClient[]
+  agencies          AnimationAgency[]
+  revisions         AnimationRevision[]
+  presentationItems PresentationItem[]
+
+  @@map("animations")
+}
+
+model AnimationRevision {
+  id             Int      @id @default(autoincrement())
+  animationId    Int      @map("animation_id")
+  userId         Int?     @map("user_id")
+  version        Int      @default(1)
+  payload        Json     @db.Json
+  revertedFromId Int?     @map("reverted_from_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  animation    Animation           @relation(fields: [animationId], references: [id], onDelete: Cascade)
+  user         User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  revertedFrom AnimationRevision?  @relation("AnimationRevisionRevert", fields: [revertedFromId], references: [id], onDelete: SetNull)
+  revertedTo   AnimationRevision[] @relation("AnimationRevisionRevert")
+
+  @@index([animationId])
+  @@index([animationId, version(Sort.Desc)])
+  @@map("animation_revisions")
+}
+
+// ============================================
+// BLOCK EDITOR SYSTEM
+// ============================================
+
+model BlockPage {
+  id        Int           @id @default(autoincrement())
+  type      BlockPageType @unique
+  title     String
+  status    Status        @default(DRAFT)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  @@map("block_pages")
+}
+
+model Block {
+  id          Int       @id @default(autoincrement())
+  uuid        String    @unique @default(uuid())
+  modelName   String    @map("model_name") // "block_page", "work", etc.
+  modelId     Int?      @map("model_id") // nullable for drafts/new entities
+  parentId    Int?      @map("parent_id")
+  type        BlockType
+  content     Json      @default("{}")
+  position    Int       @default(0)
+  status      Status    @default(DRAFT)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  parent      Block?    @relation("BlockHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Block[]   @relation("BlockHierarchy")
+
+  @@index([modelName, modelId])
+  @@index([parentId])
+  @@map("blocks")
+}
+
+// ============================================
+// CLIP PROCESSING SYSTEM
+// ============================================
+
+// Clip processing status
+enum ClipJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ClipJob - Tracks video clip processing (crop/trim) jobs
+// Can be used standalone (media library) or with any context: blocks, works, etc.
+model ClipJob {
+  id                String         @id @default(uuid())
+  
+  // Source video (required)
+  sourceMediaId     Int            @map("source_media_id")
+  
+  // Target work (for slot verification when updating blocks)
+  workId            Int?           @map("work_id")
+  
+  // Context - which entity requested this clip (optional - null for media library clips)
+  contextType       String?        @map("context_type") // "block", "media_library", null
+  contextId         Int?           @map("context_id")   // ID of the context entity
+  slotIndex         Int?           @map("slot_index")   // For blocks with multiple slots
+  
+  // Processing settings
+  cropSettings      Json?          @map("crop_settings") // { x, y, width, height, aspect } in percentages
+  trimSettings      Json?          @map("trim_settings") // { startTime, endTime } in seconds
+  settingsHash      String         @map("settings_hash") // Hash of settings for deduplication
+  
+  // Resolution/quality settings
+  maxDimension      Int            @default(1280) @map("max_dimension")
+  quality           String         @default("high") // "high", "medium", "low"
+  
+  // Default clip flag - one default per media file
+  isDefault         Boolean        @default(false) @map("is_default")
+  
+  // Processing status
+  status            ClipJobStatus  @default(PENDING)
+  mediaConvertJobId String?        @map("media_convert_job_id")
+  progress          Int            @default(0) // 0-100
+  errorMessage      String?        @map("error_message") @db.Text
+  
+  // Output
+  outputPath        String?        @map("output_path")  // S3 path to processed clip
+  outputUrl         String?        @map("output_url")   // Full URL to processed clip (CDN)
+  thumbnailPath     String?        @map("thumbnail_path") // S3 path to thumbnail (same as outputPath but .jpg)
+  outputMetadata    Json?          @map("output_metadata") // { width, height, duration, size }
+  
+  // Timestamps
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+  startedAt         DateTime?      @map("started_at")
+  completedAt       DateTime?      @map("completed_at")
+  
+  // Relations
+  sourceMedia       MediaFile      @relation(fields: [sourceMediaId], references: [id], onDelete: Cascade)
+  work              Work?          @relation(fields: [workId], references: [id], onDelete: SetNull)
+  homepageDirectors HomepageDirector[]
+  directorsPageSelections DirectorsPageSelection[] @relation("DirectorsPageClipJob")
+  
+  // Unique constraint: same video + same settings = same clip (deduplication)
+  @@unique([sourceMediaId, settingsHash])
+  
+  // Indexes for efficient querying
+  @@index([contextType, contextId])
+  @@index([sourceMediaId, isDefault])
+  @@index([workId])
+  @@index([status])
+  @@index([settingsHash])
+  @@map("clip_jobs")
+}
+
+// ============================================
+// CLIENT & AGENCY ENTITIES
+// ============================================
+
+model Client {
+  id        Int       @id @default(autoincrement())
+  name      String
+  slug      String    @unique
+  status    Status    @default(PUBLISHED)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  purgedAt  DateTime? @map("purged_at")
+  createdBy Int?      @map("created_by")
+
+  // Relations
+  creator           User?             @relation("ClientCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  works             WorkClient[]
+  photography       PhotographyClient[]
+  animations        AnimationClient[]
+
+  @@map("clients")
+}
+
+model Agency {
+  id        Int       @id @default(autoincrement())
+  name      String
+  slug      String    @unique
+  status    Status    @default(PUBLISHED)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  purgedAt  DateTime? @map("purged_at")
+  createdBy Int?      @map("created_by")
+
+  // Relations
+  creator           User?             @relation("AgencyCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  works             WorkAgency[]
+  photography       PhotographyAgency[]
+  animations        AnimationAgency[]
+
+  @@map("agencies")
+}
+
+// ============================================
+// WORK JUNCTION TABLES
+// ============================================
+
+model WorkClient {
+  workId    Int @map("work_id")
+  clientId  Int @map("client_id")
+
+  // Relations
+  work      Work   @relation(fields: [workId], references: [id], onDelete: Cascade)
+  client    Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@id([workId, clientId])
+  @@map("work_clients")
+}
+
+model WorkAgency {
+  workId    Int @map("work_id")
+  agencyId  Int @map("agency_id")
+
+  // Relations
+  work      Work   @relation(fields: [workId], references: [id], onDelete: Cascade)
+  agency    Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@id([workId, agencyId])
+  @@map("work_agencies")
+}
+
+// ============================================
+// PHOTOGRAPHY JUNCTION TABLES
+// ============================================
+
+model PhotographyClient {
+  photographyId Int @map("photography_id")
+  clientId      Int @map("client_id")
+
+  // Relations
+  photography   Photography @relation(fields: [photographyId], references: [id], onDelete: Cascade)
+  client        Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@id([photographyId, clientId])
+  @@map("photography_clients")
+}
+
+model PhotographyAgency {
+  photographyId Int @map("photography_id")
+  agencyId      Int @map("agency_id")
+
+  // Relations
+  photography   Photography @relation(fields: [photographyId], references: [id], onDelete: Cascade)
+  agency        Agency      @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@id([photographyId, agencyId])
+  @@map("photography_agencies")
+}
+
+model PhotographyStarring {
+  photographyId Int @map("photography_id")
+  starringId    Int @map("starring_id")
+
+  // Relations
+  photography   Photography @relation(fields: [photographyId], references: [id], onDelete: Cascade)
+  starring      Starring    @relation(fields: [starringId], references: [id], onDelete: Cascade)
+
+  @@id([photographyId, starringId])
+  @@map("photography_starrings")
+}
+
+model PhotographyCategory {
+  photographyId Int @map("photography_id")
+  categoryId    Int @map("category_id")
+
+  // Relations
+  photography   Photography   @relation(fields: [photographyId], references: [id], onDelete: Cascade)
+  category      PhotoCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([photographyId, categoryId])
+  @@map("photography_categories")
+}
+
+// ============================================
+// ANIMATION JUNCTION TABLES
+// ============================================
+
+model AnimationClient {
+  animationId Int @map("animation_id")
+  clientId    Int @map("client_id")
+
+  // Relations
+  animation   Animation @relation(fields: [animationId], references: [id], onDelete: Cascade)
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@id([animationId, clientId])
+  @@map("animation_clients")
+}
+
+model AnimationAgency {
+  animationId Int @map("animation_id")
+  agencyId    Int @map("agency_id")
+
+  // Relations
+  animation   Animation @relation(fields: [animationId], references: [id], onDelete: Cascade)
+  agency      Agency    @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@id([animationId, agencyId])
+  @@map("animation_agencies")
+}
+
+model SiteSetting {
+  key       String   @id @db.VarChar(191)
+  value     Json?
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}

@@ -1,0 +1,19 @@
+{
+	"name": "video-processor-lambda",
+	"version": "1.0.0",
+	"description": "Lambda function to trigger MediaConvert jobs on S3 video uploads",
+	"main": "index.js",
+	"scripts": {
+		"build": "tsc",
+		"package": "npm run build && zip -r function.zip dist node_modules",
+		"deploy": "npm run package && aws lambda update-function-code --function-name video-processor --zip-file fileb://function.zip"
+	},
+	"dependencies": {
+		"@aws-sdk/client-mediaconvert": "^3.0.0"
+	},
+	"devDependencies": {
+		"@types/aws-lambda": "^8.10.0",
+		"@types/node": "^20.0.0",
+		"typescript": "^5.0.0"
+	}
+}

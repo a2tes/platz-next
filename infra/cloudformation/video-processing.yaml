@@ -1,0 +1,278 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Video Processing Pipeline - MediaConvert, Lambda, S3 Triggers"
+
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: Deployment environment
+
+  S3BucketName:
+    Type: String
+    Description: Name of the S3 bucket for video storage
+
+  ApiWebhookUrl:
+    Type: String
+    Description: URL of the API webhook endpoint for MediaConvert status notifications
+
+  LambdaCodeS3Bucket:
+    Type: String
+    Description: S3 bucket containing Lambda deployment package
+
+  LambdaCodeS3Key:
+    Type: String
+    Default: lambda/video-processor.zip
+    Description: S3 key for Lambda deployment package
+
+Resources:
+  #############################################
+  # IAM Roles
+  #############################################
+
+  MediaConvertRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "platz-mediaconvert-role-${Environment}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: mediaconvert.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: MediaConvertS3Access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource:
+                  - !Sub "arn:aws:s3:::${S3BucketName}/*"
+        - PolicyName: MediaConvertExecute
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - execute-api:Invoke
+                  - apigateway:*
+                Resource: "*"
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "platz-video-processor-lambda-role-${Environment}"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: MediaConvertAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - mediaconvert:CreateJob
+                  - mediaconvert:GetJob
+                  - mediaconvert:DescribeEndpoints
+                Resource: "*"
+        - PolicyName: S3ReadAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectAttributes
+                Resource:
+                  - !Sub "arn:aws:s3:::${S3BucketName}/*"
+        - PolicyName: PassMediaConvertRole
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: !GetAtt MediaConvertRole.Arn
+
+  #############################################
+  # SNS Topic for MediaConvert Notifications
+  #############################################
+
+  MediaConvertNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "platz-mediaconvert-notifications-${Environment}"
+      DisplayName: MediaConvert Job Notifications
+
+  MediaConvertNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref MediaConvertNotificationTopic
+      Protocol: https
+      Endpoint: !Ref ApiWebhookUrl
+
+  MediaConvertNotificationTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref MediaConvertNotificationTopic
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowMediaConvertPublish
+            Effect: Allow
+            Principal:
+              Service: mediaconvert.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref MediaConvertNotificationTopic
+
+  #############################################
+  # Lambda Function
+  #############################################
+
+  VideoProcessorLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "platz-video-processor-${Environment}"
+      Runtime: nodejs20.x
+      Handler: dist/index.handler
+      Code:
+        S3Bucket: !Ref LambdaCodeS3Bucket
+        S3Key: !Ref LambdaCodeS3Key
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 30
+      MemorySize: 256
+      Environment:
+        Variables:
+          MEDIACONVERT_ENDPOINT: !Sub "https://mediaconvert.${AWS::Region}.amazonaws.com"
+          MEDIACONVERT_ROLE: !GetAtt MediaConvertRole.Arn
+          OUTPUT_BUCKET: !Ref S3BucketName
+          OUTPUT_PREFIX: optimized
+          SNS_TOPIC_ARN: !Ref MediaConvertNotificationTopic
+      Tags:
+        - Key: Project
+          Value: platz
+        - Key: Environment
+          Value: !Ref Environment
+
+  VideoProcessorLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref VideoProcessorLambda
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub "arn:aws:s3:::${S3BucketName}"
+
+  #############################################
+  # CloudWatch Event Rule for MediaConvert
+  #############################################
+
+  MediaConvertEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub "platz-mediaconvert-events-${Environment}"
+      Description: Capture MediaConvert job state changes
+      EventPattern:
+        source:
+          - aws.mediaconvert
+        detail-type:
+          - MediaConvert Job State Change
+        detail:
+          status:
+            - COMPLETE
+            - ERROR
+            - PROGRESSING
+      Targets:
+        - Id: SNSTarget
+          Arn: !Ref MediaConvertNotificationTopic
+          InputTransformer:
+            InputPathsMap:
+              jobId: "$.detail.jobId"
+              status: "$.detail.status"
+              outputFilePaths: "$.detail.outputGroupDetails"
+              errorCode: "$.detail.errorCode"
+              errorMessage: "$.detail.errorMessage"
+              userMetadata: "$.detail.userMetadata"
+            InputTemplate: |
+              {
+                "jobId": <jobId>,
+                "status": <status>,
+                "outputFilePaths": <outputFilePaths>,
+                "errorCode": <errorCode>,
+                "errorMessage": <errorMessage>,
+                "userMetadata": <userMetadata>
+              }
+
+  MediaConvertEventRulePermission:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref MediaConvertNotificationTopic
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowEventsPublish
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref MediaConvertNotificationTopic
+
+  #############################################
+  # S3 Lifecycle Policy (delete originals after 7 days)
+  #############################################
+  # Note: This must be applied to your existing S3 bucket
+  # Add this lifecycle rule to your S3 bucket configuration:
+  #
+  # S3BucketLifecycleRule:
+  #   Rules:
+  #     - Id: DeleteOriginalVideosAfter7Days
+  #       Status: Enabled
+  #       Prefix: ''  # or 'uploads/videos/' if you have a specific prefix
+  #       TagFilters:
+  #         - Key: processed
+  #           Value: 'true'
+  #       ExpirationInDays: 7
+
+Outputs:
+  MediaConvertRoleArn:
+    Description: ARN of the MediaConvert IAM Role
+    Value: !GetAtt MediaConvertRole.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-MediaConvertRoleArn"
+
+  LambdaFunctionArn:
+    Description: ARN of the Video Processor Lambda Function
+    Value: !GetAtt VideoProcessorLambda.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaFunctionArn"
+
+  SNSTopicArn:
+    Description: ARN of the SNS Topic for MediaConvert notifications
+    Value: !Ref MediaConvertNotificationTopic
+    Export:
+      Name: !Sub "${AWS::StackName}-SNSTopicArn"
+
+  ConfigurationInstructions:
+    Description: Post-deployment instructions
+    Value: |
+      After deployment:
+      1. Get the MediaConvert endpoint: aws mediaconvert describe-endpoints --region <region>
+      2. Update the Lambda environment variable MEDIACONVERT_ENDPOINT with the actual endpoint
+      3. Add S3 Event Notification to your bucket to trigger the Lambda on ObjectCreated:*
+      4. Confirm the SNS subscription from your API endpoint

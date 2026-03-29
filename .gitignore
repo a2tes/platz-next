@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Lock files (pnpm-lock.yaml is tracked, others ignored)
+package-lock.json
+yarn.lock
+
+# Production builds
+dist/
+build/
+.next/
+out/
+next-env.d.ts
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database (local SQLite if used)
+*.db
+*.sqlite
+*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Uploads (local storage)
+storage/uploads/
+
+# SSL certificates
+*.pem
+*.key
+*.crt

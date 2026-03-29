@@ -1,0 +1,2 @@
+-- DropForeignKey
+ALTER TABLE `blocks` DROP FOREIGN KEY `blocks_model_id_fkey`;
