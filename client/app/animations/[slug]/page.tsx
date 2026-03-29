@@ -26,7 +26,6 @@ interface Animation {
 	slug: string;
 	shortDescription?: string;
 	client?: string;
-	agency?: string;
 	videoUrl?: string;
 	videoThumbnailUrl?: string;
 }
@@ -78,7 +77,7 @@ export default function AnimationDetailPage() {
 		title: animation.title,
 		slug: animation.slug,
 		client: animation.client || "",
-		agency: animation.agency || "",
+
 		shortDescription: animation.shortDescription || "",
 		videoUrl: animation.videoUrl || "",
 		videoThumbnailUrl: animation.videoThumbnailUrl || animation.videoUrl || "",

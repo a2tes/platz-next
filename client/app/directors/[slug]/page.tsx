@@ -29,7 +29,6 @@ interface Work {
 	subtitle?: string;
 	caseStudy?: string;
 	client?: string;
-	agency?: string;
 	videoUrl?: string;
 	videoUrl720p?: string;
 	previewVideoUrl?: string;
@@ -190,7 +189,7 @@ function DirectorContent() {
 		title: work.title,
 		slug: work.slug,
 		client: work.client || "",
-		agency: work.agency || "",
+
 		shortDescription: work.shortDescription || "",
 		starring: work.starrings?.map((s) => s.title).join(", ") || "",
 		directors: [{ title: directorTitle, slug: directorSlug }],
@@ -218,7 +217,7 @@ function DirectorContent() {
 			title: item.work.title,
 			slug: item.work.slug,
 			client: item.work.client,
-			agency: item.work.agency,
+
 			shortDescription: item.work.shortDescription,
 			starring: item.work.starring,
 			directors: item.work.directors,

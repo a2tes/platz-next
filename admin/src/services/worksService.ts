@@ -107,7 +107,6 @@ export interface Work {
 	subtitle: string | null;
 	caseStudy: string | null;
 	client: string; // @deprecated - use clients relation
-	agency: string | null; // @deprecated - use agencies relation
 	tags: string[];
 	videoFileId?: number;
 	metaDescription?: string;
@@ -136,9 +135,6 @@ export interface Work {
 	clients?: Array<{
 		client: { id: number; name: string; slug: string };
 	}>;
-	agencies?: Array<{
-		agency: { id: number; name: string; slug: string };
-	}>;
 	disciplines?: Array<{
 		discipline: { id: number; name: string; slug: string };
 	}>;
@@ -153,7 +149,6 @@ export interface CreateWorkData {
 	subtitle?: string;
 	caseStudy?: string;
 	client?: string; // @deprecated
-	agency?: string; // @deprecated
 	tags: string[];
 	videoFileId?: number;
 	metaDescription?: string;
@@ -163,7 +158,6 @@ export interface CreateWorkData {
 	directorIds: number[];
 	starringIds: number[];
 	clientIds?: number[];
-	agencyIds?: number[];
 	disciplineIds?: number[];
 	sectorIds?: number[];
 }
@@ -174,7 +168,6 @@ export interface UpdateWorkData {
 	subtitle?: string;
 	caseStudy?: string;
 	client?: string; // @deprecated
-	agency?: string; // @deprecated
 	tags?: string[];
 	videoFileId?: number;
 	metaDescription?: string;
@@ -184,7 +177,6 @@ export interface UpdateWorkData {
 	directorIds?: number[];
 	starringIds?: number[];
 	clientIds?: number[];
-	agencyIds?: number[];
 	disciplineIds?: number[];
 	sectorIds?: number[];
 }

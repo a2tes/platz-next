@@ -16,7 +16,6 @@ interface Animation {
 	title: string;
 	slug: string;
 	client: string;
-	agency?: string;
 	shortDescription: string;
 	videoUrl: string;
 	hlsUrl?: string;
@@ -111,7 +110,7 @@ export default function AnimationModal({ animation, cardRect, onClose }: Animati
 
 			// Rotate details every 3 seconds
 			rotateDetailsIntervalRef.current = setInterval(() => {
-				const detailsCount = [animation.client, animation.agency].filter(Boolean).length;
+				const detailsCount = [animation.client].filter(Boolean).length;
 				if (detailsCount > 0) {
 					setVisibleDetailIndex((prev) => (prev + 1) % detailsCount);
 				}
@@ -412,22 +411,12 @@ export default function AnimationModal({ animation, cardRect, onClose }: Animati
 										</div>
 									)}
 
-									{animation.agency && (
-										<div className="hidden md:block">
-											<div>
-												<span className="uppercase text-gray-200 text-xs md:text-sm">AGENCY</span>
-												<p className="text-sm md:text-base">{animation.agency}</p>
-											</div>
-										</div>
-									)}
-
 									{/* Mobile: show rotating items */}
 									<div className="block md:hidden relative min-h-[4rem]">
 										{(() => {
 											const details = [
 												animation.client && { key: "client", label: "CLIENT", value: animation.client },
-												animation.agency && { key: "agency", label: "AGENCY", value: animation.agency },
-											].filter(Boolean) as { key: string; label: string; value: string }[];
+
 
 											if (details.length === 0) return null;
 

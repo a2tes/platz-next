@@ -7,7 +7,6 @@ export interface BlockWork {
 	title: string;
 	slug: string;
 	client: string;
-	agency: string;
 	shortDescription: string;
 	subtitle?: string;
 	caseStudy?: string;
@@ -24,7 +23,6 @@ export interface BlockAnimation {
 	title: string;
 	slug: string;
 	client: string;
-	agency: string;
 	shortDescription: string;
 	videoUrl: string | null;
 	videoAspectRatio: number;

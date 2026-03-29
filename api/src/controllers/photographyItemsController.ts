@@ -22,7 +22,6 @@ const createSchema = z.object({
 	photographerId: z.number().int(),
 	categoryId: z.number().int(),
 	client: z.string().optional(),
-	agency: z.string().optional(),
 	year: z.number().int().optional().nullable(),
 	location: z.string().default(""),
 	status: z.enum(["DRAFT", "PUBLISHED"]).optional(),
@@ -33,13 +32,11 @@ const updateSchema = z.object({
 	description: z.string().optional(),
 	photographerId: z.number().int().optional(),
 	client: z.string().optional(),
-	agency: z.string().optional(),
 	year: z.number().int().optional().nullable(),
 	location: z.string().optional(),
 	status: z.enum(["DRAFT", "PUBLISHED"]).optional(),
 	// Relation IDs
 	clientIds: z.array(z.number().int()).optional(),
-	agencyIds: z.array(z.number().int()).optional(),
 	starringIds: z.array(z.number().int()).optional(),
 	categoryIds: z.array(z.number().int()).optional(),
 });
@@ -223,7 +220,6 @@ export class PhotographyItemsController {
 				photographerId: z.number().int().optional(),
 				categoryIds: z.array(z.number().int()).optional(),
 				clientIds: z.array(z.number().int()).optional(),
-				agencyIds: z.array(z.number().int()).optional(),
 				starringIds: z.array(z.number().int()).optional(),
 				items: z
 					.array(
@@ -234,7 +230,6 @@ export class PhotographyItemsController {
 							year: z.number().int().optional().nullable(),
 							location: z.string().optional(),
 							client: z.string().optional(),
-							agency: z.string().optional(),
 							categoryIds: z.array(z.number().int()).optional(),
 							photographerId: z.number().int().optional(),
 						}),

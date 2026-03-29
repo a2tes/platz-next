@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { WorksService, Work, CreateWorkData, UpdateWorkData } from "../../services/worksService";
 import { MediaService, MediaFile } from "../../services/mediaService";
 import { clientsService } from "../../services/clientsService";
-import { agenciesService } from "../../services/agenciesService";
 import { disciplinesService } from "../../services/disciplinesService";
 import { sectorsService } from "../../services/sectorsService";
 import { useMediaLibraryStore } from "@/stores/mediaLibraryStore";
@@ -33,7 +32,6 @@ const workSchema = z.object({
 	subtitle: z.string().max(255, "Subtitle must be less than 255 characters").optional(),
 	caseStudy: z.string().optional(),
 	client: z.string().max(191, "Client must be less than 191 characters").optional(), // @deprecated
-	agency: z.string().max(191, "Agency must be less than 191 characters").optional(), // @deprecated
 	tags: z.string(),
 	videoFileId: z.number().nullable().optional(),
 	metaDescription: z.string().optional(),
@@ -43,7 +41,6 @@ const workSchema = z.object({
 	directorIds: z.array(z.number()),
 	starringIds: z.array(z.number()),
 	clientIds: z.array(z.number()).optional(),
-	agencyIds: z.array(z.number()).optional(),
 	disciplineIds: z.array(z.number()).optional(),
 	sectorIds: z.array(z.number()).optional(),
 });
@@ -77,13 +74,11 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 			subtitle: work?.subtitle || "",
 			caseStudy: work?.caseStudy || "",
 			client: work?.client || "",
-			agency: work?.agency || "",
 			tags: work?.tags.join(", ") || "",
 			status: work?.status || "DRAFT",
 			directorIds: work?.directors.map((d) => d.director.id) || [],
 			starringIds: work?.starrings.map((s) => s.starring.id) || [],
 			clientIds: work?.clients?.map((c: any) => c.client.id) || [],
-			agencyIds: work?.agencies?.map((a: any) => a.agency.id) || [],
 			disciplineIds: work?.disciplines?.map((d: any) => d.discipline.id) || [],
 			sectorIds: work?.sectors?.map((s: any) => s.sector.id) || [],
 			videoFileId: work?.videoFileId,
@@ -108,13 +103,11 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 				subtitle: work.subtitle || "",
 				caseStudy: work.caseStudy || "",
 				client: work.client,
-				agency: work.agency || "",
 				tags: work.tags.join(", "),
 				status: work.status,
 				directorIds: (work.directors || []).map((d) => d.director.id),
 				starringIds: (work.starrings || []).map((s) => s.starring.id),
 				clientIds: (work.clients || []).map((c: any) => c.client.id),
-				agencyIds: (work.agencies || []).map((a: any) => a.agency.id),
 				disciplineIds: (work.disciplines || []).map((d: any) => d.discipline.id),
 				sectorIds: (work.sectors || []).map((s: any) => s.sector.id),
 				videoFileId: work.videoFileId,
@@ -138,16 +131,10 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 		queryFn: () => WorksService.getStarrings({ limit: 100 }),
 	});
 
-	// Fetch all clients and agencies once
+	// Fetch all clients once
 	const { data: clientsData } = useQuery({
 		queryKey: ["clients"],
 		queryFn: () => clientsService.getAll(),
-		staleTime: Infinity,
-	});
-
-	const { data: agenciesData } = useQuery({
-		queryKey: ["agencies"],
-		queryFn: () => agenciesService.getAll(),
 		staleTime: Infinity,
 	});
 
@@ -165,7 +152,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 
 	// Local search state for client-side filtering
 	const [clientSearch, setClientSearch] = React.useState("");
-	const [agencySearch, setAgencySearch] = React.useState("");
 	const [disciplineSearch, setDisciplineSearch] = React.useState("");
 	const [sectorSearch, setSectorSearch] = React.useState("");
 
@@ -175,13 +161,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 		const q = clientSearch.toLowerCase();
 		return all.filter((c) => c.name?.toLowerCase().includes(q));
 	}, [clientsData, clientSearch]);
-
-	const filteredAgencies = React.useMemo(() => {
-		const all = (agenciesData || []) as any[];
-		if (!agencySearch) return all;
-		const q = agencySearch.toLowerCase();
-		return all.filter((a) => a.name?.toLowerCase().includes(q));
-	}, [agenciesData, agencySearch]);
 
 	const filteredDisciplines = React.useMemo(() => {
 		const all = (disciplinesData || []) as any[];
@@ -249,7 +228,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 					.map((t) => t.trim())
 					.filter(Boolean),
 				clientIds: data.clientIds || [],
-				agencyIds: data.agencyIds || [],
 				disciplineIds: data.disciplineIds || [],
 				sectorIds: data.sectorIds || [],
 			};
@@ -402,43 +380,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 									placeholder="Select or create client..."
 									searchPlaceholder="Search or create client..."
 									emptyMessage="No clients found"
-									className="mt-3"
-								/>
-							</div>
-
-							{/* New Agency Multi-Select */}
-							<div>
-								<Label>Agency</Label>
-								<MultiAutocomplete
-									single
-									options={filteredAgencies.map((a: any) => ({
-										id: a.id,
-										name: a.name,
-									}))}
-									values={(watchedValues.agencyIds || [])
-										.map((id: number) => {
-											const agency = (agenciesData || []).find((a: any) => a.id === id);
-											if (agency) return { id: agency.id, name: agency.name };
-											const workAgency = (work?.agencies || []).find((a: any) => a.agency.id === id);
-											if (workAgency) return { id: workAgency.agency.id, name: workAgency.agency.name };
-											return null;
-										})
-										.filter((v): v is AutocompleteOption => v !== null)}
-									onValuesChange={(options) =>
-										setValue(
-											"agencyIds",
-											options.map((o) => o.id),
-										)
-									}
-									onSearch={setAgencySearch}
-									onCreateNew={async (name) => {
-										const created = await agenciesService.findOrCreateAgency(name);
-										queryClient.invalidateQueries({ queryKey: ["agencies"] });
-										return { id: created.id, name: created.name };
-									}}
-									placeholder="Select or create agency..."
-									searchPlaceholder="Search or create agency..."
-									emptyMessage="No agencies found"
 									className="mt-3"
 								/>
 							</div>

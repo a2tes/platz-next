@@ -132,15 +132,10 @@ export function createWorksNavigation(config: WorksNavigationConfig): Navigation
 }
 
 /**
- * Create standard navigation for Entities (Clients/Agencies/Starrings)
+ * Create standard navigation for Entities (Clients/Starrings)
  */
 export interface EntitiesNavigationConfig {
-	currentPath:
-		| "/entities/clients"
-		| "/entities/agencies"
-		| "/entities/starrings"
-		| "/entities/disciplines"
-		| "/entities/sectors";
+	currentPath: "/entities/clients" | "/entities/starrings" | "/entities/disciplines" | "/entities/sectors";
 }
 
 export function createEntitiesNavigation(config: EntitiesNavigationConfig): NavigationItem[] {
@@ -149,11 +144,6 @@ export function createEntitiesNavigation(config: EntitiesNavigationConfig): Navi
 			label: "Clients",
 			href: "/entities/clients",
 			isActive: config.currentPath === "/entities/clients",
-		},
-		{
-			label: "Agencies",
-			href: "/entities/agencies",
-			isActive: config.currentPath === "/entities/agencies",
 		},
 		{
 			label: "Starrings",

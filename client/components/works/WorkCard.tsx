@@ -7,7 +7,6 @@ interface Work {
 	title: string;
 	slug: string;
 	client: string;
-	agency?: string;
 	shortDescription: string;
 	subtitle?: string;
 	caseStudy?: string;

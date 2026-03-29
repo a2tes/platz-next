@@ -32,7 +32,6 @@ export interface CreateWorkData {
 	subtitle?: string;
 	caseStudy?: string;
 	client?: string; // @deprecated - use clientIds
-	agency?: string; // @deprecated - use agencyIds
 	tags: string[];
 	videoFileId?: number | null;
 	metaDescription?: string;
@@ -42,7 +41,6 @@ export interface CreateWorkData {
 	directorIds: number[];
 	starringIds: number[];
 	clientIds?: number[]; // New: Client entity IDs
-	agencyIds?: number[]; // New: Agency entity IDs
 	disciplineIds?: number[];
 	sectorIds?: number[];
 }
@@ -54,7 +52,6 @@ export interface UpdateWorkData {
 	subtitle?: string;
 	caseStudy?: string;
 	client?: string; // @deprecated - use clientIds
-	agency?: string; // @deprecated - use agencyIds
 	tags?: string[];
 	videoFileId?: number | null;
 	metaDescription?: string | null;
@@ -64,7 +61,6 @@ export interface UpdateWorkData {
 	directorIds?: number[];
 	starringIds?: number[];
 	clientIds?: number[]; // New: Client entity IDs
-	agencyIds?: number[]; // New: Agency entity IDs
 	disciplineIds?: number[];
 	sectorIds?: number[];
 	publishedAt?: Date | null;
@@ -91,7 +87,7 @@ export class WorksService {
 	 * Create a new work
 	 */
 	async createWork(data: CreateWorkData, userId?: number) {
-		const { directorIds, starringIds, clientIds, agencyIds, disciplineIds, sectorIds, ...workData } = data;
+		const { directorIds, starringIds, clientIds, disciplineIds, sectorIds, ...workData } = data;
 
 		// Generate unique slug
 		const baseSlug = slugify(data.title);
@@ -125,11 +121,6 @@ export class WorksService {
 				clients: clientIds?.length
 					? {
 							create: clientIds.map((clientId) => ({ clientId })),
-						}
-					: undefined,
-				agencies: agencyIds?.length
-					? {
-							create: agencyIds.map((agencyId) => ({ agencyId })),
 						}
 					: undefined,
 				disciplines: disciplineIds?.length
@@ -188,11 +179,6 @@ export class WorksService {
 						client: true,
 					},
 				},
-				agencies: {
-					include: {
-						agency: true,
-					},
-				},
 				disciplines: {
 					include: {
 						discipline: true,
@@ -215,7 +201,6 @@ export class WorksService {
 				subtitle: work.subtitle,
 				caseStudy: work.caseStudy,
 				client: work.client,
-				agency: work.agency,
 				tags: work.tags || [],
 				videoFileId: work.videoFileId,
 				videoFileName: (work as any).videoFile?.originalName,
@@ -450,11 +435,6 @@ export class WorksService {
 						client: true,
 					},
 				},
-				agencies: {
-					include: {
-						agency: true,
-					},
-				},
 				disciplines: {
 					include: {
 						discipline: true,
@@ -572,7 +552,7 @@ export class WorksService {
 	 * Update work
 	 */
 	async updateWork(id: number, data: UpdateWorkData, userId?: number) {
-		const { directorIds, starringIds, clientIds, agencyIds, disciplineIds, sectorIds, ...workData } = data;
+		const { directorIds, starringIds, clientIds, disciplineIds, sectorIds, ...workData } = data;
 
 		// Get current work first to fetch existing revisions and current relations
 		const currentWork = await prisma.work.findUnique({
@@ -585,7 +565,6 @@ export class WorksService {
 				directors: { select: { directorId: true } },
 				starrings: { select: { starringId: true } },
 				clients: { select: { clientId: true } },
-				agencies: { select: { agencyId: true } },
 				disciplines: { select: { disciplineId: true } },
 				sectors: { select: { sectorId: true } },
 			},
@@ -638,12 +617,6 @@ export class WorksService {
 						create: clientIds.map((clientId) => ({ clientId })),
 					},
 				}),
-				...(agencyIds !== undefined && {
-					agencies: {
-						deleteMany: {},
-						create: agencyIds.map((agencyId) => ({ agencyId })),
-					},
-				}),
 				...(disciplineIds !== undefined && {
 					disciplines: {
 						deleteMany: {},
@@ -693,11 +666,6 @@ export class WorksService {
 				clients: {
 					include: {
 						client: true,
-					},
-				},
-				agencies: {
-					include: {
-						agency: true,
 					},
 				},
 				disciplines: {
@@ -760,7 +728,6 @@ export class WorksService {
 					subtitle: work.subtitle,
 					caseStudy: work.caseStudy,
 					client: work.client,
-					agency: work.agency,
 					tags: work.tags || [],
 					videoFileId: work.videoFileId,
 					videoFileName: (work as any).videoFile?.originalName,
@@ -1254,7 +1221,6 @@ export class WorksService {
 			subtitle: payload.subtitle,
 			caseStudy: payload.caseStudy,
 			client: payload.client,
-			agency: payload.agency,
 			tags: payload.tags || [],
 			status: payload.status,
 		};
@@ -1320,7 +1286,6 @@ export class WorksService {
 				subtitle: currentWork.subtitle,
 				caseStudy: currentWork.caseStudy,
 				client: currentWork.client,
-				agency: currentWork.agency,
 				tags: currentWork.tags || [],
 				videoFileId: currentWork.videoFileId,
 				videoFileName: (currentWork as any).videoFile?.originalName,

@@ -32,7 +32,6 @@ import publicPresentationRoutes from "./routes/public/presentation";
 import blocksRoutes from "./routes/blocks";
 import clipJobsRoutes from "./routes/clipJobs";
 import clientsRoutes from "./routes/clients";
-import agenciesRoutes from "./routes/agencies";
 import disciplinesRoutes from "./routes/disciplines";
 import sectorsRoutes from "./routes/sectors";
 import starringsRoutes from "./routes/starrings";
@@ -222,9 +221,6 @@ app.use("/api/clip-jobs", clipJobsRoutes);
 
 // Clients routes
 app.use("/api/clients", clientsRoutes);
-
-// Agencies routes
-app.use("/api/agencies", agenciesRoutes);
 
 // Disciplines routes
 app.use("/api/disciplines", disciplinesRoutes);

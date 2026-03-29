@@ -13,7 +13,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { X, Loader2 } from "lucide-react";
 import type { MediaFile } from "@/services/mediaService";
 import clientsService from "@/services/clientsService";
-import agenciesService from "@/services/agenciesService";
 import starringsService from "@/services/starringsService";
 import { PhotographyService } from "@/services/photographyService";
 
@@ -29,10 +28,8 @@ export interface BulkAddValues {
 	location?: string;
 	// Legacy string fields (deprecated, kept for backward compatibility)
 	client?: string;
-	agency?: string;
 	// New relation IDs
 	clientIds?: number[];
-	agencyIds?: number[];
 	starringIds?: number[];
 	categoryIds?: number[];
 	categoryId?: number;
@@ -74,13 +71,11 @@ export function BulkAddPhotographyModal({
 
 	// Search state for autocomplete
 	const [clientSearch, setClientSearch] = React.useState("");
-	const [agencySearch, setAgencySearch] = React.useState("");
 	const [starringSearch, setStarringSearch] = React.useState("");
 	const [categorySearch, setCategorySearch] = React.useState("");
 
 	// Selected entities state
 	const [selectedClients, setSelectedClients] = React.useState<AutocompleteOption[]>([]);
-	const [selectedAgencies, setSelectedAgencies] = React.useState<AutocompleteOption[]>([]);
 	const [selectedStarrings, setSelectedStarrings] = React.useState<AutocompleteOption[]>([]);
 	const [selectedCategories, setSelectedCategories] = React.useState<AutocompleteOption[]>([]);
 
@@ -88,12 +83,6 @@ export function BulkAddPhotographyModal({
 	const { data: clientOptions = [] } = useQuery({
 		queryKey: ["clients-search", clientSearch],
 		queryFn: () => clientsService.searchClients(clientSearch || "", 20),
-		staleTime: 30000,
-	});
-
-	const { data: agencyOptions = [] } = useQuery({
-		queryKey: ["agencies-search", agencySearch],
-		queryFn: () => agenciesService.searchAgencies(agencySearch || "", 20),
 		staleTime: 30000,
 	});
 
@@ -138,7 +127,6 @@ export function BulkAddPhotographyModal({
 			);
 			// Reset selected entities
 			setSelectedClients([]);
-			setSelectedAgencies([]);
 			setSelectedStarrings([]);
 			setSelectedCategories([]);
 			setPerFileCategories({});
@@ -183,11 +171,6 @@ export function BulkAddPhotographyModal({
 		setValues((v) => ({ ...v, clientIds: clients.map((c) => c.id) }));
 	};
 
-	const handleAgenciesChange = (agencies: AutocompleteOption[]) => {
-		setSelectedAgencies(agencies);
-		setValues((v) => ({ ...v, agencyIds: agencies.map((a) => a.id) }));
-	};
-
 	const handleStarringsChange = (starrings: AutocompleteOption[]) => {
 		setSelectedStarrings(starrings);
 		setValues((v) => ({ ...v, starringIds: starrings.map((s) => s.id) }));
@@ -202,12 +185,6 @@ export function BulkAddPhotographyModal({
 	const handleCreateClient = async (name: string): Promise<AutocompleteOption> => {
 		const created = await clientsService.findOrCreateClient(name);
 		await queryClient.invalidateQueries({ queryKey: ["clients-search"] });
-		return { id: created.id, name: created.name };
-	};
-
-	const handleCreateAgency = async (name: string): Promise<AutocompleteOption> => {
-		const created = await agenciesService.findOrCreateAgency(name);
-		await queryClient.invalidateQueries({ queryKey: ["agencies-search"] });
 		return { id: created.id, name: created.name };
 	};
 
@@ -419,38 +396,21 @@ export function BulkAddPhotographyModal({
 								</div>
 							)}
 
-							{/* Client & Agency */}
-							<div className="grid grid-cols-2 gap-4">
-								<div className="space-y-1">
-									<Label className="pl-1">Client</Label>
-									<MultiAutocomplete
-										values={selectedClients}
-										onValuesChange={handleClientsChange}
-										options={clientOptions.map((c) => ({ id: c.id, name: c.name }))}
-										onSearch={setClientSearch}
-										onCreateNew={handleCreateClient}
-										placeholder="Select client..."
-										searchPlaceholder="Search or create client..."
-										emptyMessage="No clients found"
-										allowCreate
-										single
-									/>
-								</div>
-								<div className="space-y-1">
-									<Label className="pl-1">Agency</Label>
-									<MultiAutocomplete
-										values={selectedAgencies}
-										onValuesChange={handleAgenciesChange}
-										options={agencyOptions.map((a) => ({ id: a.id, name: a.name }))}
-										onSearch={setAgencySearch}
-										onCreateNew={handleCreateAgency}
-										placeholder="Select agency..."
-										searchPlaceholder="Search or create agency..."
-										emptyMessage="No agencies found"
-										allowCreate
-										single
-									/>
-								</div>
+							{/* Client */}
+							<div className="space-y-1">
+								<Label className="pl-1">Client</Label>
+								<MultiAutocomplete
+									values={selectedClients}
+									onValuesChange={handleClientsChange}
+									options={clientOptions.map((c) => ({ id: c.id, name: c.name }))}
+									onSearch={setClientSearch}
+									onCreateNew={handleCreateClient}
+									placeholder="Select client..."
+									searchPlaceholder="Search or create client..."
+									emptyMessage="No clients found"
+									allowCreate
+									single
+								/>
 							</div>
 
 							{/* Starrings */}

@@ -37,7 +37,6 @@ model User {
   createdContentPages   ContentPage[]    @relation("ContentPageCreatedBy")
   createdPresentations  Presentation[]   @relation("PresentationCreatedBy")
   createdClients        Client[]         @relation("ClientCreatedBy")
-  createdAgencies       Agency[]         @relation("AgencyCreatedBy")
   createdDisciplines    Discipline[]     @relation("DisciplineCreatedBy")
   createdSectors        Sector[]         @relation("SectorCreatedBy")
 
@@ -124,8 +123,6 @@ model Work {
   caseStudy        String?   @map("case_study") @db.Text
   // @deprecated - Use WorkClient junction table instead
   client           String?   @map("client_legacy")
-  // @deprecated - Use WorkAgency junction table instead  
-  agency           String?   @map("agency_legacy")
   tags             Json
   videoFileId      Int?      @map("video_file_id")
   metaDescription  String?   @map("meta_description") @db.Text
@@ -147,7 +144,6 @@ model Work {
   directors         WorkDirector[]
   starrings         WorkStarring[]
   clients           WorkClient[]
-  agencies          WorkAgency[]
   disciplines       WorkDiscipline[]
   sectors           WorkSector[]
   homepageDirectors HomepageDirector[]
@@ -276,8 +272,6 @@ model Photography {
   photographerId  Int       @map("photographer_id")
   // @deprecated - Use PhotographyClient junction table instead
   client          String?   @map("client_legacy")
-  // @deprecated - Use PhotographyAgency junction table instead
-  agency          String?   @map("agency_legacy")
   year            Int?
   location        String?
   metaDescription String?   @map("meta_description") @db.Text
@@ -296,7 +290,6 @@ model Photography {
   photographer Photographer  @relation(fields: [photographerId], references: [id])
   previewImage MediaFile?    @relation("PhotographyPreviewImage", fields: [previewImageId], references: [id])
   clients           PhotographyClient[]
-  agencies          PhotographyAgency[]
   starrings         PhotographyStarring[]
   categories        PhotographyCategory[]
   presentationItems PresentationItem[]
@@ -668,8 +661,6 @@ model Animation {
   shortDescription String?   @map("short_description") @db.Text
   // @deprecated - Use AnimationClient junction table instead
   client           String?   @map("client_legacy")
-  // @deprecated - Use AnimationAgency junction table instead
-  agency           String?   @map("agency_legacy")
   tags             Json
   videoFileId      Int?      @map("video_file_id")
   metaDescription  String?   @map("meta_description") @db.Text
@@ -689,7 +680,6 @@ model Animation {
   videoFile    MediaFile?         @relation("AnimationVideoFile", fields: [videoFileId], references: [id])
   previewImage MediaFile?         @relation("AnimationPreviewImage", fields: [previewImageId], references: [id])
   clients           AnimationClient[]
-  agencies          AnimationAgency[]
   revisions         AnimationRevision[]
   presentationItems PresentationItem[]
 
@@ -830,7 +820,7 @@ model ClipJob {
 }
 
 // ============================================
-// CLIENT & AGENCY ENTITIES
+// CLIENT ENTITIES
 // ============================================
 
 model Client {
@@ -851,26 +841,6 @@ model Client {
   animations        AnimationClient[]
 
   @@map("clients")
-}
-
-model Agency {
-  id        Int       @id @default(autoincrement())
-  name      String
-  slug      String    @unique
-  status    Status    @default(PUBLISHED)
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-  purgedAt  DateTime? @map("purged_at")
-  createdBy Int?      @map("created_by")
-
-  // Relations
-  creator           User?             @relation("AgencyCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  works             WorkAgency[]
-  photography       PhotographyAgency[]
-  animations        AnimationAgency[]
-
-  @@map("agencies")
 }
 
 model Discipline {
@@ -925,18 +895,6 @@ model WorkClient {
   @@map("work_clients")
 }
 
-model WorkAgency {
-  workId    Int @map("work_id")
-  agencyId  Int @map("agency_id")
-
-  // Relations
-  work      Work   @relation(fields: [workId], references: [id], onDelete: Cascade)
-  agency    Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
-
-  @@id([workId, agencyId])
-  @@map("work_agencies")
-}
-
 model WorkDiscipline {
   workId       Int @map("work_id")
   disciplineId Int @map("discipline_id")
@@ -977,18 +935,6 @@ model PhotographyClient {
   @@map("photography_clients")
 }
 
-model PhotographyAgency {
-  photographyId Int @map("photography_id")
-  agencyId      Int @map("agency_id")
-
-  // Relations
-  photography   Photography @relation(fields: [photographyId], references: [id], onDelete: Cascade)
-  agency        Agency      @relation(fields: [agencyId], references: [id], onDelete: Cascade)
-
-  @@id([photographyId, agencyId])
-  @@map("photography_agencies")
-}
-
 model PhotographyStarring {
   photographyId Int @map("photography_id")
   starringId    Int @map("starring_id")
@@ -1027,18 +973,6 @@ model AnimationClient {
 
   @@id([animationId, clientId])
   @@map("animation_clients")
-}
-
-model AnimationAgency {
-  animationId Int @map("animation_id")
-  agencyId    Int @map("agency_id")
-
-  // Relations
-  animation   Animation @relation(fields: [animationId], references: [id], onDelete: Cascade)
-  agency      Agency    @relation(fields: [agencyId], references: [id], onDelete: Cascade)
-
-  @@id([animationId, agencyId])
-  @@map("animation_agencies")
 }
 
 model SiteSetting {

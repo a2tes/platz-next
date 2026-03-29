@@ -26,7 +26,6 @@ const createAnimationSchema = z.object({
 	title: z.string().min(1).max(191),
 	shortDescription: z.string().optional(),
 	client: z.string().max(191).optional(),
-	agency: z.string().max(191).optional(),
 	tags: z.array(z.string()).default([]),
 	videoFileId: z.number().nullable().optional(),
 	metaDescription: z.string().optional(),
@@ -88,7 +87,7 @@ export class AnimationsController {
 		res.json(
 			apiResponse.success(result.animations.map(serializeAnimation), {
 				pagination: result.pagination,
-			})
+			}),
 		);
 	}
 
@@ -113,7 +112,7 @@ export class AnimationsController {
 		res.json(
 			apiResponse.success(result.animations.map(serializeAnimation), {
 				pagination: result.pagination,
-			})
+			}),
 		);
 	}
 
@@ -353,7 +352,7 @@ export class AnimationsController {
 					itemId: animation.id,
 					itemTitle: animation.title,
 					description: `**${animation.title}** animation has been published`,
-				}))
+				})),
 			);
 		}
 
@@ -365,7 +364,7 @@ export class AnimationsController {
 					title: s.title,
 					error: s.reason,
 				})),
-			})
+			}),
 		);
 	}
 
@@ -385,7 +384,7 @@ export class AnimationsController {
 					itemId: animation.id,
 					itemTitle: animation.title,
 					description: `**${animation.title}** animation has been unpublished`,
-				}))
+				})),
 			);
 		}
 
@@ -397,7 +396,7 @@ export class AnimationsController {
 					title: s.title,
 					error: s.reason,
 				})),
-			})
+			}),
 		);
 	}
 
@@ -417,7 +416,7 @@ export class AnimationsController {
 					itemId: animation.id,
 					itemTitle: animation.title,
 					description: `**${animation.title}** animation has been deleted`,
-				}))
+				})),
 			);
 		}
 
@@ -425,7 +424,7 @@ export class AnimationsController {
 			apiResponse.success({
 				deletedIds: result.deletedIds,
 				skipped: result.skipped,
-			})
+			}),
 		);
 	}
 
@@ -445,7 +444,7 @@ export class AnimationsController {
 					itemId: animation.id,
 					itemTitle: animation.title,
 					description: `**${animation.title}** animation has been purged`,
-				}))
+				})),
 			);
 		}
 
@@ -453,7 +452,7 @@ export class AnimationsController {
 			apiResponse.success({
 				purgedIds: result.purgedIds,
 				skipped: result.skipped,
-			})
+			}),
 		);
 	}
 

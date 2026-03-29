@@ -40,7 +40,6 @@ export interface Photo {
 	description?: string;
 	location?: string;
 	client?: string;
-	agency?: string;
 	starring?: string;
 	images: {
 		original: string;
@@ -334,12 +333,6 @@ export default function PhotoModal({
 										<div>
 											<span className="uppercase text-gray-600 text-sm">CLIENT</span>
 											<p>{photo.client}</p>
-										</div>
-									)}
-									{photo.agency && (
-										<div>
-											<span className="uppercase text-gray-600 text-sm">AGENCY</span>
-											<p>{photo.agency}</p>
 										</div>
 									)}
 									{photo.year && (

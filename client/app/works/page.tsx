@@ -22,7 +22,6 @@ interface Work {
 	title: string;
 	slug: string;
 	client: string;
-	agency?: string;
 	shortDescription: string;
 	subtitle?: string;
 	caseStudy?: string;
@@ -122,7 +121,7 @@ export default function Works() {
 			title: item.work.title,
 			slug: item.work.slug,
 			client: item.work.client,
-			agency: item.work.agency,
+
 			shortDescription: item.work.shortDescription,
 			subtitle: item.work.subtitle,
 			caseStudy: item.work.caseStudy,

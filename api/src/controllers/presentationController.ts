@@ -103,7 +103,6 @@ export const getPresentationByToken = async (req: Request, res: Response) => {
 								slug: ws.starring.slug,
 							})) || [],
 						clients: w.clients?.map((wc: any) => wc.client?.title).filter(Boolean) || [],
-						agencies: w.agencies?.map((wa: any) => wa.agency?.title).filter(Boolean) || [],
 					};
 					if (item.director) {
 						result.director = {
@@ -128,7 +127,6 @@ export const getPresentationByToken = async (req: Request, res: Response) => {
 						optimizedVideoUrl: videoFile?.video?.mp4 || null,
 						images: videoFile?.images || null,
 						clients: a.clients?.map((ac: any) => ac.client?.title).filter(Boolean) || [],
-						agencies: a.agencies?.map((aa: any) => aa.agency?.title).filter(Boolean) || [],
 					};
 				}
 

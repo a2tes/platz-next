@@ -230,7 +230,6 @@ router.get(
 				location: it.location,
 				client: firstClient?.name || it.client, // Prefer junction table client
 				clientSlug: firstClient?.slug || null,
-				agency: (it as any).agency,
 				starring: starrings.join(", ") || null,
 				images: image?.images || null,
 				photographer: (it as any).photographer,
@@ -488,7 +487,7 @@ router.get(
 			year: item.year,
 			location: item.location,
 			client: item.client,
-			agency: item.agency,
+
 			image: serializeMediaFile(item.image),
 			photographer: item.photographer,
 			category: firstCategory || null,

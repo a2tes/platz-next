@@ -28,7 +28,6 @@ const createWorkSchema = z.object({
 	subtitle: z.string().max(255).optional(),
 	caseStudy: z.string().optional(),
 	client: z.string().max(191).optional(),
-	agency: z.string().max(191).optional(),
 	tags: z.array(z.string()).default([]),
 	videoFileId: z.number().nullable().optional(),
 	metaDescription: z.string().optional(),
@@ -38,7 +37,6 @@ const createWorkSchema = z.object({
 	directorIds: z.array(z.number()).default([]),
 	starringIds: z.array(z.number()).default([]),
 	clientIds: z.array(z.number()).default([]),
-	agencyIds: z.array(z.number()).default([]),
 	disciplineIds: z.array(z.number()).default([]),
 	sectorIds: z.array(z.number()).default([]),
 });

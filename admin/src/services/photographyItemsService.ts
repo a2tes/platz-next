@@ -8,12 +8,6 @@ export interface ClientEntity {
 	slug: string;
 }
 
-export interface AgencyEntity {
-	id: number;
-	name: string;
-	slug: string;
-}
-
 export interface StarringEntity {
 	id: number;
 	title: string; // Starring uses 'title' not 'name'
@@ -26,12 +20,6 @@ export interface PhotographyClientJunction {
 	photographyId: number;
 	clientId: number;
 	client: ClientEntity;
-}
-
-export interface PhotographyAgencyJunction {
-	photographyId: number;
-	agencyId: number;
-	agency: AgencyEntity;
 }
 
 export interface PhotographyStarringJunction {
@@ -61,10 +49,8 @@ export interface PhotographyItem {
 	categoryId: number;
 	// Legacy fields (deprecated)
 	client?: string;
-	agency?: string;
 	// New relation fields (junction table format from API)
 	clients?: PhotographyClientJunction[];
-	agencies?: PhotographyAgencyJunction[];
 	starrings?: PhotographyStarringJunction[];
 	categories?: PhotographyCategoryJunction[];
 	year?: number;
@@ -96,7 +82,6 @@ export class PhotographyItemsService {
 		photographerId: number;
 		categoryId: number;
 		client?: string;
-		agency?: string;
 		year: number;
 		location: string;
 		status?: "DRAFT" | "PUBLISHED";
@@ -120,7 +105,6 @@ export class PhotographyItemsService {
 		photographerId?: number;
 		categoryIds?: number[];
 		clientIds?: number[];
-		agencyIds?: number[];
 		starringIds?: number[];
 		items: Array<{
 			imageId: number;

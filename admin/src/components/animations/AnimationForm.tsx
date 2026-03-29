@@ -28,7 +28,6 @@ const animationSchema = z.object({
 	title: z.string().min(1, "Title is required").max(191, "Title must be less than 191 characters"),
 	shortDescription: z.string().optional(),
 	client: z.string().max(191, "Client must be less than 191 characters").optional(),
-	agency: z.string().max(191, "Agency must be less than 191 characters").optional(),
 	tags: z.string(),
 	videoFileId: z.number().nullable().optional(),
 	metaDescription: z.string().optional(),
@@ -64,7 +63,6 @@ export const AnimationForm: React.FC<AnimationFormProps> = ({ animation, onClose
 			title: animation?.title || "",
 			shortDescription: animation?.shortDescription || "",
 			client: animation?.client || "",
-			agency: animation?.agency || "",
 			tags: animation?.tags.join(", ") || "",
 			status: animation?.status || "DRAFT",
 			videoFileId: animation?.videoFileId,
@@ -87,7 +85,6 @@ export const AnimationForm: React.FC<AnimationFormProps> = ({ animation, onClose
 				title: animation.title,
 				shortDescription: animation.shortDescription || "",
 				client: animation.client,
-				agency: animation.agency || "",
 				tags: animation.tags.join(", "),
 				status: animation.status,
 				videoFileId: animation.videoFileId,
@@ -237,13 +234,6 @@ export const AnimationForm: React.FC<AnimationFormProps> = ({ animation, onClose
 							</div>
 
 							<div>
-								<Label htmlFor="agency" className={errors.agency ? "text-destructive" : ""}>
-									{!errors.agency ? "Agency" : errors.agency.message}
-								</Label>
-								<Input id="agency" className="mt-3" {...register("agency")} placeholder="Enter agency name" />
-							</div>
-
-							<div>
 								<Label htmlFor="tags">Tags</Label>
 								<Input id="tags" className="mt-3" {...register("tags")} placeholder="Enter tags separated by commas" />
 							</div>
@@ -367,10 +357,10 @@ export const AnimationForm: React.FC<AnimationFormProps> = ({ animation, onClose
 									{isSubmitting
 										? "Saving..."
 										: isEditing
-										? "Update Animation"
-										: watchedValues.status === "PUBLISHED"
-										? "Publish"
-										: "Save as Draft"}
+											? "Update Animation"
+											: watchedValues.status === "PUBLISHED"
+												? "Publish"
+												: "Save as Draft"}
 								</Button>
 							</div>
 						</div>

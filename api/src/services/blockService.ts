@@ -581,7 +581,7 @@ export class BlockPageService {
 						title: w.title,
 						slug: w.slug,
 						client: w.client || "",
-						agency: w.agency || "",
+
 						shortDescription: w.shortDescription || "",
 						starring: (w.starrings as any[])
 							.map((ws: any) => ws.starring?.title)
@@ -629,7 +629,7 @@ export class BlockPageService {
 						title: a.title,
 						slug: a.slug,
 						client: a.client || "",
-						agency: a.agency || "",
+
 						shortDescription: a.shortDescription || "",
 						videoUrl:
 							serializedVideoFile?.video?.mp4_720p ||

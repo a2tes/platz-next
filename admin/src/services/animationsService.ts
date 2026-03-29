@@ -19,7 +19,6 @@ export interface Animation {
 	slug: string;
 	shortDescription: string | null;
 	client: string;
-	agency: string | null;
 	tags: string[];
 	videoFileId?: number;
 	metaDescription?: string;
@@ -45,7 +44,6 @@ export interface CreateAnimationData {
 	title: string;
 	shortDescription?: string;
 	client: string;
-	agency?: string;
 	tags: string[];
 	videoFileId?: number;
 	metaDescription?: string;
@@ -58,7 +56,6 @@ export interface UpdateAnimationData {
 	title?: string;
 	shortDescription?: string;
 	client?: string;
-	agency?: string;
 	tags?: string[];
 	videoFileId?: number;
 	metaDescription?: string;
@@ -113,7 +110,7 @@ export class AnimationsService {
 			sortBy?: "title" | "client" | "createdAt" | "updatedAt" | "sortOrder";
 			sortOrder?: "asc" | "desc";
 			mine?: boolean;
-		} = {}
+		} = {},
 	): Promise<PaginatedResponse<Animation>> {
 		const searchParams = new URLSearchParams();
 
@@ -190,7 +187,7 @@ export class AnimationsService {
 			search?: string;
 			sortBy?: "title" | "client" | "createdAt" | "updatedAt" | "sortOrder";
 			sortOrder?: "asc" | "desc";
-		} = {}
+		} = {},
 	): Promise<PaginatedResponse<Animation>> {
 		const searchParams = new URLSearchParams();
 
@@ -287,7 +284,7 @@ export class AnimationsService {
 				} catch {
 					return { id, restored: false, reason: "Failed to restore" };
 				}
-			})
+			}),
 		);
 
 		return {
@@ -301,7 +298,7 @@ export class AnimationsService {
 	// Revisions
 	static async revertToRevision(animationId: number, revisionId: number): Promise<Animation> {
 		const response = await api.post<ApiResponse<Animation>>(
-			`/api/animations/${animationId}/revisions/${revisionId}/revert`
+			`/api/animations/${animationId}/revisions/${revisionId}/revert`,
 		);
 		return response.data.data;
 	}

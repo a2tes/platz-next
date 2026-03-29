@@ -39,7 +39,7 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 			title: w.title,
 			slug: w.slug,
 			client: w.clients[0] || "",
-			agency: w.agencies[0] || "",
+
 			shortDescription: w.shortDescription,
 			subtitle: w.subtitle,
 			caseStudy: w.caseStudy,
@@ -60,7 +60,7 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 			title: a.title,
 			slug: a.slug,
 			client: a.clients[0] || "",
-			agency: a.agencies[0] || "",
+
 			shortDescription: a.shortDescription,
 			videoUrl: a.videoUrl || "",
 			hlsUrl: a.hlsUrl || "",

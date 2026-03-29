@@ -29,7 +29,6 @@ export interface CreateAnimationData {
 	title: string;
 	shortDescription?: string;
 	client?: string;
-	agency?: string;
 	tags: string[];
 	videoFileId?: number | null;
 	metaDescription?: string;
@@ -43,7 +42,6 @@ export interface UpdateAnimationData {
 	slug?: string;
 	shortDescription?: string;
 	client?: string;
-	agency?: string;
 	tags?: string[];
 	videoFileId?: number | null;
 	metaDescription?: string | null;
@@ -131,7 +129,6 @@ export class AnimationsService {
 				title: animation.title,
 				shortDescription: animation.shortDescription,
 				client: animation.client,
-				agency: animation.agency,
 				tags: animation.tags || [],
 				videoFileId: animation.videoFileId,
 				videoFileName: (animation as any).videoFile?.originalName,
@@ -473,7 +470,6 @@ export class AnimationsService {
 					title: animation.title,
 					shortDescription: animation.shortDescription,
 					client: animation.client,
-					agency: animation.agency,
 					tags: animation.tags || [],
 					videoFileId: animation.videoFileId,
 					videoFileName: (animation as any).videoFile?.originalName,
@@ -693,7 +689,7 @@ export class AnimationsService {
 	async getTrashedAnimations(query: Omit<GetAnimationsQuery, "status"> & { status?: GetAnimationsQuery["status"] }) {
 		return this.getAnimations(
 			{ ...query, status: query.status ?? "ALL" },
-			{ includeTrashed: true, includePurged: false }
+			{ includeTrashed: true, includePurged: false },
 		);
 	}
 
@@ -753,7 +749,7 @@ export class AnimationsService {
 			prisma.animation.update({
 				where: { id: animationId },
 				data: { sortOrder: index + 1 },
-			})
+			}),
 		);
 
 		await Promise.all(updates);
@@ -788,7 +784,6 @@ export class AnimationsService {
 			title: payload.title,
 			shortDescription: payload.shortDescription,
 			client: payload.client,
-			agency: payload.agency,
 			tags: payload.tags || [],
 			status: payload.status,
 		};
@@ -826,7 +821,6 @@ export class AnimationsService {
 				title: currentAnimation.title,
 				shortDescription: currentAnimation.shortDescription,
 				client: currentAnimation.client,
-				agency: currentAnimation.agency,
 				tags: currentAnimation.tags || [],
 				videoFileId: currentAnimation.videoFileId,
 				videoFileName: (currentAnimation as any).videoFile?.originalName,

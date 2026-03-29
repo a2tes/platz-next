@@ -11,7 +11,6 @@ export interface CreatePhotographyItemData {
 	photographerId: number;
 	categoryIds?: number[];
 	client?: string;
-	agency?: string;
 	year?: number | null;
 	location: string;
 	status?: Status;
@@ -22,12 +21,10 @@ export interface UpdatePhotographyItemData {
 	description?: string;
 	photographerId?: number;
 	client?: string;
-	agency?: string;
 	year?: number | null;
 	location?: string;
 	status?: Status;
 	clientIds?: number[];
-	agencyIds?: number[];
 	starringIds?: number[];
 	categoryIds?: number[];
 }
@@ -48,7 +45,6 @@ export class PhotographyItemsService {
 				photographer: true,
 				categories: { include: { category: true } },
 				clients: { include: { client: true } },
-				agencies: { include: { agency: true } },
 				starrings: { include: { starring: true } },
 			},
 		});
@@ -82,7 +78,6 @@ export class PhotographyItemsService {
 					imageId: data.imageId,
 					photographerId: data.photographerId,
 					client: data.client ?? "",
-					agency: data.agency ?? "",
 					year: data.year,
 					location: data.location ?? "",
 					status: data.status ?? "DRAFT",
@@ -118,10 +113,10 @@ export class PhotographyItemsService {
 	}
 
 	async updateItem(id: number, data: UpdatePhotographyItemData) {
-		const { clientIds, agencyIds, starringIds, categoryIds, ...updateData } = data;
+		const { clientIds, starringIds, categoryIds, ...updateData } = data;
 		const current = await prisma.photography.findUnique({ where: { id } });
 
-		console.log("updateItem called with:", { id, clientIds, agencyIds, starringIds, categoryIds });
+		console.log("updateItem called with:", { id, clientIds, starringIds, categoryIds });
 
 		// Update photography item and manage relations in a transaction
 		const item = await prisma.$transaction(async (tx) => {
@@ -142,18 +137,6 @@ export class PhotographyItemsService {
 						data: clientIds.map((clientId) => ({ photographyId: id, clientId })),
 					});
 					console.log("Created client relations:", result);
-				}
-			}
-
-			// Update agency relations if provided
-			if (agencyIds !== undefined) {
-				console.log("Updating agency relations:", agencyIds);
-				await tx.photographyAgency.deleteMany({ where: { photographyId: id } });
-				if (agencyIds.length > 0) {
-					const result = await tx.photographyAgency.createMany({
-						data: agencyIds.map((agencyId) => ({ photographyId: id, agencyId })),
-					});
-					console.log("Created agency relations:", result);
 				}
 			}
 
@@ -189,7 +172,6 @@ export class PhotographyItemsService {
 					photographer: true,
 					categories: { include: { category: true } },
 					clients: { include: { client: true } },
-					agencies: { include: { agency: true } },
 					starrings: { include: { starring: true } },
 				},
 			});
@@ -271,7 +253,6 @@ export class PhotographyItemsService {
 		photographerId?: number;
 		categoryIds?: number[];
 		clientIds?: number[];
-		agencyIds?: number[];
 		starringIds?: number[];
 		items: Array<{
 			imageId: number;
@@ -280,7 +261,6 @@ export class PhotographyItemsService {
 			year?: number | null;
 			location?: string;
 			client?: string;
-			agency?: string;
 			categoryIds?: number[];
 			photographerId?: number;
 		}>;
@@ -310,7 +290,6 @@ export class PhotographyItemsService {
 						imageId: itemData.imageId,
 						photographerId: itemData.photographerId ?? data.photographerId!,
 						client: itemData.client ?? "",
-						agency: itemData.agency ?? "",
 						year: itemData.year ?? null,
 						location: itemData.location ?? "",
 						status: "PUBLISHED",
@@ -333,13 +312,6 @@ export class PhotographyItemsService {
 					});
 				}
 
-				// Create agency relations (shared across all items)
-				if (data.agencyIds && data.agencyIds.length > 0) {
-					await tx.photographyAgency.createMany({
-						data: data.agencyIds.map((agencyId) => ({ photographyId: created.id, agencyId })),
-					});
-				}
-
 				// Create starring relations (shared across all items)
 				if (data.starringIds && data.starringIds.length > 0) {
 					await tx.photographyStarring.createMany({
@@ -354,7 +326,6 @@ export class PhotographyItemsService {
 						photographer: true,
 						categories: { include: { category: true } },
 						clients: { include: { client: true } },
-						agencies: { include: { agency: true } },
 						starrings: { include: { starring: true } },
 					},
 				});

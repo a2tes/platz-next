@@ -113,7 +113,6 @@ router.get(
 						title: true,
 						shortDescription: true,
 						client: true,
-						agency: true,
 						videoFile: true,
 						starrings: {
 							where: {
@@ -147,7 +146,6 @@ router.get(
 								title: true,
 								shortDescription: true,
 								client: true,
-								agency: true,
 								videoFile: true,
 								starrings: {
 									where: {
@@ -221,7 +219,6 @@ router.get(
 				title: hw.title,
 				shortDescription: hw.shortDescription,
 				client: hw.client,
-				agency: hw.agency,
 				videoUrl: hwVideoFile?.video?.mp4_720p || hwVideoFile?.video?.mp4 || hwVideoFile?.video?.default || null,
 				videoUrl720p: hwVideoFile?.video?.mp4_720p || hwVideoFile?.video?.mp4 || null,
 				previewVideoUrl: hwVideoFile?.video?.preview || hwVideoFile?.video?.mp4_720p || null,
@@ -256,7 +253,7 @@ router.get(
 						title: w.work.title,
 						shortDescription: w.work.shortDescription,
 						client: w.work.client,
-						agency: w.work.agency,
+
 						// Use 720p MP4 for hero/background videos (fast loading)
 						videoUrl: videoFile?.video?.mp4_720p || videoFile?.video?.mp4 || videoFile?.video?.default || null,
 						// 720p for explicit use

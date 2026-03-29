@@ -16,7 +16,6 @@ interface Work {
 	title: string;
 	slug: string;
 	client: string;
-	agency?: string;
 	shortDescription: string;
 	subtitle?: string;
 	caseStudy?: string;
@@ -115,7 +114,7 @@ export default function WorkModal({ work, cardRect, onClose }: WorkModalProps) {
 
 			// Rotate details every 3 seconds
 			rotateDetailsIntervalRef.current = setInterval(() => {
-				const detailsCount = [work.client, work.agency, work.directors?.length, work.starring].filter(Boolean).length;
+				const detailsCount = [work.client, work.directors?.length, work.starring].filter(Boolean).length;
 				setVisibleDetailIndex((prev) => (prev + 1) % detailsCount);
 			}, 5000);
 
@@ -415,15 +414,6 @@ export default function WorkModal({ work, cardRect, onClose }: WorkModalProps) {
 										</div>
 									)}
 
-									{work.agency && (
-										<div className="hidden md:block">
-											<div>
-												<span className="uppercase text-gray-200 text-xs md:text-sm">AGENCY</span>
-												<p className="text-sm md:text-base">{work.agency}</p>
-											</div>
-										</div>
-									)}
-
 									{work.directors && work.directors.length > 0 && (
 										<div className="hidden md:block">
 											<div>
@@ -464,7 +454,7 @@ export default function WorkModal({ work, cardRect, onClose }: WorkModalProps) {
 										{(() => {
 											const details = [
 												work.client && { key: "client", label: "CLIENT", value: work.client },
-												work.agency && { key: "agency", label: "AGENCY", value: work.agency },
+
 												work.directors &&
 													work.directors.length > 0 && {
 														key: "director",

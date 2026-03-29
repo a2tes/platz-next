@@ -7,7 +7,6 @@ interface Animation {
 	title: string;
 	slug: string;
 	client: string;
-	agency?: string;
 	shortDescription: string;
 	videoUrl: string;
 	hlsUrl?: string;

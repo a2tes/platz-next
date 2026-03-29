@@ -437,7 +437,6 @@ export function ImagesManager({
 				photographerId: parentType === "photographer" ? parentId : undefined,
 				categoryIds: parentType === "category" ? [parentId] : commonValues.categoryIds,
 				clientIds: commonValues.clientIds,
-				agencyIds: commonValues.agencyIds,
 				starringIds: commonValues.starringIds,
 				items,
 			});
@@ -657,7 +656,7 @@ export function ImagesManager({
 									photographerId: parentType === "photographer" ? parentId : (vals.photographerId as number),
 									categoryId: parentType === "category" ? parentId : (vals.categoryIds?.[0] as number),
 									client: vals.client || "",
-									agency: vals.agency || "",
+
 									year: parsedYear,
 									location: vals.location || "",
 									status: "PUBLISHED",

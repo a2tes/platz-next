@@ -229,9 +229,6 @@ export const getPresentationByToken = async (token: string) => {
 									clients: {
 										include: { client: true },
 									},
-									agencies: {
-										include: { agency: true },
-									},
 								},
 							},
 							animation: {
@@ -240,9 +237,6 @@ export const getPresentationByToken = async (token: string) => {
 									videoFile: true,
 									clients: {
 										include: { client: true },
-									},
-									agencies: {
-										include: { agency: true },
 									},
 								},
 							},

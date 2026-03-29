@@ -10,9 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MultiAutocomplete, type AutocompleteOption } from "@/components/ui/multi-autocomplete";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { PhotographyItem, ClientEntity, AgencyEntity, StarringEntity } from "@/services/photographyItemsService";
+import type { PhotographyItem, ClientEntity, StarringEntity } from "@/services/photographyItemsService";
 import clientsService from "@/services/clientsService";
-import agenciesService from "@/services/agenciesService";
 import starringsService from "@/services/starringsService";
 import { PhotographyService } from "@/services/photographyService";
 
@@ -32,10 +31,8 @@ export interface EditValues {
 	photographerId?: number;
 	// Legacy (for backward compatibility)
 	client?: string;
-	agency?: string;
 	// New relation IDs
 	clientIds?: number[];
-	agencyIds?: number[];
 	starringIds?: number[];
 }
 
@@ -56,7 +53,6 @@ export function PhotographyItemEditModal({
 }) {
 	// Search state for autocomplete
 	const [clientSearch, setClientSearch] = React.useState("");
-	const [agencySearch, setAgencySearch] = React.useState("");
 	const [starringSearch, setStarringSearch] = React.useState("");
 	const [categorySearch, setCategorySearch] = React.useState("");
 
@@ -64,12 +60,6 @@ export function PhotographyItemEditModal({
 	const { data: clientOptions = [] } = useQuery({
 		queryKey: ["clients-search", clientSearch],
 		queryFn: () => clientsService.searchClients(clientSearch || "", 20),
-		staleTime: 30000,
-	});
-
-	const { data: agencyOptions = [] } = useQuery({
-		queryKey: ["agencies-search", agencySearch],
-		queryFn: () => agenciesService.searchAgencies(agencySearch || "", 20),
 		staleTime: 30000,
 	});
 
@@ -87,7 +77,6 @@ export function PhotographyItemEditModal({
 
 	// Selected entities state
 	const [selectedClients, setSelectedClients] = React.useState<AutocompleteOption[]>([]);
-	const [selectedAgencies, setSelectedAgencies] = React.useState<AutocompleteOption[]>([]);
 	const [selectedStarrings, setSelectedStarrings] = React.useState<AutocompleteOption[]>([]);
 	const [selectedCategory, setSelectedCategory] = React.useState<AutocompleteOption[]>([]);
 
@@ -99,9 +88,7 @@ export function PhotographyItemEditModal({
 		categoryIds: item.categories?.map((c) => c.category?.id ?? c.categoryId) || [],
 		photographerId: item.photographerId,
 		client: item.client || "",
-		agency: item.agency || "",
 		clientIds: item.clients?.map((c) => c.client?.id ?? c.clientId) || [],
-		agencyIds: item.agencies?.map((a) => a.agency?.id ?? a.agencyId) || [],
 		starringIds: item.starrings?.map((s) => s.starring?.id ?? s.starringId) || [],
 	}));
 
@@ -115,9 +102,7 @@ export function PhotographyItemEditModal({
 			categoryIds: item.categories?.map((c) => c.category?.id ?? c.categoryId) || [],
 			photographerId: item.photographerId,
 			client: item.client || "",
-			agency: item.agency || "",
 			clientIds: item.clients?.map((c) => c.client?.id ?? c.clientId) || [],
-			agencyIds: item.agencies?.map((a) => a.agency?.id ?? a.agencyId) || [],
 			starringIds: item.starrings?.map((s) => s.starring?.id ?? s.starringId) || [],
 		});
 		// Set selected entities from item (handle junction table format)
@@ -125,12 +110,6 @@ export function PhotographyItemEditModal({
 			item.clients?.map((c) => ({
 				id: c.client?.id ?? c.clientId,
 				name: c.client?.name ?? "",
-			})) || [],
-		);
-		setSelectedAgencies(
-			item.agencies?.map((a) => ({
-				id: a.agency?.id ?? a.agencyId,
-				name: a.agency?.name ?? "",
 			})) || [],
 		);
 		setSelectedStarrings(
@@ -174,12 +153,6 @@ export function PhotographyItemEditModal({
 		setValues((v) => ({ ...v, clientIds: clients.map((c) => c.id) }));
 	};
 
-	// Handle agency selection change
-	const handleAgenciesChange = (agencies: AutocompleteOption[]) => {
-		setSelectedAgencies(agencies);
-		setValues((v) => ({ ...v, agencyIds: agencies.map((a) => a.id) }));
-	};
-
 	// Handle starring selection change
 	const handleStarringsChange = (starrings: AutocompleteOption[]) => {
 		setSelectedStarrings(starrings);
@@ -193,13 +166,6 @@ export function PhotographyItemEditModal({
 		const created = await clientsService.findOrCreateClient(name);
 		// Invalidate cache so new client appears in dropdown
 		await queryClient.invalidateQueries({ queryKey: ["clients-search"] });
-		return { id: created.id, name: created.name };
-	};
-
-	// Create new agency
-	const handleCreateAgency = async (name: string): Promise<AutocompleteOption> => {
-		const created = await agenciesService.findOrCreateAgency(name);
-		await queryClient.invalidateQueries({ queryKey: ["agencies-search"] });
 		return { id: created.id, name: created.name };
 	};
 
@@ -321,7 +287,7 @@ export function PhotographyItemEditModal({
 							)}
 						</div>
 
-						{/* Client & Agency - 2 columns */}
+						{/* Client */}
 						<div className="grid grid-cols-2 gap-4">
 							<div className="space-y-1">
 								<Label className="pl-1">Client</Label>
@@ -334,21 +300,6 @@ export function PhotographyItemEditModal({
 									placeholder="Select client..."
 									searchPlaceholder="Search or create client..."
 									emptyMessage="No clients found"
-									allowCreate
-									single
-								/>
-							</div>
-							<div className="space-y-1">
-								<Label className="pl-1">Agency</Label>
-								<MultiAutocomplete
-									values={selectedAgencies}
-									onValuesChange={handleAgenciesChange}
-									options={agencyOptions.map((a) => ({ id: a.id, name: a.name }))}
-									onSearch={setAgencySearch}
-									onCreateNew={handleCreateAgency}
-									placeholder="Select agency..."
-									searchPlaceholder="Search or create agency..."
-									emptyMessage="No agencies found"
 									allowCreate
 									single
 								/>
