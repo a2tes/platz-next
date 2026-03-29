@@ -29,6 +29,8 @@ function cleanSnapshot(snapshot: any): any {
 export interface CreateWorkData {
 	title: string;
 	shortDescription?: string;
+	subtitle?: string;
+	caseStudy?: string;
 	client?: string; // @deprecated - use clientIds
 	agency?: string; // @deprecated - use agencyIds
 	tags: string[];
@@ -47,6 +49,8 @@ export interface UpdateWorkData {
 	title?: string;
 	slug?: string;
 	shortDescription?: string;
+	subtitle?: string;
+	caseStudy?: string;
 	client?: string; // @deprecated - use clientIds
 	agency?: string; // @deprecated - use agencyIds
 	tags?: string[];
@@ -184,6 +188,8 @@ export class WorksService {
 			const rawSnapshot = {
 				title: work.title,
 				shortDescription: work.shortDescription,
+				subtitle: work.subtitle,
+				caseStudy: work.caseStudy,
 				client: work.client,
 				agency: work.agency,
 				tags: work.tags || [],
@@ -441,6 +447,8 @@ export class WorksService {
 			select: {
 				title: true,
 				shortDescription: true,
+				subtitle: true,
+				caseStudy: true,
 				client: true,
 				status: true,
 				sortOrder: true,
@@ -691,6 +699,8 @@ export class WorksService {
 				const rawSnapshot = {
 					title: work.title,
 					shortDescription: work.shortDescription,
+					subtitle: work.subtitle,
+					caseStudy: work.caseStudy,
 					client: work.client,
 					agency: work.agency,
 					tags: work.tags || [],
@@ -1183,6 +1193,8 @@ export class WorksService {
 		const updateData: any = {
 			title: payload.title,
 			shortDescription: payload.shortDescription,
+			subtitle: payload.subtitle,
+			caseStudy: payload.caseStudy,
 			client: payload.client,
 			agency: payload.agency,
 			tags: payload.tags || [],
@@ -1247,6 +1259,8 @@ export class WorksService {
 			const rawSnapshot = {
 				title: currentWork.title,
 				shortDescription: currentWork.shortDescription,
+				subtitle: currentWork.subtitle,
+				caseStudy: currentWork.caseStudy,
 				client: currentWork.client,
 				agency: currentWork.agency,
 				tags: currentWork.tags || [],

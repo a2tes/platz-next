@@ -25,6 +25,8 @@ const apiResponse = {
 const createWorkSchema = z.object({
 	title: z.string().min(1).max(191),
 	shortDescription: z.string().optional(),
+	subtitle: z.string().max(255).optional(),
+	caseStudy: z.string().optional(),
 	client: z.string().max(191).optional(),
 	agency: z.string().max(191).optional(),
 	tags: z.array(z.string()).default([]),

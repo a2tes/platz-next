@@ -24,6 +24,8 @@ interface Work {
 	client: string;
 	agency?: string;
 	shortDescription: string;
+	subtitle?: string;
+	caseStudy?: string;
 	starring: string;
 	directors?: Array<{ title: string; slug?: string }>;
 	videoUrl: string;
@@ -122,6 +124,8 @@ export default function Works() {
 			client: item.work.client,
 			agency: item.work.agency,
 			shortDescription: item.work.shortDescription,
+			subtitle: item.work.subtitle,
+			caseStudy: item.work.caseStudy,
 			starring: item.work.starring,
 			directors: item.work.directors,
 			videoUrl: item.work.videoUrl || "",

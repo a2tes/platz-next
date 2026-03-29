@@ -26,6 +26,8 @@ interface Work {
 	title: string;
 	slug: string;
 	shortDescription?: string;
+	subtitle?: string;
+	caseStudy?: string;
 	client?: string;
 	agency?: string;
 	videoUrl?: string;

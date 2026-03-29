@@ -27,6 +27,8 @@ import { ScrollArea } from "../ui/scroll-area";
 const workSchema = z.object({
 	title: z.string().min(1, "Title is required").max(191, "Title must be less than 191 characters"),
 	shortDescription: z.string().optional(),
+	subtitle: z.string().max(255, "Subtitle must be less than 255 characters").optional(),
+	caseStudy: z.string().optional(),
 	client: z.string().max(191, "Client must be less than 191 characters").optional(), // @deprecated
 	agency: z.string().max(191, "Agency must be less than 191 characters").optional(), // @deprecated
 	tags: z.string(),
@@ -67,6 +69,8 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 		defaultValues: {
 			title: work?.title || "",
 			shortDescription: work?.shortDescription || "",
+			subtitle: work?.subtitle || "",
+			caseStudy: work?.caseStudy || "",
 			client: work?.client || "",
 			agency: work?.agency || "",
 			tags: work?.tags.join(", ") || "",
@@ -94,6 +98,8 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 			reset({
 				title: work.title,
 				shortDescription: work.shortDescription || "",
+				subtitle: work.subtitle || "",
+				caseStudy: work.caseStudy || "",
 				client: work.client,
 				agency: work.agency || "",
 				tags: work.tags.join(", "),
@@ -303,6 +309,22 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 									{...register("shortDescription")}
 									placeholder="Brief description of the work"
 									rows={3}
+								/>
+							</div>
+
+							<div>
+								<Label htmlFor="subtitle">Subtitle</Label>
+								<Input id="subtitle" className="mt-3" {...register("subtitle")} placeholder="Enter subtitle" />
+							</div>
+
+							<div>
+								<Label htmlFor="caseStudy">Case Study</Label>
+								<Textarea
+									id="caseStudy"
+									className="mt-3"
+									{...register("caseStudy")}
+									placeholder="Enter case study text"
+									rows={6}
 								/>
 							</div>
 

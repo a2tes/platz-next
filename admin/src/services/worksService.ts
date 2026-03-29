@@ -104,6 +104,8 @@ export interface Work {
 	title: string;
 	slug: string;
 	shortDescription: string | null;
+	subtitle: string | null;
+	caseStudy: string | null;
 	client: string; // @deprecated - use clients relation
 	agency: string | null; // @deprecated - use agencies relation
 	tags: string[];
@@ -142,6 +144,8 @@ export interface Work {
 export interface CreateWorkData {
 	title: string;
 	shortDescription?: string;
+	subtitle?: string;
+	caseStudy?: string;
 	client?: string; // @deprecated
 	agency?: string; // @deprecated
 	tags: string[];
@@ -159,6 +163,8 @@ export interface CreateWorkData {
 export interface UpdateWorkData {
 	title?: string;
 	shortDescription?: string;
+	subtitle?: string;
+	caseStudy?: string;
 	client?: string; // @deprecated
 	agency?: string; // @deprecated
 	tags?: string[];

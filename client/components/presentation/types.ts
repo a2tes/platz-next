@@ -3,6 +3,8 @@ export interface PresentationWork {
 	slug: string;
 	title: string;
 	shortDescription: string;
+	subtitle?: string;
+	caseStudy?: string;
 	videoUrl: string | null;
 	hlsUrl: string | null;
 	optimizedVideoUrl: string | null;

@@ -41,6 +41,8 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 			client: w.clients[0] || "",
 			agency: w.agencies[0] || "",
 			shortDescription: w.shortDescription,
+			subtitle: w.subtitle,
+			caseStudy: w.caseStudy,
 			starring: w.starrings.map((s) => s.title).join(", "),
 			directors: w.directors,
 			videoUrl: w.videoUrl || "",

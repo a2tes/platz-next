@@ -118,6 +118,8 @@ model Work {
   title            String
   slug             String    @unique
   shortDescription String?   @map("short_description") @db.Text
+  subtitle         String?   @db.VarChar(255)
+  caseStudy        String?   @map("case_study") @db.Text
   // @deprecated - Use WorkClient junction table instead
   client           String?   @map("client_legacy")
   // @deprecated - Use WorkAgency junction table instead  
