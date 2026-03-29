@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { MultiAutocomplete, type AutocompleteOption } from "@/components/ui/multi-autocomplete";
 import { RevisionsModal } from "./RevisionsModal";
 import { CroppableMediaField, CroppableMediaFieldRef } from "@/components/media/CroppableMediaField";
+import { QuillEditor } from "@/components/content/QuillEditor";
 import Image from "next/image";
 import { imgixLoader } from "@/lib/imageLoader";
 import { getTimeAgo } from "@/lib/utils";
@@ -302,6 +303,11 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 							)}
 
 							<div>
+								<Label htmlFor="subtitle">Subtitle</Label>
+								<Input id="subtitle" className="mt-3" {...register("subtitle")} placeholder="Enter subtitle" />
+							</div>
+
+							<div>
 								<Label htmlFor="shortDescription">Short Description</Label>
 								<Textarea
 									id="shortDescription"
@@ -313,19 +319,16 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 							</div>
 
 							<div>
-								<Label htmlFor="subtitle">Subtitle</Label>
-								<Input id="subtitle" className="mt-3" {...register("subtitle")} placeholder="Enter subtitle" />
-							</div>
-
-							<div>
-								<Label htmlFor="caseStudy">Case Study</Label>
-								<Textarea
-									id="caseStudy"
-									className="mt-3"
-									{...register("caseStudy")}
-									placeholder="Enter case study text"
-									rows={6}
-								/>
+								<Label>Case Study</Label>
+								<div className="mt-3">
+									<QuillEditor
+										initialData={
+											watchedValues.caseStudy ? { html: watchedValues.caseStudy, format: "quill" } : undefined
+										}
+										onChange={(data) => setValue("caseStudy", data.html)}
+										placeholder="Enter case study text"
+									/>
+								</div>
 							</div>
 
 							{/* New Client Multi-Select */}
