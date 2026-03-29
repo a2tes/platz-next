@@ -98,14 +98,8 @@ export interface Work {
 	directors: Array<{
 		director: Director;
 	}>;
-	clients?: Array<{
-		client: { id: number; name: string; slug: string };
-	}>;
-	disciplines?: Array<{
-		discipline: { id: number; name: string; slug: string };
-	}>;
-	sectors?: Array<{
-		sector: { id: number; name: string; slug: string };
+	taxonomies?: Array<{
+		taxonomy: { id: number; type: string; name: string; slug: string };
 	}>;
 }
 
@@ -122,9 +116,7 @@ export interface CreateWorkData {
 	previewImageId?: number;
 	status: "DRAFT" | "PUBLISHED";
 	directorIds: number[];
-	clientIds?: number[];
-	disciplineIds?: number[];
-	sectorIds?: number[];
+	taxonomyIds?: number[];
 }
 
 export interface UpdateWorkData {
@@ -140,9 +132,7 @@ export interface UpdateWorkData {
 	previewImageId?: number;
 	status?: "DRAFT" | "PUBLISHED";
 	directorIds?: number[];
-	clientIds?: number[];
-	disciplineIds?: number[];
-	sectorIds?: number[];
+	taxonomyIds?: number[];
 }
 
 export interface CreateDirectorData {

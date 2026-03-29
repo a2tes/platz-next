@@ -9,7 +9,7 @@ export interface CreatePhotographyItemData {
 	description: string;
 	imageId: number;
 	photographerId: number;
-	categoryIds?: number[];
+	taxonomyIds?: number[];
 	client?: string;
 	year?: number | null;
 	location: string;
@@ -24,8 +24,7 @@ export interface UpdatePhotographyItemData {
 	year?: number | null;
 	location?: string;
 	status?: Status;
-	clientIds?: number[];
-	categoryIds?: number[];
+	taxonomyIds?: number[];
 }
 
 export class PhotographyItemsService {
@@ -33,7 +32,7 @@ export class PhotographyItemsService {
 		const where: any = { purgedAt: null, deletedAt: null } as any;
 		if (params.photographerId) where.photographerId = params.photographerId;
 		if (params.categoryId) {
-			where.categories = { some: { categoryId: params.categoryId } };
+			where.taxonomies = { some: { taxonomyId: params.categoryId } };
 		}
 
 		const items = await prisma.photography.findMany({
@@ -42,8 +41,7 @@ export class PhotographyItemsService {
 			include: {
 				image: true,
 				photographer: true,
-				categories: { include: { category: true } },
-				clients: { include: { client: true } },
+				taxonomies: { include: { taxonomy: true } },
 			},
 		});
 
@@ -83,10 +81,10 @@ export class PhotographyItemsService {
 				},
 			});
 
-			// Create category relations
-			if (data.categoryIds && data.categoryIds.length > 0) {
-				await tx.photographyCategory.createMany({
-					data: data.categoryIds.map((categoryId) => ({ photographyId: created.id, categoryId })),
+			// Create taxonomy relations
+			if (data.taxonomyIds && data.taxonomyIds.length > 0) {
+				await tx.photographyTaxonomy.createMany({
+					data: data.taxonomyIds.map((taxonomyId) => ({ photographyId: created.id, taxonomyId })),
 				});
 			}
 
@@ -95,7 +93,7 @@ export class PhotographyItemsService {
 				include: {
 					image: true,
 					photographer: true,
-					categories: { include: { category: true } },
+					taxonomies: { include: { taxonomy: true } },
 				},
 			});
 		});
@@ -111,10 +109,10 @@ export class PhotographyItemsService {
 	}
 
 	async updateItem(id: number, data: UpdatePhotographyItemData) {
-		const { clientIds, categoryIds, ...updateData } = data;
+		const { taxonomyIds, ...updateData } = data;
 		const current = await prisma.photography.findUnique({ where: { id } });
 
-		console.log("updateItem called with:", { id, clientIds, categoryIds });
+		console.log("updateItem called with:", { id, taxonomyIds });
 
 		// Update photography item and manage relations in a transaction
 		const item = await prisma.$transaction(async (tx) => {
@@ -124,29 +122,17 @@ export class PhotographyItemsService {
 				data: updateData,
 			});
 
-			// Update client relations if provided
-			if (clientIds !== undefined) {
-				console.log("Updating client relations:", clientIds);
+			// Update taxonomy relations if provided
+			if (taxonomyIds !== undefined) {
+				console.log("Updating taxonomy relations:", taxonomyIds);
 				// Delete existing relations
-				await tx.photographyClient.deleteMany({ where: { photographyId: id } });
+				await tx.photographyTaxonomy.deleteMany({ where: { photographyId: id } });
 				// Create new relations
-				if (clientIds.length > 0) {
-					const result = await tx.photographyClient.createMany({
-						data: clientIds.map((clientId) => ({ photographyId: id, clientId })),
+				if (taxonomyIds.length > 0) {
+					const result = await tx.photographyTaxonomy.createMany({
+						data: taxonomyIds.map((taxonomyId) => ({ photographyId: id, taxonomyId })),
 					});
-					console.log("Created client relations:", result);
-				}
-			}
-
-			// Update category relations if provided
-			if (categoryIds !== undefined) {
-				console.log("Updating category relations:", categoryIds);
-				await tx.photographyCategory.deleteMany({ where: { photographyId: id } });
-				if (categoryIds.length > 0) {
-					const result = await tx.photographyCategory.createMany({
-						data: categoryIds.map((categoryId) => ({ photographyId: id, categoryId })),
-					});
-					console.log("Created category relations:", result);
+					console.log("Created taxonomy relations:", result);
 				}
 			}
 
@@ -156,11 +142,10 @@ export class PhotographyItemsService {
 				include: {
 					image: true,
 					photographer: true,
-					categories: { include: { category: true } },
-					clients: { include: { client: true } },
+					taxonomies: { include: { taxonomy: true } },
 				},
 			});
-			console.log("Re-fetched item clients:", fetched.clients);
+			console.log("Re-fetched item taxonomies:", fetched.taxonomies);
 			return fetched;
 		});
 
@@ -191,14 +176,23 @@ export class PhotographyItemsService {
 		);
 	}
 
-	async moveToClient(itemId: number, clientId: number | null) {
+	async moveToClient(itemId: number, clientTaxonomyId: number | null) {
 		await prisma.$transaction(async (tx) => {
-			// Remove all existing client relations
-			await tx.photographyClient.deleteMany({ where: { photographyId: itemId } });
-			// Add new client relation if provided
-			if (clientId !== null) {
-				await tx.photographyClient.create({
-					data: { photographyId: itemId, clientId },
+			// Remove existing CLIENT taxonomy relations
+			const clientTaxonomies = await tx.photographyTaxonomy.findMany({
+				where: { photographyId: itemId },
+				include: { taxonomy: true },
+			});
+			const clientTaxIds = clientTaxonomies.filter((pt) => pt.taxonomy.type === "CLIENT").map((pt) => pt.taxonomyId);
+			if (clientTaxIds.length > 0) {
+				await tx.photographyTaxonomy.deleteMany({
+					where: { photographyId: itemId, taxonomyId: { in: clientTaxIds } },
+				});
+			}
+			// Add new client taxonomy relation if provided
+			if (clientTaxonomyId !== null) {
+				await tx.photographyTaxonomy.create({
+					data: { photographyId: itemId, taxonomyId: clientTaxonomyId },
 				});
 			}
 		});
@@ -230,14 +224,13 @@ export class PhotographyItemsService {
 	async delete(id: number) {
 		return prisma.photography.delete({
 			where: { id },
-			include: { photographer: true, categories: { include: { category: true } } },
+			include: { photographer: true, taxonomies: { include: { taxonomy: true } } },
 		});
 	}
 
 	async bulkCreate(data: {
 		photographerId?: number;
-		categoryIds?: number[];
-		clientIds?: number[];
+		taxonomyIds?: number[];
 
 		items: Array<{
 			imageId: number;
@@ -246,7 +239,7 @@ export class PhotographyItemsService {
 			year?: number | null;
 			location?: string;
 			client?: string;
-			categoryIds?: number[];
+			taxonomyIds?: number[];
 			photographerId?: number;
 		}>;
 	}) {
@@ -282,18 +275,11 @@ export class PhotographyItemsService {
 					},
 				});
 
-				// Create category relations
-				const categoryIds = itemData.categoryIds ?? data.categoryIds;
-				if (categoryIds && categoryIds.length > 0) {
-					await tx.photographyCategory.createMany({
-						data: categoryIds.map((categoryId) => ({ photographyId: created.id, categoryId })),
-					});
-				}
-
-				// Create client relations (shared across all items)
-				if (data.clientIds && data.clientIds.length > 0) {
-					await tx.photographyClient.createMany({
-						data: data.clientIds.map((clientId) => ({ photographyId: created.id, clientId })),
+				// Create taxonomy relations (item-level or shared)
+				const taxonomyIds = itemData.taxonomyIds ?? data.taxonomyIds;
+				if (taxonomyIds && taxonomyIds.length > 0) {
+					await tx.photographyTaxonomy.createMany({
+						data: taxonomyIds.map((taxonomyId) => ({ photographyId: created.id, taxonomyId })),
 					});
 				}
 
@@ -302,8 +288,7 @@ export class PhotographyItemsService {
 					include: {
 						image: true,
 						photographer: true,
-						categories: { include: { category: true } },
-						clients: { include: { client: true } },
+						taxonomies: { include: { taxonomy: true } },
 					},
 				});
 			});

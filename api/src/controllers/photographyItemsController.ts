@@ -20,7 +20,7 @@ const createSchema = z.object({
 	description: z.string().default(""),
 	imageId: z.number().int(),
 	photographerId: z.number().int(),
-	categoryId: z.number().int(),
+	taxonomyIds: z.array(z.number().int()).optional(),
 	client: z.string().optional(),
 	year: z.number().int().optional().nullable(),
 	location: z.string().default(""),
@@ -35,9 +35,8 @@ const updateSchema = z.object({
 	year: z.number().int().optional().nullable(),
 	location: z.string().optional(),
 	status: z.enum(["DRAFT", "PUBLISHED"]).optional(),
-	// Relation IDs
-	clientIds: z.array(z.number().int()).optional(),
-	categoryIds: z.array(z.number().int()).optional(),
+	// Taxonomy IDs (unified)
+	taxonomyIds: z.array(z.number().int()).optional(),
 });
 
 export class PhotographyItemsController {
@@ -71,8 +70,9 @@ export class PhotographyItemsController {
 			const item = await photographyItemsService.createItem(data);
 
 			const categoryNames =
-				item.categories
-					?.map((c) => c.category?.title)
+				(item as any).taxonomies
+					?.filter((t: any) => t.taxonomy?.type === "PHOTO_CATEGORY")
+					.map((t: any) => t.taxonomy?.name)
 					.filter(Boolean)
 					.join(", ") || "No category";
 			await ActivityService.log({
@@ -99,8 +99,9 @@ export class PhotographyItemsController {
 			const item = await photographyItemsService.updateItem(id, data);
 
 			const categoryNames =
-				item.categories
-					?.map((c) => c.category?.title)
+				(item as any).taxonomies
+					?.filter((t: any) => t.taxonomy?.type === "PHOTO_CATEGORY")
+					.map((t: any) => t.taxonomy?.name)
 					.filter(Boolean)
 					.join(", ") || "No category";
 			if (data.status) {
@@ -156,10 +157,10 @@ export class PhotographyItemsController {
 		try {
 			const id = parseInt(req.params.id as string);
 			const schema = z.object({
-				clientId: z.number().int().nullable(),
+				clientTaxonomyId: z.number().int().nullable(),
 			});
-			const { clientId } = schema.parse(req.body);
-			await photographyItemsService.moveToClient(id, clientId);
+			const { clientTaxonomyId } = schema.parse(req.body);
+			await photographyItemsService.moveToClient(id, clientTaxonomyId);
 			res.json(apiResponse.success({ ok: true }));
 		} catch (err) {
 			next(err);
@@ -192,8 +193,9 @@ export class PhotographyItemsController {
 
 			if (deletedItem) {
 				const categoryNames =
-					deletedItem.categories
-						?.map((c) => c.category?.title)
+					(deletedItem as any).taxonomies
+						?.filter((t: any) => t.taxonomy?.type === "PHOTO_CATEGORY")
+						.map((t: any) => t.taxonomy?.name)
 						.filter(Boolean)
 						.join(", ") || "No category";
 				await ActivityService.log({
@@ -217,8 +219,7 @@ export class PhotographyItemsController {
 		try {
 			const schema = z.object({
 				photographerId: z.number().int().optional(),
-				categoryIds: z.array(z.number().int()).optional(),
-				clientIds: z.array(z.number().int()).optional(),
+				taxonomyIds: z.array(z.number().int()).optional(),
 				items: z
 					.array(
 						z.object({
@@ -228,7 +229,7 @@ export class PhotographyItemsController {
 							year: z.number().int().optional().nullable(),
 							location: z.string().optional(),
 							client: z.string().optional(),
-							categoryIds: z.array(z.number().int()).optional(),
+							taxonomyIds: z.array(z.number().int()).optional(),
 							photographerId: z.number().int().optional(),
 						}),
 					)

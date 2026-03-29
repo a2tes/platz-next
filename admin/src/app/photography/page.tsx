@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PhotographyService } from "@/services/photographyService";
+import { taxonomyServices } from "@/services/taxonomyService";
 import { ImagesManager } from "@/components/photography/ImagesManager";
 import { Separator } from "@/components/ui/separator";
 import { createPhotographyNavigation } from "@/lib/entity-list-helpers";
@@ -304,19 +305,22 @@ function CategoriesList({ search }: { search: string }) {
 	const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
 	const { data, isLoading } = useQuery({
-		queryKey: ["categories-all", search],
-		queryFn: () => PhotographyService.getCategories({ page: 1, limit: 25, search }),
+		queryKey: ["taxonomies", "photo-categories", search],
+		queryFn: async () => {
+			const res = await taxonomyServices["photo-categories"].getAll({ limit: 100, search: search || undefined });
+			return res.taxonomies.map((t) => ({ id: t.id, title: t.name, slug: t.slug, status: t.status }));
+		},
 		staleTime: 1000 * 30,
 	});
 
-	const items = React.useMemo(() => data?.data ?? [], [data]);
+	const items = React.useMemo(() => data ?? [], [data]);
 	const [local, setLocal] = React.useState(items);
 	React.useEffect(() => setLocal(items), [items]);
 
 	const reorderMutation = useMutation({
-		mutationFn: (orderedIds: number[]) => PhotographyService.reorderCategories(orderedIds),
+		mutationFn: (orderedIds: number[]) => taxonomyServices["photo-categories"].reorder(orderedIds),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["categories-all"] });
+			queryClient.invalidateQueries({ queryKey: ["taxonomies", "photo-categories"] });
 		},
 	});
 

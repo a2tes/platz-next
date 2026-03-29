@@ -67,7 +67,8 @@ import {
 	AnimationOption,
 } from "@/services/presentationService";
 import { WorksService, Director } from "@/services/worksService";
-import { PhotographyService, Photographer, PhotoCategory } from "@/services/photographyService";
+import { PhotographyService, Photographer } from "@/services/photographyService";
+import { taxonomyServices } from "@/services/taxonomyService";
 import { useMediaLibraryStore } from "@/stores/mediaLibraryStore";
 import { toast } from "sonner";
 
@@ -435,12 +436,15 @@ function AddItemDialog({ sectionType, directors, existingItems, onAdd, open, onO
 
 	// Fetch categories for filter
 	const { data: categoriesResponse } = useQuery({
-		queryKey: ["photo-categories", "all"],
-		queryFn: () => PhotographyService.getCategories({ limit: 100 }),
+		queryKey: ["taxonomies", "photo-categories", "all"],
+		queryFn: async () => {
+			const res = await taxonomyServices["photo-categories"].getAll({ limit: 100 });
+			return res.taxonomies.map((t) => ({ id: t.id, title: t.name, slug: t.slug }));
+		},
 		staleTime: 5 * 60 * 1000,
 		enabled: open && tab === "PHOTOGRAPHY",
 	});
-	const categories = categoriesResponse?.data || [];
+	const categories = categoriesResponse || [];
 
 	// Reset state when dialog opens/tab changes
 	useEffect(() => {

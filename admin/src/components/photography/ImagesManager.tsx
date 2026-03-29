@@ -22,6 +22,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PhotographyItemsService, PhotographyItem } from "@/services/photographyItemsService";
 import { PhotographyService } from "@/services/photographyService";
+import { taxonomyServices } from "@/services/taxonomyService";
 import { useMediaLibraryStore } from "@/stores/mediaLibraryStore";
 import { ImageItemCard, ImageItemCardMode, Option } from "./ImageItemCard";
 import { PhotographyItemEditModal } from "./PhotographyModal";
@@ -135,8 +136,11 @@ export function ImagesManager({
 
 	// Options for select (categories or photographers)
 	const { data: categoriesData } = useQuery({
-		queryKey: ["photo-categories", "all"],
-		queryFn: () => PhotographyService.getCategories({ page: 1, limit: 25 }),
+		queryKey: ["taxonomies", "photo-categories", "all"],
+		queryFn: async () => {
+			const res = await taxonomyServices["photo-categories"].getAll({ limit: 100 });
+			return { data: res.taxonomies.map((t) => ({ id: t.id, title: t.name, slug: t.slug })) };
+		},
 		staleTime: 1000 * 60,
 	});
 	const { data: photographersData } = useQuery({
@@ -426,8 +430,8 @@ export function ImagesManager({
 			description: "",
 			year: commonValues.year ?? undefined,
 			location: commonValues.location || "",
-			// Use per-file categoryIds if set
-			categoryIds:
+			// Use per-file categoryIds as taxonomyIds if set
+			taxonomyIds:
 				parentType === "photographer" ? (item.categoryIds?.length ? item.categoryIds : undefined) : undefined,
 			photographerId: parentType === "category" ? (item.photographerId ?? commonValues.photographerId) : parentId,
 		}));
@@ -435,8 +439,7 @@ export function ImagesManager({
 		try {
 			const createdItems = await PhotographyItemsService.bulkCreate({
 				photographerId: parentType === "photographer" ? parentId : undefined,
-				categoryIds: parentType === "category" ? [parentId] : commonValues.categoryIds,
-				clientIds: commonValues.clientIds,
+				taxonomyIds: [...(parentType === "category" ? [parentId] : []), ...(commonValues.taxonomyIds || [])],
 				items,
 			});
 
@@ -634,7 +637,7 @@ export function ImagesManager({
 							// Validate minimal fields depending on parentType
 							const hasTitle = !!vals.title?.trim();
 							const hasCategory =
-								parentType === "photographer" ? !!(vals.categoryIds && vals.categoryIds.length > 0) : true;
+								parentType === "photographer" ? !!(vals.taxonomyIds && vals.taxonomyIds.length > 0) : true;
 							const hasPhotographer = parentType === "category" ? !!vals.photographerId : true;
 							const parsedYear =
 								typeof vals.year === "number" && !Number.isNaN(vals.year) ? vals.year : Number(vals.year);
@@ -653,7 +656,7 @@ export function ImagesManager({
 									description: vals.description || "",
 									imageId: editItem.imageId,
 									photographerId: parentType === "photographer" ? parentId : (vals.photographerId as number),
-									categoryId: parentType === "category" ? parentId : (vals.categoryIds?.[0] as number),
+									categoryId: parentType === "category" ? parentId : (vals.taxonomyIds?.[0] as number),
 									client: vals.client || "",
 
 									year: parsedYear,

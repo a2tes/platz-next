@@ -9,9 +9,7 @@ import { IconX, IconVideo, IconPlayerPlay, IconRefresh } from "@tabler/icons-rea
 import { toast } from "sonner";
 import { WorksService, Work, CreateWorkData, UpdateWorkData } from "../../services/worksService";
 import { MediaService, MediaFile } from "../../services/mediaService";
-import { clientsService } from "../../services/clientsService";
-import { disciplinesService } from "../../services/disciplinesService";
-import { sectorsService } from "../../services/sectorsService";
+import { taxonomyServices } from "../../services/taxonomyService";
 import { useMediaLibraryStore } from "@/stores/mediaLibraryStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,9 +37,7 @@ const workSchema = z.object({
 	previewImageId: z.number().nullable().optional(),
 	status: z.enum(["DRAFT", "PUBLISHED"]),
 	directorIds: z.array(z.number()),
-	clientIds: z.array(z.number()).optional(),
-	disciplineIds: z.array(z.number()).optional(),
-	sectorIds: z.array(z.number()).optional(),
+	taxonomyIds: z.array(z.number()).optional(),
 });
 
 type WorkFormData = z.infer<typeof workSchema>;
@@ -76,9 +72,7 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 			tags: work?.tags.join(", ") || "",
 			status: work?.status || "DRAFT",
 			directorIds: work?.directors.map((d) => d.director.id) || [],
-			clientIds: work?.clients?.map((c: any) => c.client.id) || [],
-			disciplineIds: work?.disciplines?.map((d: any) => d.discipline.id) || [],
-			sectorIds: work?.sectors?.map((s: any) => s.sector.id) || [],
+			taxonomyIds: work?.taxonomies?.map((t: any) => t.taxonomy.id) || [],
 			videoFileId: work?.videoFileId,
 			previewImageId: work?.previewImageId,
 			metaDescription: work?.metaDescription || "",
@@ -104,9 +98,7 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 				tags: work.tags.join(", "),
 				status: work.status,
 				directorIds: (work.directors || []).map((d) => d.director.id),
-				clientIds: (work.clients || []).map((c: any) => c.client.id),
-				disciplineIds: (work.disciplines || []).map((d: any) => d.discipline.id),
-				sectorIds: (work.sectors || []).map((s: any) => s.sector.id),
+				taxonomyIds: (work.taxonomies || []).map((t: any) => t.taxonomy.id),
 				videoFileId: work.videoFileId,
 				previewImageId: work.previewImageId,
 				metaDescription: work.metaDescription || "",
@@ -125,20 +117,29 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 
 	// Fetch all clients once
 	const { data: clientsData } = useQuery({
-		queryKey: ["clients"],
-		queryFn: () => clientsService.getAll(),
+		queryKey: ["taxonomies", "clients"],
+		queryFn: async () => {
+			const res = await taxonomyServices.clients.getAll({ limit: 500 });
+			return res.taxonomies;
+		},
 		staleTime: Infinity,
 	});
 
 	const { data: disciplinesData } = useQuery({
-		queryKey: ["disciplines"],
-		queryFn: () => disciplinesService.getAll(),
+		queryKey: ["taxonomies", "disciplines"],
+		queryFn: async () => {
+			const res = await taxonomyServices.disciplines.getAll({ limit: 500 });
+			return res.taxonomies;
+		},
 		staleTime: Infinity,
 	});
 
 	const { data: sectorsData } = useQuery({
-		queryKey: ["sectors"],
-		queryFn: () => sectorsService.getAll(),
+		queryKey: ["taxonomies", "sectors"],
+		queryFn: async () => {
+			const res = await taxonomyServices.sectors.getAll({ limit: 500 });
+			return res.taxonomies;
+		},
 		staleTime: Infinity,
 	});
 
@@ -219,9 +220,7 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 					.split(",")
 					.map((t) => t.trim())
 					.filter(Boolean),
-				clientIds: data.clientIds || [],
-				disciplineIds: data.disciplineIds || [],
-				sectorIds: data.sectorIds || [],
+				taxonomyIds: data.taxonomyIds || [],
 			};
 
 			let entityId: number;
@@ -341,25 +340,31 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 										id: c.id,
 										name: c.name,
 									}))}
-									values={(watchedValues.clientIds || [])
+									values={(watchedValues.taxonomyIds || [])
 										.map((id: number) => {
-											const client = (clientsData || []).find((c: any) => c.id === id);
+											const client = (clientsData || []).find((c: any) => c.id === id && c.type === "CLIENT");
 											if (client) return { id: client.id, name: client.name };
-											const workClient = (work?.clients || []).find((c: any) => c.client.id === id);
-											if (workClient) return { id: workClient.client.id, name: workClient.client.name };
+											const workTax = (work?.taxonomies || []).find(
+												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "CLIENT",
+											);
+											if (workTax) return { id: workTax.taxonomy.id, name: workTax.taxonomy.name };
 											return null;
 										})
 										.filter((v): v is AutocompleteOption => v !== null)}
-									onValuesChange={(options) =>
-										setValue(
-											"clientIds",
-											options.map((o) => o.id),
-										)
-									}
+									onValuesChange={(options) => {
+										const otherIds = (watchedValues.taxonomyIds || []).filter((id: number) => {
+											const isClient = (clientsData || []).some((c: any) => c.id === id);
+											const isWorkClient = (work?.taxonomies || []).some(
+												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "CLIENT",
+											);
+											return !isClient && !isWorkClient;
+										});
+										setValue("taxonomyIds", [...otherIds, ...options.map((o) => o.id)]);
+									}}
 									onSearch={setClientSearch}
 									onCreateNew={async (name) => {
-										const created = await clientsService.findOrCreateClient(name);
-										queryClient.invalidateQueries({ queryKey: ["clients"] });
+										const created = await taxonomyServices.clients.findOrCreate(name);
+										queryClient.invalidateQueries({ queryKey: ["taxonomies", "clients"] });
 										return { id: created.id, name: created.name };
 									}}
 									placeholder="Select or create client..."
@@ -377,26 +382,33 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 										id: d.id,
 										name: d.name,
 									}))}
-									values={(watchedValues.disciplineIds || [])
+									values={(watchedValues.taxonomyIds || [])
 										.map((id: number) => {
-											const discipline = (disciplinesData || []).find((d: any) => d.id === id);
+											const discipline = (disciplinesData || []).find(
+												(d: any) => d.id === id && d.type === "DISCIPLINE",
+											);
 											if (discipline) return { id: discipline.id, name: discipline.name };
-											const workDiscipline = (work?.disciplines || []).find((d: any) => d.discipline.id === id);
-											if (workDiscipline)
-												return { id: workDiscipline.discipline.id, name: workDiscipline.discipline.name };
+											const workTax = (work?.taxonomies || []).find(
+												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "DISCIPLINE",
+											);
+											if (workTax) return { id: workTax.taxonomy.id, name: workTax.taxonomy.name };
 											return null;
 										})
 										.filter((v): v is AutocompleteOption => v !== null)}
-									onValuesChange={(options) =>
-										setValue(
-											"disciplineIds",
-											options.map((o) => o.id),
-										)
-									}
+									onValuesChange={(options) => {
+										const otherIds = (watchedValues.taxonomyIds || []).filter((id: number) => {
+											const isDiscipline = (disciplinesData || []).some((d: any) => d.id === id);
+											const isWorkDiscipline = (work?.taxonomies || []).some(
+												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "DISCIPLINE",
+											);
+											return !isDiscipline && !isWorkDiscipline;
+										});
+										setValue("taxonomyIds", [...otherIds, ...options.map((o) => o.id)]);
+									}}
 									onSearch={setDisciplineSearch}
 									onCreateNew={async (name) => {
-										const created = await disciplinesService.findOrCreateDiscipline(name);
-										queryClient.invalidateQueries({ queryKey: ["disciplines"] });
+										const created = await taxonomyServices.disciplines.findOrCreate(name);
+										queryClient.invalidateQueries({ queryKey: ["taxonomies", "disciplines"] });
 										return { id: created.id, name: created.name };
 									}}
 									placeholder="Select or create disciplines..."
@@ -414,25 +426,31 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 										id: s.id,
 										name: s.name,
 									}))}
-									values={(watchedValues.sectorIds || [])
+									values={(watchedValues.taxonomyIds || [])
 										.map((id: number) => {
-											const sector = (sectorsData || []).find((s: any) => s.id === id);
+											const sector = (sectorsData || []).find((s: any) => s.id === id && s.type === "SECTOR");
 											if (sector) return { id: sector.id, name: sector.name };
-											const workSector = (work?.sectors || []).find((s: any) => s.sector.id === id);
-											if (workSector) return { id: workSector.sector.id, name: workSector.sector.name };
+											const workTax = (work?.taxonomies || []).find(
+												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "SECTOR",
+											);
+											if (workTax) return { id: workTax.taxonomy.id, name: workTax.taxonomy.name };
 											return null;
 										})
 										.filter((v): v is AutocompleteOption => v !== null)}
-									onValuesChange={(options) =>
-										setValue(
-											"sectorIds",
-											options.map((o) => o.id),
-										)
-									}
+									onValuesChange={(options) => {
+										const otherIds = (watchedValues.taxonomyIds || []).filter((id: number) => {
+											const isSector = (sectorsData || []).some((s: any) => s.id === id);
+											const isWorkSector = (work?.taxonomies || []).some(
+												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "SECTOR",
+											);
+											return !isSector && !isWorkSector;
+										});
+										setValue("taxonomyIds", [...otherIds, ...options.map((o) => o.id)]);
+									}}
 									onSearch={setSectorSearch}
 									onCreateNew={async (name) => {
-										const created = await sectorsService.findOrCreateSector(name);
-										queryClient.invalidateQueries({ queryKey: ["sectors"] });
+										const created = await taxonomyServices.sectors.findOrCreate(name);
+										queryClient.invalidateQueries({ queryKey: ["taxonomies", "sectors"] });
 										return { id: created.id, name: created.name };
 									}}
 									placeholder="Select or create sectors..."

@@ -38,9 +38,10 @@ router.get(
 					photography: {
 						where: { status: "PUBLISHED", purgedAt: null, deletedAt: null },
 						select: {
-							categories: {
+							taxonomies: {
+								where: { taxonomy: { type: "PHOTO_CATEGORY" } },
 								select: {
-									category: {
+									taxonomy: {
 										select: { slug: true },
 									},
 								},
@@ -56,8 +57,8 @@ router.get(
 			title: item.title,
 			slug: item.slug,
 			categories: item.photography
-				.flatMap((p) => p.categories.map((c) => c.category?.slug))
-				.filter((slug): slug is string => slug !== null && slug !== undefined)
+				.flatMap((p: any) => p.taxonomies.map((t: any) => t.taxonomy?.slug))
+				.filter((slug: any): slug is string => slug !== null && slug !== undefined)
 				.filter((v: string, i: number, a: string[]) => a.indexOf(v) === i), // Remove duplicates
 		}));
 

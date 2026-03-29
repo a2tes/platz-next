@@ -29,6 +29,7 @@ const entitiesLinks = [
 	{ name: "Clients", href: "/entities/clients" },
 	{ name: "Disciplines", href: "/entities/disciplines" },
 	{ name: "Sectors", href: "/entities/sectors" },
+	{ name: "Photo Categories", href: "/entities/photo-categories" },
 ];
 
 function NavSection({

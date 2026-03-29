@@ -32,12 +32,9 @@ model User {
   createdAnimations    Animation[]     @relation("AnimationCreatedBy")
   createdDirectors     Director[]      @relation("DirectorCreatedBy")
   createdPhotographers Photographer[]  @relation("PhotographerCreatedBy")
-  createdPhotoCategories PhotoCategory[] @relation("PhotoCategoryCreatedBy")
   createdContentPages   ContentPage[]    @relation("ContentPageCreatedBy")
   createdPresentations  Presentation[]   @relation("PresentationCreatedBy")
-  createdClients        Client[]         @relation("ClientCreatedBy")
-  createdDisciplines    Discipline[]     @relation("DisciplineCreatedBy")
-  createdSectors        Sector[]         @relation("SectorCreatedBy")
+  createdTaxonomies     Taxonomy[]       @relation("TaxonomyCreatedBy")
 
   @@map("users")
 }
@@ -86,10 +83,10 @@ model MediaFile {
   photographersPreviewImage Photographer[] @relation("PhotographerPreviewImage")
   contentPagesPreviewImage ContentPage[]  @relation("ContentPagePreviewImage")
   pageSeoOgImages          PageSeo[]      @relation("PageSeoOgImage")
-  photoCategoriesOgImage   PhotoCategory[] @relation("PhotoCategoryOgImage")
   mediables               Mediable[]
   clipJobs                ClipJob[]      // Clip processing jobs using this video as source
   presentationItemExternalThumbnails PresentationItem[] @relation("PresentationItemExternalThumbnail")
+  taxonomiesOgImage    Taxonomy[]     @relation("TaxonomyOgImage")
 
   @@map("media_files")
 }
@@ -140,9 +137,6 @@ model Work {
   videoFile         MediaFile?         @relation("WorkVideoFile", fields: [videoFileId], references: [id])
   previewImage      MediaFile?         @relation("WorkPreviewImage", fields: [previewImageId], references: [id])
   directors         WorkDirector[]
-  clients           WorkClient[]
-  disciplines       WorkDiscipline[]
-  sectors           WorkSector[]
   homepageDirectors HomepageDirector[]
   directorsPageSelections DirectorsPageSelection[]
   revisions         WorkRevision[]
@@ -150,6 +144,7 @@ model Work {
   presentationItems PresentationItem[]
   clipJobs          ClipJob[]
   heroForDirectors  Director[]         @relation("DirectorHeroWork")
+  taxonomies        WorkTaxonomy[]
 
   @@map("works")
 }
@@ -250,9 +245,8 @@ model Photography {
   image        MediaFile     @relation("PhotographyImage", fields: [imageId], references: [id])
   photographer Photographer  @relation(fields: [photographerId], references: [id])
   previewImage MediaFile?    @relation("PhotographyPreviewImage", fields: [previewImageId], references: [id])
-  clients           PhotographyClient[]
-  categories        PhotographyCategory[]
   presentationItems PresentationItem[]
+  taxonomies        PhotographyTaxonomy[]
 
   @@map("photography")
 }
@@ -286,29 +280,6 @@ model Photographer {
   photography  Photography[]
 
   @@map("photographers")
-}
-
-model PhotoCategory {
-  id              Int       @id @default(autoincrement())
-  title           String
-  slug            String    @unique
-  ogImageId       Int?      @map("og_image_id")
-  metaDescription String?   @map("meta_description") @db.Text
-  metaKeywords    String?   @map("meta_keywords") @db.Text
-  status          Status    @default(DRAFT)
-  sortOrder       Int       @default(0) @map("sort_order")
-  createdBy       Int?      @map("created_by")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  deletedAt       DateTime? @map("deleted_at")
-  purgedAt        DateTime? @map("purged_at")
-
-  // Relations
-  ogImage     MediaFile?    @relation("PhotoCategoryOgImage", fields: [ogImageId], references: [id])
-  creator     User?         @relation("PhotoCategoryCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  photography PhotographyCategory[]
-
-  @@map("photo_categories")
 }
 
 model HomepageDirector {
@@ -450,6 +421,13 @@ model PageSeo {
   ogImage         MediaFile? @relation("PageSeoOgImage", fields: [ogImageId], references: [id])
 
   @@map("page_seo")
+}
+
+enum TaxonomyType {
+  CLIENT
+  SECTOR
+  DISCIPLINE
+  PHOTO_CATEGORY
 }
 
 enum BlockPageType {
@@ -639,9 +617,9 @@ model Animation {
   creator      User?              @relation("AnimationCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
   videoFile    MediaFile?         @relation("AnimationVideoFile", fields: [videoFileId], references: [id])
   previewImage MediaFile?         @relation("AnimationPreviewImage", fields: [previewImageId], references: [id])
-  clients           AnimationClient[]
   revisions         AnimationRevision[]
   presentationItems PresentationItem[]
+  taxonomies        AnimationTaxonomy[]
 
   @@map("animations")
 }
@@ -780,147 +758,71 @@ model ClipJob {
 }
 
 // ============================================
-// CLIENT ENTITIES
+// TAXONOMY SYSTEM
 // ============================================
 
-model Client {
-  id        Int       @id @default(autoincrement())
-  name      String
-  slug      String    @unique
-  status    Status    @default(PUBLISHED)
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-  purgedAt  DateTime? @map("purged_at")
-  createdBy Int?      @map("created_by")
+model Taxonomy {
+  id              Int           @id @default(autoincrement())
+  type            TaxonomyType
+  name            String
+  slug            String
+  status          Status        @default(PUBLISHED)
+  sortOrder       Int           @default(0) @map("sort_order")
+  ogImageId       Int?          @map("og_image_id")
+  metaDescription String?       @map("meta_description") @db.Text
+  metaKeywords    String?       @map("meta_keywords") @db.Text
+  metadata        Json?
+  createdBy       Int?          @map("created_by")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  deletedAt       DateTime?     @map("deleted_at")
+  purgedAt        DateTime?     @map("purged_at")
 
   // Relations
-  creator           User?             @relation("ClientCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  works             WorkClient[]
-  photography       PhotographyClient[]
-  animations        AnimationClient[]
+  ogImage     MediaFile?          @relation("TaxonomyOgImage", fields: [ogImageId], references: [id])
+  creator     User?               @relation("TaxonomyCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  works       WorkTaxonomy[]
+  photography PhotographyTaxonomy[]
+  animations  AnimationTaxonomy[]
 
-  @@map("clients")
+  @@unique([type, slug])
+  @@map("taxonomies")
 }
 
-model Discipline {
-  id        Int       @id @default(autoincrement())
-  name      String
-  slug      String    @unique
-  status    Status    @default(PUBLISHED)
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-  purgedAt  DateTime? @map("purged_at")
-  createdBy Int?      @map("created_by")
+model WorkTaxonomy {
+  workId     Int @map("work_id")
+  taxonomyId Int @map("taxonomy_id")
 
   // Relations
-  creator   User?              @relation("DisciplineCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  works     WorkDiscipline[]
+  work     Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  taxonomy Taxonomy @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
 
-  @@map("disciplines")
+  @@id([workId, taxonomyId])
+  @@map("work_taxonomies")
 }
 
-model Sector {
-  id        Int       @id @default(autoincrement())
-  name      String
-  slug      String    @unique
-  status    Status    @default(PUBLISHED)
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-  purgedAt  DateTime? @map("purged_at")
-  createdBy Int?      @map("created_by")
-
-  // Relations
-  creator   User?          @relation("SectorCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  works     WorkSector[]
-
-  @@map("sectors")
-}
-
-// ============================================
-// WORK JUNCTION TABLES
-// ============================================
-
-model WorkClient {
-  workId    Int @map("work_id")
-  clientId  Int @map("client_id")
-
-  // Relations
-  work      Work   @relation(fields: [workId], references: [id], onDelete: Cascade)
-  client    Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
-
-  @@id([workId, clientId])
-  @@map("work_clients")
-}
-
-model WorkDiscipline {
-  workId       Int @map("work_id")
-  disciplineId Int @map("discipline_id")
-
-  // Relations
-  work         Work       @relation(fields: [workId], references: [id], onDelete: Cascade)
-  discipline   Discipline @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
-
-  @@id([workId, disciplineId])
-  @@map("work_disciplines")
-}
-
-model WorkSector {
-  workId   Int @map("work_id")
-  sectorId Int @map("sector_id")
-
-  // Relations
-  work     Work   @relation(fields: [workId], references: [id], onDelete: Cascade)
-  sector   Sector @relation(fields: [sectorId], references: [id], onDelete: Cascade)
-
-  @@id([workId, sectorId])
-  @@map("work_sectors")
-}
-
-// ============================================
-// PHOTOGRAPHY JUNCTION TABLES
-// ============================================
-
-model PhotographyClient {
+model PhotographyTaxonomy {
   photographyId Int @map("photography_id")
-  clientId      Int @map("client_id")
+  taxonomyId    Int @map("taxonomy_id")
 
   // Relations
-  photography   Photography @relation(fields: [photographyId], references: [id], onDelete: Cascade)
-  client        Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  photography Photography @relation(fields: [photographyId], references: [id], onDelete: Cascade)
+  taxonomy    Taxonomy    @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
 
-  @@id([photographyId, clientId])
-  @@map("photography_clients")
+  @@id([photographyId, taxonomyId])
+  @@map("photography_taxonomies")
 }
 
-model PhotographyCategory {
-  photographyId Int @map("photography_id")
-  categoryId    Int @map("category_id")
-
-  // Relations
-  photography   Photography   @relation(fields: [photographyId], references: [id], onDelete: Cascade)
-  category      PhotoCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  @@id([photographyId, categoryId])
-  @@map("photography_categories")
-}
-
-// ============================================
-// ANIMATION JUNCTION TABLES
-// ============================================
-
-model AnimationClient {
+model AnimationTaxonomy {
   animationId Int @map("animation_id")
-  clientId    Int @map("client_id")
+  taxonomyId  Int @map("taxonomy_id")
 
   // Relations
-  animation   Animation @relation(fields: [animationId], references: [id], onDelete: Cascade)
-  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  animation Animation @relation(fields: [animationId], references: [id], onDelete: Cascade)
+  taxonomy  Taxonomy  @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
 
-  @@id([animationId, clientId])
-  @@map("animation_clients")
+  @@id([animationId, taxonomyId])
+  @@map("animation_taxonomies")
 }
 
 model SiteSetting {

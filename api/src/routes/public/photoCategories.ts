@@ -13,27 +13,34 @@ router.get(
 		const search = typeof req.query.search === "string" ? req.query.search : "";
 
 		const where: any = {
+			type: "PHOTO_CATEGORY",
 			status: "PUBLISHED",
 			purgedAt: null,
 			deletedAt: null,
 			// Only categories with at least one published photography item
 			photography: {
-				some: { status: "PUBLISHED", purgedAt: null, deletedAt: null },
+				some: {
+					photography: {
+						status: "PUBLISHED" as any,
+						purgedAt: null,
+						deletedAt: null,
+					},
+				},
 			},
 		};
 		if (search) {
-			where.OR = [{ title: { contains: search, mode: "insensitive" } }];
+			where.OR = [{ name: { contains: search, mode: "insensitive" } }];
 		}
 
 		const [total, items] = await Promise.all([
-			prisma.photoCategory.count({ where }),
-			prisma.photoCategory.findMany({
+			prisma.taxonomy.count({ where }),
+			prisma.taxonomy.findMany({
 				where,
 				orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
 				skip: (page - 1) * limit,
 				take: limit,
 				select: {
-					title: true,
+					name: true,
 					slug: true,
 					photography: {
 						where: {
@@ -59,7 +66,7 @@ router.get(
 
 		// Transform to include photographers
 		const transformedItems = items.map((item) => ({
-			title: item.title,
+			title: item.name,
 			slug: item.slug,
 			photographers: item.photography
 				.map((p) => p.photography?.photographer?.slug)

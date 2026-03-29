@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { authenticateToken } from "../middleware/auth";
-import { photoCategoriesController } from "../controllers/photoCategoriesController";
 import { photographersController } from "../controllers/photographersController";
 import { photographyItemsController } from "../controllers/photographyItemsController";
 
@@ -8,28 +7,6 @@ const router = Router();
 
 // Apply authentication
 router.use(authenticateToken);
-
-// Categories routes
-router.post("/categories", photoCategoriesController.create.bind(photoCategoriesController));
-router.get("/categories", photoCategoriesController.list.bind(photoCategoriesController));
-router.get("/categories/search", photoCategoriesController.searchCategories.bind(photoCategoriesController));
-router.post(
-	"/categories/find-or-create",
-	photoCategoriesController.findOrCreateCategory.bind(photoCategoriesController),
-);
-router.post("/categories/bulk/delete", photoCategoriesController.bulkDeleteCategories.bind(photoCategoriesController));
-router.post("/categories/bulk/purge", photoCategoriesController.bulkPurgeCategories.bind(photoCategoriesController));
-router.post("/categories/reorder", photoCategoriesController.reorder.bind(photoCategoriesController));
-router.get("/categories/counts", photoCategoriesController.getCounts.bind(photoCategoriesController));
-router.get("/categories/trash", photoCategoriesController.getTrashed.bind(photoCategoriesController));
-router.get("/categories/:id", photoCategoriesController.getById.bind(photoCategoriesController));
-router.put("/categories/:id", photoCategoriesController.update.bind(photoCategoriesController));
-router.delete("/categories/:id", photoCategoriesController.delete.bind(photoCategoriesController));
-router.post("/categories/:id/trash", photoCategoriesController.trash.bind(photoCategoriesController));
-router.post("/categories/:id/restore", photoCategoriesController.restore.bind(photoCategoriesController));
-router.post("/categories/:id/purge", photoCategoriesController.purge.bind(photoCategoriesController));
-router.patch("/categories/:id/publish", photoCategoriesController.publish.bind(photoCategoriesController));
-router.patch("/categories/:id/unpublish", photoCategoriesController.unpublish.bind(photoCategoriesController));
 
 // Photographers routes
 router.post("/photographers", photographersController.create.bind(photographersController));

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { clientsService, Client, CreateClientData, UpdateClientData } from "@/services/clientsService";
+import { getTaxonomyService, Taxonomy, TaxonomyTypeSlug } from "@/services/taxonomyService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,24 +14,27 @@ import { IconX } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { slugify } from "@/lib/utils";
 
-const clientSchema = z.object({
+const taxonomySchema = z.object({
 	name: z.string().min(1, "Name is required").max(191),
 	slug: z.string().optional(),
 	status: z.enum(["DRAFT", "PUBLISHED"]),
 });
 
-type ClientFormData = z.infer<typeof clientSchema>;
+type TaxonomyFormData = z.infer<typeof taxonomySchema>;
 
-export interface ClientsModalProps {
+export interface TaxonomyModalProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	client?: Client | null;
-	onSaved?: (saved: Client | void) => void;
+	taxonomy?: Taxonomy | null;
+	onSaved?: (saved: Taxonomy | void) => void;
+	typeSlug: TaxonomyTypeSlug;
+	displayName: string;
 }
 
-export function ClientsModal({ open, onOpenChange, client, onSaved }: ClientsModalProps) {
-	const isEditing = !!client;
+export function TaxonomyModal({ open, onOpenChange, taxonomy, onSaved, typeSlug, displayName }: TaxonomyModalProps) {
+	const isEditing = !!taxonomy;
 	const queryClient = useQueryClient();
+	const service = getTaxonomyService(typeSlug);
 
 	const {
 		register,
@@ -40,12 +43,12 @@ export function ClientsModal({ open, onOpenChange, client, onSaved }: ClientsMod
 		setValue,
 		watch,
 		reset,
-	} = useForm<ClientFormData>({
-		resolver: zodResolver(clientSchema),
+	} = useForm<TaxonomyFormData>({
+		resolver: zodResolver(taxonomySchema),
 		defaultValues: {
-			name: client?.name || "",
-			slug: client?.slug || "",
-			status: client?.status || "PUBLISHED",
+			name: taxonomy?.name || "",
+			slug: taxonomy?.slug || "",
+			status: taxonomy?.status || "PUBLISHED",
 		},
 	});
 
@@ -54,55 +57,55 @@ export function ClientsModal({ open, onOpenChange, client, onSaved }: ClientsMod
 	React.useEffect(() => {
 		if (open) {
 			reset({
-				name: client?.name || "",
-				slug: client?.slug || "",
-				status: client?.status || "PUBLISHED",
+				name: taxonomy?.name || "",
+				slug: taxonomy?.slug || "",
+				status: taxonomy?.status || "PUBLISHED",
 			});
 		}
-	}, [open, client, reset]);
+	}, [open, taxonomy, reset]);
 
 	const createMutation = useMutation({
-		mutationFn: (data: CreateClientData) => clientsService.createClient(data),
+		mutationFn: (data: { name: string; status?: "DRAFT" | "PUBLISHED" }) => service.create(data),
 		onSuccess: (saved) => {
-			toast.success("Client created");
-			queryClient.invalidateQueries({ queryKey: ["clients"] });
-			queryClient.invalidateQueries({ queryKey: ["clients-counts"] });
+			toast.success(`${displayName} created`);
+			queryClient.invalidateQueries({ queryKey: [`taxonomies-${typeSlug}`] });
+			queryClient.invalidateQueries({ queryKey: [`taxonomies-${typeSlug}-counts`] });
 			onSaved?.(saved);
 			onOpenChange(false);
 		},
 		onError: (error: unknown) => {
-			const message = error instanceof Error ? error.message : "Failed to create client";
+			const message = error instanceof Error ? error.message : `Failed to create ${displayName.toLowerCase()}`;
 			toast.error(message);
 		},
 	});
 
 	const updateMutation = useMutation({
-		mutationFn: (data: UpdateClientData) => clientsService.updateClient(client!.id, data),
+		mutationFn: (data: { name?: string; slug?: string; status?: "DRAFT" | "PUBLISHED" }) =>
+			service.update(taxonomy!.id, data),
 		onSuccess: (saved) => {
-			toast.success("Client updated");
-			queryClient.invalidateQueries({ queryKey: ["clients"] });
-			queryClient.invalidateQueries({ queryKey: ["clients-counts"] });
-			if (client) queryClient.invalidateQueries({ queryKey: ["client", client.id] });
+			toast.success(`${displayName} updated`);
+			queryClient.invalidateQueries({ queryKey: [`taxonomies-${typeSlug}`] });
+			queryClient.invalidateQueries({ queryKey: [`taxonomies-${typeSlug}-counts`] });
 			onSaved?.(saved);
 			onOpenChange(false);
 		},
 		onError: (error: unknown) => {
-			const message = error instanceof Error ? error.message : "Failed to update client";
+			const message = error instanceof Error ? error.message : `Failed to update ${displayName.toLowerCase()}`;
 			toast.error(message);
 		},
 	});
 
-	const onSubmit = async (data: ClientFormData) => {
+	const onSubmit = async (data: TaxonomyFormData) => {
 		const payload = {
 			name: data.name,
 			slug: data.slug || slugify(data.name),
 			status: data.status,
-		} as CreateClientData & UpdateClientData;
+		};
 
 		if (isEditing) {
 			await updateMutation.mutateAsync(payload);
 		} else {
-			await createMutation.mutateAsync(payload as CreateClientData);
+			await createMutation.mutateAsync(payload);
 		}
 	};
 
@@ -118,7 +121,7 @@ export function ClientsModal({ open, onOpenChange, client, onSaved }: ClientsMod
 			<DialogContent className="sm:max-w-md p-0">
 				<DialogHeader className="px-6 py-4 border-b">
 					<div className="flex items-center justify-between">
-						<DialogTitle>{isEditing ? "Edit Client" : "New Client"}</DialogTitle>
+						<DialogTitle>{isEditing ? `Edit ${displayName}` : `New ${displayName}`}</DialogTitle>
 						<Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onOpenChange(false)}>
 							<IconX className="h-4 w-4" />
 						</Button>
@@ -128,7 +131,7 @@ export function ClientsModal({ open, onOpenChange, client, onSaved }: ClientsMod
 				<form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6 p-6">
 					<div className="space-y-2">
 						<Label htmlFor="name">Name</Label>
-						<Input id="name" {...register("name")} placeholder="Client name" autoFocus />
+						<Input id="name" {...register("name")} placeholder={`${displayName} name`} autoFocus />
 						{errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
 					</div>
 

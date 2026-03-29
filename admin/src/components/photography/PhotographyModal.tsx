@@ -10,9 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MultiAutocomplete, type AutocompleteOption } from "@/components/ui/multi-autocomplete";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { PhotographyItem, ClientEntity } from "@/services/photographyItemsService";
-import clientsService from "@/services/clientsService";
-import { PhotographyService } from "@/services/photographyService";
+import type { PhotographyItem } from "@/services/photographyItemsService";
+import { taxonomyServices } from "@/services/taxonomyService";
 
 export type ImageItemCardMode = "photographer" | "category";
 
@@ -26,12 +25,10 @@ export interface EditValues {
 	description?: string;
 	year?: number;
 	location?: string;
-	categoryIds?: number[];
+	taxonomyIds?: number[];
 	photographerId?: number;
 	// Legacy (for backward compatibility)
 	client?: string;
-	// New relation IDs
-	clientIds?: number[];
 }
 
 export function PhotographyItemEditModal({
@@ -55,14 +52,14 @@ export function PhotographyItemEditModal({
 
 	// Fetch options for autocomplete
 	const { data: clientOptions = [] } = useQuery({
-		queryKey: ["clients-search", clientSearch],
-		queryFn: () => clientsService.searchClients(clientSearch || "", 20),
+		queryKey: ["taxonomy-clients-search", clientSearch],
+		queryFn: () => taxonomyServices.clients.search(clientSearch || "", 20),
 		staleTime: 30000,
 	});
 
 	const { data: categoryOptions = [] } = useQuery({
-		queryKey: ["categories-search", categorySearch],
-		queryFn: () => PhotographyService.searchCategories(categorySearch || "", 20),
+		queryKey: ["taxonomy-categories-search", categorySearch],
+		queryFn: () => taxonomyServices["photo-categories"].search(categorySearch || "", 20),
 		staleTime: 30000,
 	});
 
@@ -75,10 +72,9 @@ export function PhotographyItemEditModal({
 		description: item.description || "",
 		year: item.year,
 		location: item.location || "",
-		categoryIds: item.categories?.map((c) => c.category?.id ?? c.categoryId) || [],
+		taxonomyIds: item.taxonomies?.map((t) => t.taxonomy?.id ?? t.taxonomyId) || [],
 		photographerId: item.photographerId,
 		client: item.client || "",
-		clientIds: item.clients?.map((c) => c.client?.id ?? c.clientId) || [],
 	}));
 
 	React.useEffect(() => {
@@ -88,24 +84,26 @@ export function PhotographyItemEditModal({
 			description: item.description || "",
 			year: item.year,
 			location: item.location || "",
-			categoryIds: item.categories?.map((c) => c.category?.id ?? c.categoryId) || [],
+			taxonomyIds: item.taxonomies?.map((t) => t.taxonomy?.id ?? t.taxonomyId) || [],
 			photographerId: item.photographerId,
 			client: item.client || "",
-			clientIds: item.clients?.map((c) => c.client?.id ?? c.clientId) || [],
 		});
-		// Set selected entities from item (handle junction table format)
+		// Set selected entities from item taxonomy relations
 		setSelectedClients(
-			item.clients?.map((c) => ({
-				id: c.client?.id ?? c.clientId,
-				name: c.client?.name ?? "",
-			})) || [],
+			(item.taxonomies || [])
+				.filter((t) => t.taxonomy?.type === "CLIENT")
+				.map((t) => ({
+					id: t.taxonomy?.id ?? t.taxonomyId,
+					name: t.taxonomy?.name ?? "",
+				})),
 		);
-		// Set selected categories from item (handle junction table format)
 		setSelectedCategory(
-			item.categories?.map((c) => ({
-				id: c.category?.id ?? c.categoryId,
-				name: c.category?.title ?? "",
-			})) || [],
+			(item.taxonomies || [])
+				.filter((t) => t.taxonomy?.type === "PHOTO_CATEGORY")
+				.map((t) => ({
+					id: t.taxonomy?.id ?? t.taxonomyId,
+					name: t.taxonomy?.name ?? "",
+				})),
 		);
 	}, [open, item]);
 
@@ -131,35 +129,42 @@ export function PhotographyItemEditModal({
 	// Handle client selection change
 	const handleClientsChange = (clients: AutocompleteOption[]) => {
 		setSelectedClients(clients);
-		setValues((v) => ({ ...v, clientIds: clients.map((c) => c.id) }));
+		// Merge with non-client taxonomy IDs
+		const nonClientIds = (values.taxonomyIds || []).filter((id) => {
+			return selectedCategory.some((c) => c.id === id);
+		});
+		setValues((v) => ({ ...v, taxonomyIds: [...nonClientIds, ...clients.map((c) => c.id)] }));
 	};
 
 	const queryClient = useQueryClient();
 
 	// Create new client
 	const handleCreateClient = async (name: string): Promise<AutocompleteOption> => {
-		const created = await clientsService.findOrCreateClient(name);
-		// Invalidate cache so new client appears in dropdown
-		await queryClient.invalidateQueries({ queryKey: ["clients-search"] });
+		const created = await taxonomyServices.clients.findOrCreate(name);
+		await queryClient.invalidateQueries({ queryKey: ["taxonomy-clients-search"] });
 		return { id: created.id, name: created.name };
 	};
 
 	// Handle category selection change
 	const handleCategoryChange = (categories: AutocompleteOption[]) => {
 		setSelectedCategory(categories);
-		setValues((v) => ({ ...v, categoryIds: categories.map((c) => c.id) }));
+		// Merge with non-category taxonomy IDs
+		const nonCategoryIds = (values.taxonomyIds || []).filter((id) => {
+			return selectedClients.some((c) => c.id === id);
+		});
+		setValues((v) => ({ ...v, taxonomyIds: [...nonCategoryIds, ...categories.map((c) => c.id)] }));
 	};
 
 	// Create new category
 	const handleCreateCategory = async (name: string): Promise<AutocompleteOption> => {
-		const created = await PhotographyService.findOrCreateCategory(name);
-		await queryClient.invalidateQueries({ queryKey: ["categories-search"] });
+		const created = await taxonomyServices["photo-categories"].findOrCreate(name);
+		await queryClient.invalidateQueries({ queryKey: ["taxonomy-categories-search"] });
 		return { id: created.id, name: created.name };
 	};
 
 	const canSave =
 		values.title.trim().length > 0 &&
-		(mode === "photographer" ? (values.categoryIds?.length ?? 0) > 0 : !!values.photographerId);
+		(mode === "photographer" ? (values.taxonomyIds?.length ?? 0) > 0 : !!values.photographerId);
 
 	const handleSave = async () => {
 		await onSubmit(values);

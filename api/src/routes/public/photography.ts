@@ -115,14 +115,15 @@ router.get(
 		}
 
 		if (isPrimaryCategory && categorySlug) {
-			const c = await prisma.photoCategory.findFirst({
+			const c = await prisma.taxonomy.findFirst({
 				where: {
+					type: "PHOTO_CATEGORY",
 					slug: categorySlug,
 					status: "PUBLISHED" as any,
 					purgedAt: null,
 					deletedAt: null,
 				},
-				select: { id: true, title: true, slug: true },
+				select: { id: true, name: true, slug: true },
 			});
 			if (!c) {
 				return res.status(404).json({
@@ -131,14 +132,18 @@ router.get(
 				});
 			}
 			categoryId = c.id;
-			selectedCategory = c as any;
+			selectedCategory = { id: c.id, title: c.name, slug: c.slug } as any;
 		}
 
 		// Handle client filter
 		if (isPrimaryClient && clientSlug) {
-			const client = await prisma.client.findFirst({
+			const client = await prisma.taxonomy.findFirst({
 				where: {
+					type: "CLIENT",
 					slug: clientSlug,
+					status: "PUBLISHED" as any,
+					purgedAt: null,
+					deletedAt: null,
 				},
 				select: { id: true, name: true, slug: true },
 			});
@@ -165,11 +170,12 @@ router.get(
 						deletedAt: null,
 					} as any,
 				},
-				// Ensure at least one category is PUBLISHED
+				// Ensure at least one PHOTO_CATEGORY taxonomy is PUBLISHED
 				{
-					categories: {
+					taxonomies: {
 						some: {
-							category: {
+							taxonomy: {
+								type: "PHOTO_CATEGORY",
 								status: "PUBLISHED",
 								purgedAt: null,
 								deletedAt: null,
@@ -179,8 +185,8 @@ router.get(
 				},
 			],
 			...(photographerId ? { photographerId } : {}),
-			...(categoryId ? { categories: { some: { categoryId } } } : {}),
-			...(clientId ? { clients: { some: { clientId } } } : {}),
+			...(categoryId ? { taxonomies: { some: { taxonomyId: categoryId } } } : {}),
+			...(clientId ? { taxonomies: { some: { taxonomyId: clientId } } } : {}),
 		};
 		if (search) {
 			where.OR = [
@@ -196,14 +202,9 @@ router.get(
 			include: {
 				image: true,
 				photographer: { select: { title: true, slug: true } },
-				categories: {
+				taxonomies: {
 					include: {
-						category: { select: { title: true, slug: true } },
-					},
-				},
-				clients: {
-					include: {
-						client: { select: { name: true, slug: true } },
+						taxonomy: { select: { id: true, type: true, name: true, slug: true } },
 					},
 				},
 			},
@@ -211,22 +212,25 @@ router.get(
 
 		const data = items.map((it) => {
 			const image = serializeMediaFile((it as any).image);
-			// Get first client from junction table if available
-			const firstClient = (it as any).clients?.[0]?.client;
-			// Get first category from junction table
-			const firstCategory = (it as any).categories?.[0]?.category;
+			// Get first client from taxonomy relations
+			const firstClient = (it as any).taxonomies?.find((t: any) => t.taxonomy.type === "CLIENT")?.taxonomy;
+			// Get first category from taxonomy relations
+			const firstCategory = (it as any).taxonomies?.find((t: any) => t.taxonomy.type === "PHOTO_CATEGORY")?.taxonomy;
 			return {
 				title: it.title,
 				slug: it.slug,
 				description: it.description,
 				year: it.year,
 				location: it.location,
-				client: firstClient?.name || it.client, // Prefer junction table client
+				client: firstClient?.name || it.client,
 				clientSlug: firstClient?.slug || null,
 				images: image?.images || null,
 				photographer: (it as any).photographer,
-				category: firstCategory || null,
-				categories: (it as any).categories?.map((c: any) => c.category) || [],
+				category: firstCategory ? { title: firstCategory.name, slug: firstCategory.slug } : null,
+				categories:
+					(it as any).taxonomies
+						?.filter((t: any) => t.taxonomy.type === "PHOTO_CATEGORY")
+						.map((t: any) => ({ title: t.taxonomy.name, slug: t.taxonomy.slug })) || [],
 			} as any;
 		});
 
@@ -248,8 +252,8 @@ router.get(
 									status: "PUBLISHED" as any,
 									purgedAt: null,
 									deletedAt: null,
-									...(categoryId ? { categories: { some: { categoryId } } } : {}),
-									...(clientId ? { clients: { some: { clientId } } } : {}),
+									...(categoryId ? { taxonomies: { some: { taxonomyId: categoryId } } } : {}),
+									...(clientId ? { taxonomies: { some: { taxonomyId: clientId } } } : {}),
 								},
 							},
 						},
@@ -258,8 +262,9 @@ router.get(
 					}),
 			isPrimaryCategory || isPrimaryClient
 				? Promise.resolve([])
-				: prisma.photoCategory.findMany({
+				: prisma.taxonomy.findMany({
 						where: {
+							type: "PHOTO_CATEGORY",
 							status: "PUBLISHED" as any,
 							purgedAt: null,
 							deletedAt: null,
@@ -270,17 +275,21 @@ router.get(
 										purgedAt: null,
 										deletedAt: null,
 										...(photographerId ? { photographerId } : {}),
-										...(clientId ? { clients: { some: { clientId } } } : {}),
+										...(clientId ? { taxonomies: { some: { taxonomyId: clientId } } } : {}),
 									},
 								},
 							},
 						},
-						select: { title: true, slug: true },
+						select: { name: true, slug: true },
 						orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
 					}),
 			// Get clients that have photography
-			prisma.client.findMany({
+			prisma.taxonomy.findMany({
 				where: {
+					type: "CLIENT",
+					status: "PUBLISHED" as any,
+					purgedAt: null,
+					deletedAt: null,
 					photography: {
 						some: {
 							photography: {
@@ -288,7 +297,7 @@ router.get(
 								purgedAt: null,
 								deletedAt: null,
 								...(photographerId ? { photographerId } : {}),
-								...(categoryId ? { categories: { some: { categoryId } } } : {}),
+								...(categoryId ? { taxonomies: { some: { taxonomyId: categoryId } } } : {}),
 							},
 						},
 					},
@@ -302,7 +311,7 @@ router.get(
 		// - If primary is photographer, include categories for tabs
 		// - If primary is category, include photographers for tabs
 		// - If primary is client, include the client info
-		const categories = isPrimaryPhotographer ? categoriesAll : [];
+		const categories = isPrimaryPhotographer ? categoriesAll.map((c: any) => ({ title: c.name, slug: c.slug })) : [];
 		const finalPhotographers = isPrimaryCategory ? photographers : [];
 
 		// Transform clients to have 'title' for consistency
@@ -409,7 +418,7 @@ router.get(
 							status: "PUBLISHED" as any,
 							purgedAt: null,
 							deletedAt: null,
-							clients: { some: { clientId } },
+							taxonomies: { some: { taxonomyId: clientId } },
 						},
 					},
 				},
@@ -445,9 +454,10 @@ router.get(
 						} as any,
 					},
 					{
-						categories: {
+						taxonomies: {
 							some: {
-								category: {
+								taxonomy: {
+									type: "PHOTO_CATEGORY",
 									status: "PUBLISHED",
 									purgedAt: null,
 									deletedAt: null,
@@ -460,9 +470,9 @@ router.get(
 			include: {
 				image: true,
 				photographer: { select: { id: true, title: true, slug: true } },
-				categories: {
+				taxonomies: {
 					include: {
-						category: { select: { id: true, title: true, slug: true } },
+						taxonomy: { select: { id: true, type: true, name: true, slug: true } },
 					},
 				},
 			},
@@ -470,7 +480,7 @@ router.get(
 		if (!it) throw createApiError.notFound("Photography item not found");
 
 		const item = it as any;
-		const firstCategory = item.categories?.[0]?.category;
+		const firstCategory = item.taxonomies?.find((t: any) => t.taxonomy.type === "PHOTO_CATEGORY")?.taxonomy;
 		const data = {
 			id: item.id,
 			title: item.title,
@@ -482,8 +492,11 @@ router.get(
 
 			image: serializeMediaFile(item.image),
 			photographer: item.photographer,
-			category: firstCategory || null,
-			categories: item.categories?.map((c: any) => c.category) || [],
+			category: firstCategory ? { id: firstCategory.id, title: firstCategory.name, slug: firstCategory.slug } : null,
+			categories:
+				item.taxonomies
+					?.filter((t: any) => t.taxonomy.type === "PHOTO_CATEGORY")
+					.map((t: any) => ({ id: t.taxonomy.id, title: t.taxonomy.name, slug: t.taxonomy.slug })) || [],
 			createdAt: item.createdAt,
 			publishedAt: item.publishedAt,
 		} as any;

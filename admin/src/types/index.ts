@@ -95,7 +95,7 @@ export interface Photography {
 	description: string;
 	image: MediaFile;
 	photographer: Photographer;
-	category: PhotoCategory;
+	taxonomies?: Array<{ taxonomy: Taxonomy }>;
 	client: string;
 	year: number;
 	location: string;
@@ -119,13 +119,29 @@ export interface Photographer {
 	updatedAt: string;
 }
 
-export interface PhotoCategory {
+export type TaxonomyType = "CLIENT" | "SECTOR" | "DISCIPLINE" | "PHOTO_CATEGORY";
+
+export interface Taxonomy {
 	id: number;
+	type: TaxonomyType;
 	name: string;
 	slug: string;
-	photography: Photography[];
+	status: "DRAFT" | "PUBLISHED";
+	sortOrder: number;
+	ogImageId?: number | null;
+	metaDescription?: string | null;
+	metaKeywords?: string | null;
+	metadata?: any;
 	createdAt: string;
 	updatedAt: string;
+	deletedAt?: string | null;
+	creator?: { id: number; name: string } | null;
+	ogImage?: MediaFile | null;
+	_count?: {
+		works: number;
+		photography: number;
+		animations: number;
+	};
 }
 
 export interface ContentPage {

@@ -31,7 +31,7 @@ export interface CreateWorkData {
 	shortDescription?: string;
 	subtitle?: string;
 	caseStudy?: string;
-	client?: string; // @deprecated - use clientIds
+	client?: string; // @deprecated
 	tags: string[];
 	videoFileId?: number | null;
 	metaDescription?: string;
@@ -39,9 +39,7 @@ export interface CreateWorkData {
 	previewImageId?: number | null;
 	status: Status;
 	directorIds: number[];
-	clientIds?: number[]; // New: Client entity IDs
-	disciplineIds?: number[];
-	sectorIds?: number[];
+	taxonomyIds?: number[];
 }
 
 export interface UpdateWorkData {
@@ -50,7 +48,7 @@ export interface UpdateWorkData {
 	shortDescription?: string;
 	subtitle?: string;
 	caseStudy?: string;
-	client?: string; // @deprecated - use clientIds
+	client?: string; // @deprecated
 	tags?: string[];
 	videoFileId?: number | null;
 	metaDescription?: string | null;
@@ -58,9 +56,7 @@ export interface UpdateWorkData {
 	previewImageId?: number | null;
 	status?: Status;
 	directorIds?: number[];
-	clientIds?: number[]; // New: Client entity IDs
-	disciplineIds?: number[];
-	sectorIds?: number[];
+	taxonomyIds?: number[];
 	publishedAt?: Date | null;
 }
 
@@ -85,7 +81,7 @@ export class WorksService {
 	 * Create a new work
 	 */
 	async createWork(data: CreateWorkData, userId?: number) {
-		const { directorIds, clientIds, disciplineIds, sectorIds, ...workData } = data;
+		const { directorIds, taxonomyIds, ...workData } = data;
 
 		// Generate unique slug
 		const baseSlug = slugify(data.title);
@@ -113,19 +109,9 @@ export class WorksService {
 				directors: {
 					create: directorIds.map((directorId) => ({ directorId })),
 				},
-				clients: clientIds?.length
+				taxonomies: taxonomyIds?.length
 					? {
-							create: clientIds.map((clientId) => ({ clientId })),
-						}
-					: undefined,
-				disciplines: disciplineIds?.length
-					? {
-							create: disciplineIds.map((disciplineId) => ({ disciplineId })),
-						}
-					: undefined,
-				sectors: sectorIds?.length
-					? {
-							create: sectorIds.map((sectorId) => ({ sectorId })),
+							create: taxonomyIds.map((taxonomyId) => ({ taxonomyId })),
 						}
 					: undefined,
 			} as any,
@@ -160,19 +146,9 @@ export class WorksService {
 						},
 					},
 				},
-				clients: {
+				taxonomies: {
 					include: {
-						client: true,
-					},
-				},
-				disciplines: {
-					include: {
-						discipline: true,
-					},
-				},
-				sectors: {
-					include: {
-						sector: true,
+						taxonomy: true,
 					},
 				},
 			} as any,
@@ -387,19 +363,9 @@ export class WorksService {
 						},
 					},
 				},
-				clients: {
+				taxonomies: {
 					include: {
-						client: true,
-					},
-				},
-				disciplines: {
-					include: {
-						discipline: true,
-					},
-				},
-				sectors: {
-					include: {
-						sector: true,
+						taxonomy: true,
 					},
 				},
 			} as any,
@@ -500,7 +466,7 @@ export class WorksService {
 	 * Update work
 	 */
 	async updateWork(id: number, data: UpdateWorkData, userId?: number) {
-		const { directorIds, clientIds, disciplineIds, sectorIds, ...workData } = data;
+		const { directorIds, taxonomyIds, ...workData } = data;
 
 		// Get current work first to fetch existing revisions and current relations
 		const currentWork = await prisma.work.findUnique({
@@ -511,9 +477,7 @@ export class WorksService {
 					take: 1,
 				},
 				directors: { select: { directorId: true } },
-				clients: { select: { clientId: true } },
-				disciplines: { select: { disciplineId: true } },
-				sectors: { select: { sectorId: true } },
+				taxonomies: { select: { taxonomyId: true } },
 			},
 		});
 
@@ -552,22 +516,10 @@ export class WorksService {
 						create: directorIds.map((directorId) => ({ directorId })),
 					},
 				}),
-				...(clientIds !== undefined && {
-					clients: {
+				...(taxonomyIds !== undefined && {
+					taxonomies: {
 						deleteMany: {},
-						create: clientIds.map((clientId) => ({ clientId })),
-					},
-				}),
-				...(disciplineIds !== undefined && {
-					disciplines: {
-						deleteMany: {},
-						create: disciplineIds.map((disciplineId) => ({ disciplineId })),
-					},
-				}),
-				...(sectorIds !== undefined && {
-					sectors: {
-						deleteMany: {},
-						create: sectorIds.map((sectorId) => ({ sectorId })),
+						create: taxonomyIds.map((taxonomyId) => ({ taxonomyId })),
 					},
 				}),
 			},
@@ -595,19 +547,9 @@ export class WorksService {
 						},
 					},
 				},
-				clients: {
+				taxonomies: {
 					include: {
-						client: true,
-					},
-				},
-				disciplines: {
-					include: {
-						discipline: true,
-					},
-				},
-				sectors: {
-					include: {
-						sector: true,
+						taxonomy: true,
 					},
 				},
 			} as any,

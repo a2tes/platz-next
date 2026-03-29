@@ -25,10 +25,10 @@ router.get(
 				photography: {
 					where: { status: "PUBLISHED", purgedAt: null, deletedAt: null },
 					select: {
-						categories: {
+						taxonomies: {
 							select: {
-								category: {
-									select: { slug: true },
+								taxonomy: {
+									select: { type: true, slug: true },
 								},
 							},
 						},
@@ -42,14 +42,15 @@ router.get(
 			title: item.title,
 			slug: item.slug,
 			categories: item.photography
-				.flatMap((p) => p.categories.map((c) => c.category?.slug))
+				.flatMap((p) => p.taxonomies.filter((t) => t.taxonomy?.type === "PHOTO_CATEGORY").map((t) => t.taxonomy?.slug))
 				.filter((slug): slug is string => slug !== null && slug !== undefined)
 				.filter((v: string, i: number, a: string[]) => a.indexOf(v) === i), // Remove duplicates
 		}));
 
 		// Fetch categories with their photographers
-		const categories = await prisma.photoCategory.findMany({
+		const categories = await prisma.taxonomy.findMany({
 			where: {
+				type: "PHOTO_CATEGORY",
 				status: "PUBLISHED",
 				purgedAt: null,
 				deletedAt: null,
@@ -65,7 +66,7 @@ router.get(
 			},
 			orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
 			select: {
-				title: true,
+				name: true,
 				slug: true,
 				photography: {
 					where: {
@@ -90,7 +91,7 @@ router.get(
 
 		// Transform categories to include photographers
 		const transformedCategories = categories.map((item) => ({
-			title: item.title,
+			title: item.name,
 			slug: item.slug,
 			photographers: item.photography
 				.map((p) => p.photography?.photographer?.slug)

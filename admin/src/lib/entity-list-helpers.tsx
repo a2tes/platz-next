@@ -135,7 +135,7 @@ export function createWorksNavigation(config: WorksNavigationConfig): Navigation
  * Create standard navigation for Entities
  */
 export interface EntitiesNavigationConfig {
-	currentPath: "/entities/clients" | "/entities/disciplines" | "/entities/sectors";
+	currentPath: "/entities/clients" | "/entities/disciplines" | "/entities/sectors" | "/entities/photo-categories";
 }
 
 export function createEntitiesNavigation(config: EntitiesNavigationConfig): NavigationItem[] {
@@ -155,6 +155,11 @@ export function createEntitiesNavigation(config: EntitiesNavigationConfig): Navi
 			href: "/entities/sectors",
 			isActive: config.currentPath === "/entities/sectors",
 		},
+		{
+			label: "Photo Categories",
+			href: "/entities/photo-categories",
+			isActive: config.currentPath === "/entities/photo-categories",
+		},
 	];
 }
 
@@ -162,7 +167,7 @@ export function createEntitiesNavigation(config: EntitiesNavigationConfig): Navi
  * Create standard navigation for Photographer/Categories
  */
 export interface PhotographyNavigationConfig {
-	currentPath: "/photography" | "/photography/photographers" | "/photography/categories";
+	currentPath: "/photography" | "/photography/photographers" | "/entities/photo-categories";
 }
 
 export function createPhotographyNavigation(config: PhotographyNavigationConfig): NavigationItem[] {
@@ -179,8 +184,8 @@ export function createPhotographyNavigation(config: PhotographyNavigationConfig)
 		},
 		{
 			label: "Categories",
-			href: "/photography/categories",
-			isActive: config.currentPath === "/photography/categories",
+			href: "/entities/photo-categories",
+			isActive: config.currentPath === "/entities/photo-categories",
 		},
 	];
 }

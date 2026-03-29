@@ -12,8 +12,7 @@ import { MultiAutocomplete, type AutocompleteOption } from "@/components/ui/mult
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { X, Loader2 } from "lucide-react";
 import type { MediaFile } from "@/services/mediaService";
-import clientsService from "@/services/clientsService";
-import { PhotographyService } from "@/services/photographyService";
+import { taxonomyServices } from "@/services/taxonomyService";
 
 export type ImageItemCardMode = "photographer" | "category";
 
@@ -27,9 +26,8 @@ export interface BulkAddValues {
 	location?: string;
 	// Legacy string fields (deprecated, kept for backward compatibility)
 	client?: string;
-	// New relation IDs
-	clientIds?: number[];
-	categoryIds?: number[];
+	// New taxonomy IDs
+	taxonomyIds?: number[];
 	categoryId?: number;
 	photographerId?: number;
 }
@@ -77,14 +75,14 @@ export function BulkAddPhotographyModal({
 
 	// Fetch options for autocomplete
 	const { data: clientOptions = [] } = useQuery({
-		queryKey: ["clients-search", clientSearch],
-		queryFn: () => clientsService.searchClients(clientSearch || "", 20),
+		queryKey: ["taxonomy-clients-search", clientSearch],
+		queryFn: () => taxonomyServices.clients.search(clientSearch || "", 20),
 		staleTime: 30000,
 	});
 
 	const { data: categoryOptionsSearch = [] } = useQuery({
-		queryKey: ["categories-search", categorySearch],
-		queryFn: () => PhotographyService.searchCategories(categorySearch || "", 20),
+		queryKey: ["taxonomy-categories-search", categorySearch],
+		queryFn: () => taxonomyServices["photo-categories"].search(categorySearch || "", 20),
 		staleTime: 30000,
 	});
 
@@ -157,24 +155,32 @@ export function BulkAddPhotographyModal({
 	// Handle entity selection changes
 	const handleClientsChange = (clients: AutocompleteOption[]) => {
 		setSelectedClients(clients);
-		setValues((v) => ({ ...v, clientIds: clients.map((c) => c.id) }));
+		// Merge with non-client taxonomy IDs (categories)
+		const nonClientIds = (values.taxonomyIds || []).filter((id) => {
+			return selectedCategories.some((c) => c.id === id);
+		});
+		setValues((v) => ({ ...v, taxonomyIds: [...nonClientIds, ...clients.map((c) => c.id)] }));
 	};
 
 	const handleCategoriesChange = (categories: AutocompleteOption[]) => {
 		setSelectedCategories(categories);
-		setValues((v) => ({ ...v, categoryIds: categories.map((c) => c.id) }));
+		// Merge with non-category taxonomy IDs (clients)
+		const nonCategoryIds = (values.taxonomyIds || []).filter((id) => {
+			return selectedClients.some((c) => c.id === id);
+		});
+		setValues((v) => ({ ...v, taxonomyIds: [...nonCategoryIds, ...categories.map((c) => c.id)] }));
 	};
 
 	// Create new entity handlers
 	const handleCreateClient = async (name: string): Promise<AutocompleteOption> => {
-		const created = await clientsService.findOrCreateClient(name);
-		await queryClient.invalidateQueries({ queryKey: ["clients-search"] });
+		const created = await taxonomyServices.clients.findOrCreate(name);
+		await queryClient.invalidateQueries({ queryKey: ["taxonomy-clients-search"] });
 		return { id: created.id, name: created.name };
 	};
 
 	const handleCreateCategory = async (name: string): Promise<AutocompleteOption> => {
-		const created = await PhotographyService.findOrCreateCategory(name);
-		await queryClient.invalidateQueries({ queryKey: ["categories-search"] });
+		const created = await taxonomyServices["photo-categories"].findOrCreate(name);
+		await queryClient.invalidateQueries({ queryKey: ["taxonomy-categories-search"] });
 		return { id: created.id, name: created.name };
 	};
 

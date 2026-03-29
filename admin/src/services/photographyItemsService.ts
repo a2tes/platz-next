@@ -1,26 +1,14 @@
 import { api } from "@/lib/api";
 import { MediaFile } from "./mediaService";
 
-// Entity types for relations
-export interface ClientEntity {
-	id: number;
-	name: string;
-	slug: string;
-}
-
-// Junction table types (as returned from API)
-export interface PhotographyClientJunction {
+// Taxonomy junction type (as returned from API)
+export interface PhotographyTaxonomyJunction {
 	photographyId: number;
-	clientId: number;
-	client: ClientEntity;
-}
-
-export interface PhotographyCategoryJunction {
-	photographyId: number;
-	categoryId: number;
-	category: {
+	taxonomyId: number;
+	taxonomy: {
 		id: number;
-		title: string;
+		type: string;
+		name: string;
 		slug: string;
 	};
 }
@@ -36,9 +24,8 @@ export interface PhotographyItem {
 	categoryId: number;
 	// Legacy fields (deprecated)
 	client?: string;
-	// New relation fields (junction table format from API)
-	clients?: PhotographyClientJunction[];
-	categories?: PhotographyCategoryJunction[];
+	// New taxonomy relations
+	taxonomies?: PhotographyTaxonomyJunction[];
 	year?: number;
 	location?: string;
 	sortOrder: number;
@@ -89,15 +76,14 @@ export class PhotographyItemsService {
 
 	static async bulkCreate(params: {
 		photographerId?: number;
-		categoryIds?: number[];
-		clientIds?: number[];
+		taxonomyIds?: number[];
 		items: Array<{
 			imageId: number;
 			title?: string;
 			description?: string;
 			year?: number;
 			location?: string;
-			categoryIds?: number[];
+			taxonomyIds?: number[];
 			photographerId?: number;
 		}>;
 	}) {
@@ -114,8 +100,8 @@ export class PhotographyItemsService {
 		await api.post<{ success: boolean }>("/api/photography/items/reorder", params);
 	}
 
-	static async moveToClient(itemId: number, clientId: number | null) {
-		await api.patch<{ success: boolean }>(`/api/photography/items/${itemId}/move-to-client`, { clientId });
+	static async moveToClient(itemId: number, clientTaxonomyId: number | null) {
+		await api.patch<{ success: boolean }>(`/api/photography/items/${itemId}/move-to-client`, { clientTaxonomyId });
 	}
 
 	static async reorderGroups(

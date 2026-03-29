@@ -31,13 +31,11 @@ import presentationRoutes from "./routes/presentation";
 import publicPresentationRoutes from "./routes/public/presentation";
 import blocksRoutes from "./routes/blocks";
 import clipJobsRoutes from "./routes/clipJobs";
-import clientsRoutes from "./routes/clients";
-import disciplinesRoutes from "./routes/disciplines";
-import sectorsRoutes from "./routes/sectors";
 import utilsRevalidateRoute from "./routes/utils/revalidate";
 import mediaConvertWebhook from "./routes/webhooks/mediaConvert";
 import adminCleanupRoutes from "./routes/admin/cleanup";
 import settingsRoutes from "./routes/settings";
+import taxonomiesRoutes from "./routes/taxonomies";
 import pageSeoRoutes from "./routes/pageSeo";
 import publicPageSeoRoutes from "./routes/public/pageSeo";
 import publicSettingsRoutes from "./routes/public/settings";
@@ -218,14 +216,8 @@ app.use("/api/blocks", blocksRoutes);
 // Clip Jobs routes
 app.use("/api/clip-jobs", clipJobsRoutes);
 
-// Clients routes
-app.use("/api/clients", clientsRoutes);
-
-// Disciplines routes
-app.use("/api/disciplines", disciplinesRoutes);
-
-// Sectors routes
-app.use("/api/sectors", sectorsRoutes);
+// Taxonomies routes
+app.use("/api/taxonomies", taxonomiesRoutes);
 
 // Admin routes
 app.use("/api/admin/cleanup", adminCleanupRoutes);
