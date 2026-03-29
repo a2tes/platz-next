@@ -39,6 +39,8 @@ const createWorkSchema = z.object({
 	starringIds: z.array(z.number()).default([]),
 	clientIds: z.array(z.number()).default([]),
 	agencyIds: z.array(z.number()).default([]),
+	disciplineIds: z.array(z.number()).default([]),
+	sectorIds: z.array(z.number()).default([]),
 });
 
 const updateWorkSchema = createWorkSchema.partial();

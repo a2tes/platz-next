@@ -38,6 +38,8 @@ model User {
   createdPresentations  Presentation[]   @relation("PresentationCreatedBy")
   createdClients        Client[]         @relation("ClientCreatedBy")
   createdAgencies       Agency[]         @relation("AgencyCreatedBy")
+  createdDisciplines    Discipline[]     @relation("DisciplineCreatedBy")
+  createdSectors        Sector[]         @relation("SectorCreatedBy")
 
   @@map("users")
 }
@@ -146,6 +148,8 @@ model Work {
   starrings         WorkStarring[]
   clients           WorkClient[]
   agencies          WorkAgency[]
+  disciplines       WorkDiscipline[]
+  sectors           WorkSector[]
   homepageDirectors HomepageDirector[]
   directorsPageSelections DirectorsPageSelection[]
   revisions         WorkRevision[]
@@ -869,6 +873,42 @@ model Agency {
   @@map("agencies")
 }
 
+model Discipline {
+  id        Int       @id @default(autoincrement())
+  name      String
+  slug      String    @unique
+  status    Status    @default(PUBLISHED)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  purgedAt  DateTime? @map("purged_at")
+  createdBy Int?      @map("created_by")
+
+  // Relations
+  creator   User?              @relation("DisciplineCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  works     WorkDiscipline[]
+
+  @@map("disciplines")
+}
+
+model Sector {
+  id        Int       @id @default(autoincrement())
+  name      String
+  slug      String    @unique
+  status    Status    @default(PUBLISHED)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  purgedAt  DateTime? @map("purged_at")
+  createdBy Int?      @map("created_by")
+
+  // Relations
+  creator   User?          @relation("SectorCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  works     WorkSector[]
+
+  @@map("sectors")
+}
+
 // ============================================
 // WORK JUNCTION TABLES
 // ============================================
@@ -895,6 +935,30 @@ model WorkAgency {
 
   @@id([workId, agencyId])
   @@map("work_agencies")
+}
+
+model WorkDiscipline {
+  workId       Int @map("work_id")
+  disciplineId Int @map("discipline_id")
+
+  // Relations
+  work         Work       @relation(fields: [workId], references: [id], onDelete: Cascade)
+  discipline   Discipline @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+
+  @@id([workId, disciplineId])
+  @@map("work_disciplines")
+}
+
+model WorkSector {
+  workId   Int @map("work_id")
+  sectorId Int @map("sector_id")
+
+  // Relations
+  work     Work   @relation(fields: [workId], references: [id], onDelete: Cascade)
+  sector   Sector @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+
+  @@id([workId, sectorId])
+  @@map("work_sectors")
 }
 
 // ============================================

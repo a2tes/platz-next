@@ -11,6 +11,8 @@ import { WorksService, Work, CreateWorkData, UpdateWorkData } from "../../servic
 import { MediaService, MediaFile } from "../../services/mediaService";
 import { clientsService } from "../../services/clientsService";
 import { agenciesService } from "../../services/agenciesService";
+import { disciplinesService } from "../../services/disciplinesService";
+import { sectorsService } from "../../services/sectorsService";
 import { useMediaLibraryStore } from "@/stores/mediaLibraryStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +44,8 @@ const workSchema = z.object({
 	starringIds: z.array(z.number()),
 	clientIds: z.array(z.number()).optional(),
 	agencyIds: z.array(z.number()).optional(),
+	disciplineIds: z.array(z.number()).optional(),
+	sectorIds: z.array(z.number()).optional(),
 });
 
 type WorkFormData = z.infer<typeof workSchema>;
@@ -80,6 +84,8 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 			starringIds: work?.starrings.map((s) => s.starring.id) || [],
 			clientIds: work?.clients?.map((c: any) => c.client.id) || [],
 			agencyIds: work?.agencies?.map((a: any) => a.agency.id) || [],
+			disciplineIds: work?.disciplines?.map((d: any) => d.discipline.id) || [],
+			sectorIds: work?.sectors?.map((s: any) => s.sector.id) || [],
 			videoFileId: work?.videoFileId,
 			previewImageId: work?.previewImageId,
 			metaDescription: work?.metaDescription || "",
@@ -109,6 +115,8 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 				starringIds: (work.starrings || []).map((s) => s.starring.id),
 				clientIds: (work.clients || []).map((c: any) => c.client.id),
 				agencyIds: (work.agencies || []).map((a: any) => a.agency.id),
+				disciplineIds: (work.disciplines || []).map((d: any) => d.discipline.id),
+				sectorIds: (work.sectors || []).map((s: any) => s.sector.id),
 				videoFileId: work.videoFileId,
 				previewImageId: work.previewImageId,
 				metaDescription: work.metaDescription || "",
@@ -143,9 +151,23 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 		staleTime: Infinity,
 	});
 
+	const { data: disciplinesData } = useQuery({
+		queryKey: ["disciplines"],
+		queryFn: () => disciplinesService.getAll(),
+		staleTime: Infinity,
+	});
+
+	const { data: sectorsData } = useQuery({
+		queryKey: ["sectors"],
+		queryFn: () => sectorsService.getAll(),
+		staleTime: Infinity,
+	});
+
 	// Local search state for client-side filtering
 	const [clientSearch, setClientSearch] = React.useState("");
 	const [agencySearch, setAgencySearch] = React.useState("");
+	const [disciplineSearch, setDisciplineSearch] = React.useState("");
+	const [sectorSearch, setSectorSearch] = React.useState("");
 
 	const filteredClients = React.useMemo(() => {
 		const all = (clientsData || []) as any[];
@@ -160,6 +182,20 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 		const q = agencySearch.toLowerCase();
 		return all.filter((a) => a.name?.toLowerCase().includes(q));
 	}, [agenciesData, agencySearch]);
+
+	const filteredDisciplines = React.useMemo(() => {
+		const all = (disciplinesData || []) as any[];
+		if (!disciplineSearch) return all;
+		const q = disciplineSearch.toLowerCase();
+		return all.filter((d) => d.name?.toLowerCase().includes(q));
+	}, [disciplinesData, disciplineSearch]);
+
+	const filteredSectors = React.useMemo(() => {
+		const all = (sectorsData || []) as any[];
+		if (!sectorSearch) return all;
+		const q = sectorSearch.toLowerCase();
+		return all.filter((s) => s.name?.toLowerCase().includes(q));
+	}, [sectorsData, sectorSearch]);
 
 	const { data: videoFile } = useQuery({
 		queryKey: ["media-file", watchedValues.videoFileId],
@@ -214,6 +250,8 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 					.filter(Boolean),
 				clientIds: data.clientIds || [],
 				agencyIds: data.agencyIds || [],
+				disciplineIds: data.disciplineIds || [],
+				sectorIds: data.sectorIds || [],
 			};
 
 			let entityId: number;
@@ -401,6 +439,79 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 									placeholder="Select or create agency..."
 									searchPlaceholder="Search or create agency..."
 									emptyMessage="No agencies found"
+									className="mt-3"
+								/>
+							</div>
+
+							{/* Disciplines Multi-Select */}
+							<div>
+								<Label>Disciplines</Label>
+								<MultiAutocomplete
+									options={filteredDisciplines.map((d: any) => ({
+										id: d.id,
+										name: d.name,
+									}))}
+									values={(watchedValues.disciplineIds || [])
+										.map((id: number) => {
+											const discipline = (disciplinesData || []).find((d: any) => d.id === id);
+											if (discipline) return { id: discipline.id, name: discipline.name };
+											const workDiscipline = (work?.disciplines || []).find((d: any) => d.discipline.id === id);
+											if (workDiscipline)
+												return { id: workDiscipline.discipline.id, name: workDiscipline.discipline.name };
+											return null;
+										})
+										.filter((v): v is AutocompleteOption => v !== null)}
+									onValuesChange={(options) =>
+										setValue(
+											"disciplineIds",
+											options.map((o) => o.id),
+										)
+									}
+									onSearch={setDisciplineSearch}
+									onCreateNew={async (name) => {
+										const created = await disciplinesService.findOrCreateDiscipline(name);
+										queryClient.invalidateQueries({ queryKey: ["disciplines"] });
+										return { id: created.id, name: created.name };
+									}}
+									placeholder="Select or create disciplines..."
+									searchPlaceholder="Search or create discipline..."
+									emptyMessage="No disciplines found"
+									className="mt-3"
+								/>
+							</div>
+
+							{/* Sectors Multi-Select */}
+							<div>
+								<Label>Sectors</Label>
+								<MultiAutocomplete
+									options={filteredSectors.map((s: any) => ({
+										id: s.id,
+										name: s.name,
+									}))}
+									values={(watchedValues.sectorIds || [])
+										.map((id: number) => {
+											const sector = (sectorsData || []).find((s: any) => s.id === id);
+											if (sector) return { id: sector.id, name: sector.name };
+											const workSector = (work?.sectors || []).find((s: any) => s.sector.id === id);
+											if (workSector) return { id: workSector.sector.id, name: workSector.sector.name };
+											return null;
+										})
+										.filter((v): v is AutocompleteOption => v !== null)}
+									onValuesChange={(options) =>
+										setValue(
+											"sectorIds",
+											options.map((o) => o.id),
+										)
+									}
+									onSearch={setSectorSearch}
+									onCreateNew={async (name) => {
+										const created = await sectorsService.findOrCreateSector(name);
+										queryClient.invalidateQueries({ queryKey: ["sectors"] });
+										return { id: created.id, name: created.name };
+									}}
+									placeholder="Select or create sectors..."
+									searchPlaceholder="Search or create sector..."
+									emptyMessage="No sectors found"
 									className="mt-3"
 								/>
 							</div>

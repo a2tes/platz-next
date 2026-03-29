@@ -43,6 +43,8 @@ export interface CreateWorkData {
 	starringIds: number[];
 	clientIds?: number[]; // New: Client entity IDs
 	agencyIds?: number[]; // New: Agency entity IDs
+	disciplineIds?: number[];
+	sectorIds?: number[];
 }
 
 export interface UpdateWorkData {
@@ -63,6 +65,8 @@ export interface UpdateWorkData {
 	starringIds?: number[];
 	clientIds?: number[]; // New: Client entity IDs
 	agencyIds?: number[]; // New: Agency entity IDs
+	disciplineIds?: number[];
+	sectorIds?: number[];
 	publishedAt?: Date | null;
 }
 
@@ -87,7 +91,7 @@ export class WorksService {
 	 * Create a new work
 	 */
 	async createWork(data: CreateWorkData, userId?: number) {
-		const { directorIds, starringIds, clientIds, agencyIds, ...workData } = data;
+		const { directorIds, starringIds, clientIds, agencyIds, disciplineIds, sectorIds, ...workData } = data;
 
 		// Generate unique slug
 		const baseSlug = slugify(data.title);
@@ -126,6 +130,16 @@ export class WorksService {
 				agencies: agencyIds?.length
 					? {
 							create: agencyIds.map((agencyId) => ({ agencyId })),
+						}
+					: undefined,
+				disciplines: disciplineIds?.length
+					? {
+							create: disciplineIds.map((disciplineId) => ({ disciplineId })),
+						}
+					: undefined,
+				sectors: sectorIds?.length
+					? {
+							create: sectorIds.map((sectorId) => ({ sectorId })),
 						}
 					: undefined,
 			} as any,
@@ -177,6 +191,16 @@ export class WorksService {
 				agencies: {
 					include: {
 						agency: true,
+					},
+				},
+				disciplines: {
+					include: {
+						discipline: true,
+					},
+				},
+				sectors: {
+					include: {
+						sector: true,
 					},
 				},
 			} as any,
@@ -431,6 +455,16 @@ export class WorksService {
 						agency: true,
 					},
 				},
+				disciplines: {
+					include: {
+						discipline: true,
+					},
+				},
+				sectors: {
+					include: {
+						sector: true,
+					},
+				},
 			} as any,
 		});
 
@@ -538,7 +572,7 @@ export class WorksService {
 	 * Update work
 	 */
 	async updateWork(id: number, data: UpdateWorkData, userId?: number) {
-		const { directorIds, starringIds, clientIds, agencyIds, ...workData } = data;
+		const { directorIds, starringIds, clientIds, agencyIds, disciplineIds, sectorIds, ...workData } = data;
 
 		// Get current work first to fetch existing revisions and current relations
 		const currentWork = await prisma.work.findUnique({
@@ -552,6 +586,8 @@ export class WorksService {
 				starrings: { select: { starringId: true } },
 				clients: { select: { clientId: true } },
 				agencies: { select: { agencyId: true } },
+				disciplines: { select: { disciplineId: true } },
+				sectors: { select: { sectorId: true } },
 			},
 		});
 
@@ -608,6 +644,18 @@ export class WorksService {
 						create: agencyIds.map((agencyId) => ({ agencyId })),
 					},
 				}),
+				...(disciplineIds !== undefined && {
+					disciplines: {
+						deleteMany: {},
+						create: disciplineIds.map((disciplineId) => ({ disciplineId })),
+					},
+				}),
+				...(sectorIds !== undefined && {
+					sectors: {
+						deleteMany: {},
+						create: sectorIds.map((sectorId) => ({ sectorId })),
+					},
+				}),
 			},
 			include: {
 				videoFile: true,
@@ -650,6 +698,16 @@ export class WorksService {
 				agencies: {
 					include: {
 						agency: true,
+					},
+				},
+				disciplines: {
+					include: {
+						discipline: true,
+					},
+				},
+				sectors: {
+					include: {
+						sector: true,
 					},
 				},
 			} as any,

@@ -139,6 +139,12 @@ export interface Work {
 	agencies?: Array<{
 		agency: { id: number; name: string; slug: string };
 	}>;
+	disciplines?: Array<{
+		discipline: { id: number; name: string; slug: string };
+	}>;
+	sectors?: Array<{
+		sector: { id: number; name: string; slug: string };
+	}>;
 }
 
 export interface CreateWorkData {
@@ -158,6 +164,8 @@ export interface CreateWorkData {
 	starringIds: number[];
 	clientIds?: number[];
 	agencyIds?: number[];
+	disciplineIds?: number[];
+	sectorIds?: number[];
 }
 
 export interface UpdateWorkData {
@@ -177,6 +185,8 @@ export interface UpdateWorkData {
 	starringIds?: number[];
 	clientIds?: number[];
 	agencyIds?: number[];
+	disciplineIds?: number[];
+	sectorIds?: number[];
 }
 
 export interface CreateDirectorData {

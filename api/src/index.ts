@@ -33,6 +33,8 @@ import blocksRoutes from "./routes/blocks";
 import clipJobsRoutes from "./routes/clipJobs";
 import clientsRoutes from "./routes/clients";
 import agenciesRoutes from "./routes/agencies";
+import disciplinesRoutes from "./routes/disciplines";
+import sectorsRoutes from "./routes/sectors";
 import starringsRoutes from "./routes/starrings";
 import utilsRevalidateRoute from "./routes/utils/revalidate";
 import mediaConvertWebhook from "./routes/webhooks/mediaConvert";
@@ -223,6 +225,12 @@ app.use("/api/clients", clientsRoutes);
 
 // Agencies routes
 app.use("/api/agencies", agenciesRoutes);
+
+// Disciplines routes
+app.use("/api/disciplines", disciplinesRoutes);
+
+// Sectors routes
+app.use("/api/sectors", sectorsRoutes);
 
 // Starrings routes
 app.use("/api/starrings", starringsRoutes);
