@@ -9,6 +9,7 @@ import {
 	IconX,
 	IconArrowUpRight,
 	IconChevronLeft,
+	IconLayoutDashboard,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
@@ -18,6 +19,7 @@ import { WorksService } from "@/services/worksService";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { PageDesignerModal } from "@/components/page-designer";
 
 export default function EditWorkPage() {
 	const router = useRouter();
@@ -26,6 +28,7 @@ export default function EditWorkPage() {
 	const workId = parseInt(params.id as string, 10);
 	const [isEditingTitle, setIsEditingTitle] = React.useState(false);
 	const [editedTitle, setEditedTitle] = React.useState("");
+	const [designerOpen, setDesignerOpen] = React.useState(false);
 	const publicUrl =
 		`${process.env.NEXT_PUBLIC_PROTOCOL}://${process.env.NEXT_PUBLIC_HOSTNAME}` ||
 		`http://localhost:${process.env.NEXT_PUBLIC_PORT || "5051"}`;
@@ -97,20 +100,10 @@ export default function EditWorkPage() {
 											}
 										}}
 									/>
-									<Button
-										size="sm"
-										variant="ghost"
-										onClick={handleSaveTitle}
-										disabled={updateTitleMutation.isPending}
-									>
+									<Button size="sm" variant="ghost" onClick={handleSaveTitle} disabled={updateTitleMutation.isPending}>
 										<IconCheck className="h-4 w-4" />
 									</Button>
-									<Button
-										size="sm"
-										variant="ghost"
-										onClick={handleCancelEdit}
-										disabled={updateTitleMutation.isPending}
-									>
+									<Button size="sm" variant="ghost" onClick={handleCancelEdit} disabled={updateTitleMutation.isPending}>
 										<IconX className="h-4 w-4" />
 									</Button>
 								</div>
@@ -133,14 +126,9 @@ export default function EditWorkPage() {
 								<div className="flex flex-col sm:flex-row justify-between sm:items-center">
 									<div className="flex flex-col">
 										<div className="flex items-center gap-3">
-											<h1 className="text-3xl font-bold tracking-tight">
-												{work?.title || "Edit Work"}
-											</h1>
+											<h1 className="text-3xl font-bold tracking-tight">{work?.title || "Edit Work"}</h1>
 											{work && (
-												<button
-													onClick={handleEditTitle}
-													className="p-2 hover:bg-muted rounded-md transition-colors"
-												>
+												<button onClick={handleEditTitle} className="p-2 hover:bg-muted rounded-md transition-colors">
 													<IconPencil className="h-5 w-5 text-muted-foreground" />
 												</button>
 											)}
@@ -159,14 +147,16 @@ export default function EditWorkPage() {
 											</a>
 										)}
 									</div>
-									<Button
-										variant="outline"
-										onClick={() => router.push("/works")}
-										className="mt-4 sm:mt-0"
-									>
-										<IconChevronLeft className="w-4 h-4" />
-										Back to works
-									</Button>
+									<div className="flex items-center gap-2 mt-4 sm:mt-0">
+										<Button variant="outline" onClick={() => setDesignerOpen(true)}>
+											<IconLayoutDashboard className="w-4 h-4" />
+											Page Designer
+										</Button>
+										<Button variant="outline" onClick={() => router.push("/works")}>
+											<IconChevronLeft className="w-4 h-4" />
+											Back to works
+										</Button>
+									</div>
 								</div>
 							</>
 						)}
@@ -196,6 +186,14 @@ export default function EditWorkPage() {
 						/>
 					)}
 				</div>
+
+				<PageDesignerModal
+					open={designerOpen}
+					onOpenChange={setDesignerOpen}
+					modelName="Work"
+					modelId={workId}
+					title={work?.title}
+				/>
 			</AdminLayout>
 		</ProtectedRoute>
 	);

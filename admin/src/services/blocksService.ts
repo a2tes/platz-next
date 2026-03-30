@@ -11,7 +11,15 @@ export type BlockType =
 	| "FOUR_COLUMN"
 	| "ONE_TWO"
 	| "TWO_ONE"
-	| "CUSTOM_COLUMN";
+	| "CUSTOM_COLUMN"
+	| "PARAGRAPH"
+	| "QUOTE"
+	| "MEDIA"
+	| "HEADING"
+	| "SPACER"
+	| "DIVIDER"
+	| "EMBED"
+	| "CODE_BLOCK";
 export type BlockPageType = "WORKS";
 export type BlockStatus = "DRAFT" | "PUBLISHED" | "UNLISTED";
 

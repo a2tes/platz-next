@@ -11,6 +11,7 @@ import { WorksService, Work, CreateWorkData, UpdateWorkData } from "../../servic
 import { MediaService, MediaFile } from "../../services/mediaService";
 import { taxonomyServices } from "../../services/taxonomyService";
 import { useMediaLibraryStore } from "@/stores/mediaLibraryStore";
+import { usePageDesignerStore } from "@/stores/pageDesignerStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -233,6 +234,17 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 
 			// Save any staged crops using the ref-based API
 			await previewRef.current?.saveCrop(entityId);
+
+			// Save any pending page designer blocks
+			const designerStore = usePageDesignerStore.getState();
+			if (!isEditing && designerStore.blocks.length > 0) {
+				try {
+					await designerStore.saveBlocks("Work", entityId);
+					designerStore.reset();
+				} catch (e) {
+					console.error("Failed to save page designer blocks:", e);
+				}
+			}
 		} catch (error: unknown) {
 			let message = "Failed to save work";
 			if (error instanceof Error) {

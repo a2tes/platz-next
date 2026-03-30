@@ -3,10 +3,18 @@ export type BlockType =
 	| "ONE_COLUMN"
 	| "TWO_COLUMN"
 	| "THREE_COLUMN"
+	| "FOUR_COLUMN"
+	| "ONE_TWO"
+	| "TWO_ONE"
 	| "CUSTOM_COLUMN"
 	| "PARAGRAPH"
 	| "QUOTE"
-	| "MEDIA";
+	| "MEDIA"
+	| "HEADING"
+	| "SPACER"
+	| "DIVIDER"
+	| "EMBED"
+	| "CODE_BLOCK";
 
 export type BlockPageType = "WORKS";
 

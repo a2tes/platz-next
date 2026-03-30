@@ -34,9 +34,7 @@ const createWorkSchema = z.object({
 	metaKeywords: z.string().optional(),
 	previewImageId: z.number().nullable().optional(),
 	status: z.enum(["DRAFT", "PUBLISHED"]).default("DRAFT"),
-	clientIds: z.array(z.number()).default([]),
-	disciplineIds: z.array(z.number()).default([]),
-	sectorIds: z.array(z.number()).default([]),
+	taxonomyIds: z.array(z.number()).default([]),
 });
 
 const updateWorkSchema = createWorkSchema.partial();

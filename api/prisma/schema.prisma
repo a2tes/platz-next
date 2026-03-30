@@ -350,6 +350,11 @@ enum BlockType {
   PARAGRAPH
   QUOTE
   MEDIA
+  HEADING
+  SPACER
+  DIVIDER
+  EMBED
+  CODE_BLOCK
 }
 
 // Crop usage for media across different subjects/slots
