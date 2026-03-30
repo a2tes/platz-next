@@ -88,7 +88,15 @@ const ALL_ICONS: Record<DesignerBlockType, React.ReactNode> = {
 const SIDEBAR_DRAG_PREFIX = "sidebar-";
 
 /* ─── Draggable sidebar item ─── */
-function DraggableSidebarItem({ type, children }: { type: DesignerBlockType; children: React.ReactNode }) {
+function DraggableSidebarItem({
+	type,
+	children,
+	onClick,
+}: {
+	type: DesignerBlockType;
+	children: React.ReactNode;
+	onClick: () => void;
+}) {
 	const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
 		id: `${SIDEBAR_DRAG_PREFIX}${type}`,
 	});
@@ -97,6 +105,7 @@ function DraggableSidebarItem({ type, children }: { type: DesignerBlockType; chi
 			ref={setNodeRef}
 			{...listeners}
 			{...attributes}
+			onClick={onClick}
 			className={`flex flex-col items-center justify-center p-3 border rounded-lg hover:bg-accent transition-colors group cursor-grab active:cursor-grabbing ${isDragging ? "opacity-40" : ""}`}
 		>
 			{children}
@@ -204,6 +213,10 @@ export function PageDesignerModal({ open, onOpenChange, modelName, modelId, titl
 		addBlock(type, position);
 	};
 
+	const handleAddFromSidebar = (type: DesignerBlockType) => {
+		addBlock(type);
+	};
+
 	const handleDuplicate = (blockId: string) => {
 		const block = blocks.find((b) => b.id === blockId);
 		if (!block) return;
@@ -247,6 +260,7 @@ export function PageDesignerModal({ open, onOpenChange, modelName, modelId, titl
 	return (
 		<Dialog open={open} onOpenChange={handleClose}>
 			<DialogContent className="flex flex-col max-h-dvh h-dvw max-w-full rounded-none w-full p-0 gap-0">
+				<QuillPreviewStyles />
 				{/* Header */}
 				<DialogHeader className="px-6 py-4 border-b flex-none">
 					<div className="flex items-center justify-between">
@@ -288,7 +302,11 @@ export function PageDesignerModal({ open, onOpenChange, modelName, modelId, titl
 								<p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">Blocks</p>
 								<div className="grid grid-cols-2 gap-2 mb-5">
 									{LAYOUT_BLOCK_TYPE_CONFIGS.map((config) => (
-										<DraggableSidebarItem key={config.type} type={config.type}>
+										<DraggableSidebarItem
+											key={config.type}
+											type={config.type}
+											onClick={() => handleAddFromSidebar(config.type)}
+										>
 											<span className="text-muted-foreground group-hover:text-foreground transition-colors">
 												{LAYOUT_SIDEBAR_ICONS[config.type]}
 											</span>
@@ -304,7 +322,11 @@ export function PageDesignerModal({ open, onOpenChange, modelName, modelId, titl
 								</p>
 								<div className="grid grid-cols-2 gap-2">
 									{ELEMENT_BLOCK_TYPE_CONFIGS.map((config) => (
-										<DraggableSidebarItem key={config.type} type={config.type}>
+										<DraggableSidebarItem
+											key={config.type}
+											type={config.type}
+											onClick={() => handleAddFromSidebar(config.type)}
+										>
 											<span className="text-muted-foreground group-hover:text-foreground transition-colors">
 												{ELEMENT_SIDEBAR_ICONS[config.type]}
 											</span>
@@ -426,7 +448,7 @@ function PreviewBlockContent({ block }: { block: { type: DesignerBlockType; cont
 		case "PARAGRAPH": {
 			const html = (content.html as string) || "";
 			if (!html) return null;
-			return <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: html }} />;
+			return <div className="prose prose-sm max-w-none ql-preview" dangerouslySetInnerHTML={{ __html: html }} />;
 		}
 		case "QUOTE": {
 			const text = (content.text as string) || "";
@@ -522,5 +544,41 @@ function PreviewLayoutBlock({
 				</div>
 			))}
 		</div>
+	);
+}
+
+/* ─── Quill preview styles (alignment + lists) ─── */
+function QuillPreviewStyles() {
+	return (
+		<style jsx global>{`
+			.ql-preview .ql-align-center {
+				text-align: center;
+			}
+			.ql-preview .ql-align-right {
+				text-align: right;
+			}
+			.ql-preview .ql-align-justify {
+				text-align: justify;
+			}
+			.ql-preview ol,
+			.ql-preview ul {
+				padding-left: 1.5em;
+			}
+			.ql-preview ol {
+				list-style-type: decimal;
+			}
+			.ql-preview ul {
+				list-style-type: disc;
+			}
+			.ql-preview li {
+				padding-left: 0.25em;
+			}
+			.ql-preview blockquote {
+				border-left: 4px solid #d1d5db;
+				padding-left: 1rem;
+				font-style: italic;
+				color: #6b7280;
+			}
+		`}</style>
 	);
 }

@@ -1,124 +1,118 @@
 "use client";
 
 import * as React from "react";
+import dynamic from "next/dynamic";
 import type { BlockComponentProps } from "../types";
 
+const ReactQuill = dynamic(
+	async () => {
+		const { default: RQ } = await import("react-quill-new");
+		return RQ;
+	},
+	{
+		ssr: false,
+		loading: () => (
+			<div className="min-h-25 border rounded-md bg-muted/20 animate-pulse flex items-center justify-center">
+				<span className="text-muted-foreground text-sm">Loading editor...</span>
+			</div>
+		),
+	},
+);
+
+import "react-quill-new/dist/quill.snow.css";
+
+const modules = {
+	toolbar: [
+		["bold", "italic", "underline", "strike"],
+		[{ color: [] }, { background: [] }],
+		[{ align: [] }],
+		[{ list: "ordered" }, { list: "bullet" }],
+		["blockquote"],
+		["link"],
+		["clean"],
+	],
+	clipboard: {
+		matchVisual: false,
+	},
+};
+
+const formats = ["bold", "italic", "underline", "strike", "color", "background", "align", "list", "blockquote", "link"];
+
 export function ParagraphBlock({ content, onChange }: BlockComponentProps) {
-	const editorRef = React.useRef<HTMLDivElement>(null);
+	const [value, setValue] = React.useState(() => (content.html as string) || "");
+	const [mounted, setMounted] = React.useState(false);
 	const initializedRef = React.useRef(false);
 
 	React.useEffect(() => {
-		if (editorRef.current && !initializedRef.current) {
-			editorRef.current.innerHTML = (content.html as string) || "";
-			initializedRef.current = true;
+		setMounted(true);
+	}, []);
+
+	React.useEffect(() => {
+		if (content.html && !initializedRef.current) {
+			const html = content.html as string;
+			if (html) {
+				setValue(html);
+				initializedRef.current = true;
+			}
 		}
 	}, [content.html]);
 
-	const handleInput = () => {
-		if (editorRef.current) {
-			onChange({ html: editorRef.current.innerHTML });
-		}
-	};
+	const handleChange = React.useCallback(
+		(html: string) => {
+			setValue(html);
+			onChange({ html });
+		},
+		[onChange],
+	);
 
-	const execCommand = (command: string, value?: string) => {
-		document.execCommand(command, false, value);
-		editorRef.current?.focus();
-		handleInput();
-	};
-
-	const handleLink = () => {
-		const url = window.prompt("Enter URL:");
-		if (url) {
-			execCommand("createLink", url);
-		}
-	};
+	if (!mounted) {
+		return (
+			<div className="min-h-25 border rounded-md bg-muted/20 animate-pulse flex items-center justify-center">
+				<span className="text-muted-foreground text-sm">Loading editor...</span>
+			</div>
+		);
+	}
 
 	return (
-		<div className="group/rt relative">
-			{/* Floating toolbar */}
-			<div className="mb-2 flex gap-1 opacity-0 group-focus-within/rt:opacity-100 transition-opacity">
-				<button
-					type="button"
-					onMouseDown={(e) => {
-						e.preventDefault();
-						execCommand("bold");
-					}}
-					className="px-2 py-1 hover:bg-accent rounded text-xs font-bold border"
-				>
-					B
-				</button>
-				<button
-					type="button"
-					onMouseDown={(e) => {
-						e.preventDefault();
-						execCommand("italic");
-					}}
-					className="px-2 py-1 hover:bg-accent rounded text-xs italic border"
-				>
-					I
-				</button>
-				<button
-					type="button"
-					onMouseDown={(e) => {
-						e.preventDefault();
-						execCommand("underline");
-					}}
-					className="px-2 py-1 hover:bg-accent rounded text-xs underline border"
-				>
-					U
-				</button>
-				<button
-					type="button"
-					onMouseDown={(e) => {
-						e.preventDefault();
-						execCommand("strikeThrough");
-					}}
-					className="px-2 py-1 hover:bg-accent rounded text-xs line-through border"
-				>
-					S
-				</button>
-				<div className="w-px bg-border mx-1" />
-				<button
-					type="button"
-					onMouseDown={(e) => {
-						e.preventDefault();
-						handleLink();
-					}}
-					className="px-2 py-1 hover:bg-accent rounded text-xs border"
-				>
-					Link
-				</button>
-				<button
-					type="button"
-					onMouseDown={(e) => {
-						e.preventDefault();
-						execCommand("insertUnorderedList");
-					}}
-					className="px-2 py-1 hover:bg-accent rounded text-xs border"
-				>
-					• List
-				</button>
-				<button
-					type="button"
-					onMouseDown={(e) => {
-						e.preventDefault();
-						execCommand("insertOrderedList");
-					}}
-					className="px-2 py-1 hover:bg-accent rounded text-xs border"
-				>
-					1. List
-				</button>
-			</div>
-
-			{/* Editor */}
-			<div
-				ref={editorRef}
-				contentEditable
-				onInput={handleInput}
-				suppressContentEditableWarning
-				data-placeholder="Start typing..."
-				className="min-h-20 outline-none text-base leading-relaxed prose prose-sm max-w-none empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground empty:before:pointer-events-none"
+		<div className="page-designer-paragraph">
+			<ReactQuill
+				theme="snow"
+				value={value}
+				onChange={handleChange}
+				modules={modules}
+				formats={formats}
+				placeholder="Start typing..."
 			/>
+			<style jsx global>{`
+				.page-designer-paragraph .ql-container {
+					min-height: 6.25rem;
+					max-height: 18.75rem;
+					overflow-y: auto;
+					font-size: 1rem;
+					line-height: 1.75;
+					background: transparent;
+				}
+				.page-designer-paragraph .ql-toolbar {
+					border-radius: 8px 8px 0 0;
+					border-color: var(--border);
+				}
+				.page-designer-paragraph .ql-container {
+					border-radius: 0 0 8px 8px;
+					border-color: var(--border);
+				}
+				.page-designer-paragraph .ql-editor {
+					font-size: 1rem;
+				}
+				.page-designer-paragraph .ql-editor p {
+					margin: 0 0 0.75em 0;
+				}
+				.page-designer-paragraph .ql-editor blockquote {
+					border-left: 4px solid #d1d5db;
+					padding-left: 1rem;
+					font-style: italic;
+					color: #6b7280;
+				}
+			`}</style>
 		</div>
 	);
 }
