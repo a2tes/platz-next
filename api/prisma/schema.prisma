@@ -119,6 +119,8 @@ model Work {
   // @deprecated - Use WorkClient junction table instead
   client           String?   @map("client_legacy")
   tags             Json
+  publicationDate  DateTime? @map("publication_date")
+  year             Int?
   videoFileId      Int?      @map("video_file_id")
   metaDescription  String?   @map("meta_description") @db.Text
   metaKeywords     String?   @map("meta_keywords") @db.Text

@@ -33,6 +33,8 @@ export interface CreateWorkData {
 	caseStudy?: string;
 	client?: string; // @deprecated
 	tags: string[];
+	publicationDate?: Date | string | null;
+	year?: number | null;
 	videoFileId?: number | null;
 	metaDescription?: string;
 	metaKeywords?: string;
@@ -50,6 +52,8 @@ export interface UpdateWorkData {
 	caseStudy?: string;
 	client?: string; // @deprecated
 	tags?: string[];
+	publicationDate?: Date | string | null;
+	year?: number | null;
 	videoFileId?: number | null;
 	metaDescription?: string | null;
 	metaKeywords?: string | null;

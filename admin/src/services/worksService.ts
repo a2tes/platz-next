@@ -77,6 +77,8 @@ export interface Work {
 	caseStudy: string | null;
 	client: string; // @deprecated - use clients relation
 	tags: string[];
+	publicationDate?: string | null;
+	year?: number | null;
 	videoFileId?: number;
 	metaDescription?: string;
 	metaKeywords?: string;
@@ -110,6 +112,8 @@ export interface CreateWorkData {
 	caseStudy?: string;
 	client?: string; // @deprecated
 	tags: string[];
+	publicationDate?: string | null;
+	year?: number | null;
 	videoFileId?: number;
 	metaDescription?: string;
 	metaKeywords?: string;
@@ -126,6 +130,8 @@ export interface UpdateWorkData {
 	caseStudy?: string;
 	client?: string; // @deprecated
 	tags?: string[];
+	publicationDate?: string | null;
+	year?: number | null;
 	videoFileId?: number;
 	metaDescription?: string;
 	metaKeywords?: string;

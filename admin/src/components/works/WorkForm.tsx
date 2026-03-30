@@ -31,6 +31,8 @@ const workSchema = z.object({
 	caseStudy: z.string().optional(),
 	client: z.string().max(191, "Client must be less than 191 characters").optional(), // @deprecated
 	tags: z.string(),
+	publicationDate: z.string().optional(),
+	year: z.union([z.number(), z.string()]).optional(),
 	videoFileId: z.number().nullable().optional(),
 	metaDescription: z.string().optional(),
 	metaKeywords: z.string().optional(),
@@ -70,6 +72,8 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 			caseStudy: work?.caseStudy || "",
 			client: work?.client || "",
 			tags: work?.tags.join(", ") || "",
+			publicationDate: work?.publicationDate ? work.publicationDate.split("T")[0] : "",
+			year: work?.year ?? "",
 			status: work?.status || "DRAFT",
 			directorIds: work?.directors.map((d) => d.director.id) || [],
 			taxonomyIds: work?.taxonomies?.map((t: any) => t.taxonomy.id) || [],
@@ -96,6 +100,8 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 				caseStudy: work.caseStudy || "",
 				client: work.client,
 				tags: work.tags.join(", "),
+				publicationDate: work.publicationDate ? work.publicationDate.split("T")[0] : "",
+				year: work.year ?? "",
 				status: work.status,
 				directorIds: (work.directors || []).map((d) => d.director.id),
 				taxonomyIds: (work.taxonomies || []).map((t: any) => t.taxonomy.id),
@@ -220,6 +226,8 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 					.split(",")
 					.map((t) => t.trim())
 					.filter(Boolean),
+				publicationDate: data.publicationDate || null,
+				year: data.year ? Number(data.year) : null,
 				taxonomyIds: data.taxonomyIds || [],
 			};
 
@@ -330,22 +338,32 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 									/>
 								</div>
 							</div>
+						</div>
+					</div>
 
-							{/* New Client Multi-Select */}
+					{/* Project Info */}
+					<div className="border rounded-xl mb-6">
+						<h3 className="text-lg font-semibold border-b p-4">Project Info</h3>
+						<div className="space-y-6 p-4">
 							<div>
-								<Label>Client</Label>
+								<Label htmlFor="publicationDate">Publication Date</Label>
+								<Input id="publicationDate" type="date" className="mt-3" {...register("publicationDate")} />
+							</div>
+
+							{/* Sectors Multi-Select */}
+							<div>
+								<Label>Sectors</Label>
 								<MultiAutocomplete
-									single
-									options={filteredClients.map((c: any) => ({
-										id: c.id,
-										name: c.name,
+									options={filteredSectors.map((s: any) => ({
+										id: s.id,
+										name: s.name,
 									}))}
 									values={(watchedValues.taxonomyIds || [])
 										.map((id: number) => {
-											const client = (clientsData || []).find((c: any) => c.id === id && c.type === "CLIENT");
-											if (client) return { id: client.id, name: client.name };
+											const sector = (sectorsData || []).find((s: any) => s.id === id && s.type === "SECTOR");
+											if (sector) return { id: sector.id, name: sector.name };
 											const workTax = (work?.taxonomies || []).find(
-												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "CLIENT",
+												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "SECTOR",
 											);
 											if (workTax) return { id: workTax.taxonomy.id, name: workTax.taxonomy.name };
 											return null;
@@ -353,23 +371,23 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 										.filter((v): v is AutocompleteOption => v !== null)}
 									onValuesChange={(options) => {
 										const otherIds = (watchedValues.taxonomyIds || []).filter((id: number) => {
-											const isClient = (clientsData || []).some((c: any) => c.id === id);
-											const isWorkClient = (work?.taxonomies || []).some(
-												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "CLIENT",
+											const isSector = (sectorsData || []).some((s: any) => s.id === id);
+											const isWorkSector = (work?.taxonomies || []).some(
+												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "SECTOR",
 											);
-											return !isClient && !isWorkClient;
+											return !isSector && !isWorkSector;
 										});
 										setValue("taxonomyIds", [...otherIds, ...options.map((o) => o.id)]);
 									}}
-									onSearch={setClientSearch}
+									onSearch={setSectorSearch}
 									onCreateNew={async (name) => {
-										const created = await taxonomyServices.clients.findOrCreate(name);
-										queryClient.invalidateQueries({ queryKey: ["taxonomies", "clients"] });
+										const created = await taxonomyServices.sectors.findOrCreate(name);
+										queryClient.invalidateQueries({ queryKey: ["taxonomies", "sectors"] });
 										return { id: created.id, name: created.name };
 									}}
-									placeholder="Select or create client..."
-									searchPlaceholder="Search or create client..."
-									emptyMessage="No clients found"
+									placeholder="Select or create sectors..."
+									searchPlaceholder="Search or create sector..."
+									emptyMessage="No sectors found"
 									className="mt-3"
 								/>
 							</div>
@@ -418,20 +436,21 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 								/>
 							</div>
 
-							{/* Sectors Multi-Select */}
+							{/* Client Multi-Select */}
 							<div>
-								<Label>Sectors</Label>
+								<Label>Client</Label>
 								<MultiAutocomplete
-									options={filteredSectors.map((s: any) => ({
-										id: s.id,
-										name: s.name,
+									single
+									options={filteredClients.map((c: any) => ({
+										id: c.id,
+										name: c.name,
 									}))}
 									values={(watchedValues.taxonomyIds || [])
 										.map((id: number) => {
-											const sector = (sectorsData || []).find((s: any) => s.id === id && s.type === "SECTOR");
-											if (sector) return { id: sector.id, name: sector.name };
+											const client = (clientsData || []).find((c: any) => c.id === id && c.type === "CLIENT");
+											if (client) return { id: client.id, name: client.name };
 											const workTax = (work?.taxonomies || []).find(
-												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "SECTOR",
+												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "CLIENT",
 											);
 											if (workTax) return { id: workTax.taxonomy.id, name: workTax.taxonomy.name };
 											return null;
@@ -439,24 +458,37 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 										.filter((v): v is AutocompleteOption => v !== null)}
 									onValuesChange={(options) => {
 										const otherIds = (watchedValues.taxonomyIds || []).filter((id: number) => {
-											const isSector = (sectorsData || []).some((s: any) => s.id === id);
-											const isWorkSector = (work?.taxonomies || []).some(
-												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "SECTOR",
+											const isClient = (clientsData || []).some((c: any) => c.id === id);
+											const isWorkClient = (work?.taxonomies || []).some(
+												(t: any) => t.taxonomy.id === id && t.taxonomy.type === "CLIENT",
 											);
-											return !isSector && !isWorkSector;
+											return !isClient && !isWorkClient;
 										});
 										setValue("taxonomyIds", [...otherIds, ...options.map((o) => o.id)]);
 									}}
-									onSearch={setSectorSearch}
+									onSearch={setClientSearch}
 									onCreateNew={async (name) => {
-										const created = await taxonomyServices.sectors.findOrCreate(name);
-										queryClient.invalidateQueries({ queryKey: ["taxonomies", "sectors"] });
+										const created = await taxonomyServices.clients.findOrCreate(name);
+										queryClient.invalidateQueries({ queryKey: ["taxonomies", "clients"] });
 										return { id: created.id, name: created.name };
 									}}
-									placeholder="Select or create sectors..."
-									searchPlaceholder="Search or create sector..."
-									emptyMessage="No sectors found"
+									placeholder="Select or create client..."
+									searchPlaceholder="Search or create client..."
+									emptyMessage="No clients found"
 									className="mt-3"
+								/>
+							</div>
+
+							<div>
+								<Label htmlFor="year">Year</Label>
+								<Input
+									id="year"
+									type="number"
+									className="mt-3"
+									{...register("year")}
+									placeholder="e.g. 2025"
+									min={1900}
+									max={2100}
 								/>
 							</div>
 
