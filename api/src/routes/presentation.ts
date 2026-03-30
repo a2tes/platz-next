@@ -10,7 +10,6 @@ router.use(authenticateToken);
 router.get("/", presentationController.getAllPresentations);
 router.get("/counts", presentationController.getPresentationCounts);
 router.get("/photography-options", presentationController.getPhotographyOptions);
-router.get("/animation-options", presentationController.getAnimationOptions);
 router.get("/:id", presentationController.getPresentationById);
 router.post("/", presentationController.createPresentation);
 router.put("/:id", presentationController.updatePresentation);

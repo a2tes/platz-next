@@ -109,11 +109,11 @@ export default function AutoPresentation({
 			};
 		}
 
-		// Video item (WORK or ANIMATION)
+		// Video item (WORK)
 		const video = videoRef.current;
 		if (!video) return;
 
-		const entity = item.work || item.animation;
+		const entity = item.work;
 		if (!entity) return;
 
 		const hlsUrl = entity.hlsUrl;
@@ -286,7 +286,7 @@ export default function AutoPresentation({
 	const isPhoto = item.itemType === "PHOTOGRAPHY";
 	const isExternalLink = item.itemType === "EXTERNAL_LINK";
 	const isTimedSlide = isPhoto || isExternalLink;
-	const entity = item.work || item.animation;
+	const entity = item.work;
 	const photo = item.photography;
 
 	// Get display info
@@ -296,9 +296,6 @@ export default function AutoPresentation({
 			const parts: string[] = [];
 			if (item.work.clients.length) parts.push(item.work.clients[0]);
 			return parts.join(" · ");
-		}
-		if (item.animation) {
-			return item.animation.clients[0] || "";
 		}
 		if (item.photography) {
 			return item.photography.photographer?.title || "";
@@ -312,7 +309,7 @@ export default function AutoPresentation({
 	const nextTitle = (() => {
 		if (!next) return "";
 		const ni = next.item;
-		return ni.work?.title || ni.animation?.title || ni.photography?.title || ni.externalTitle || "";
+		return ni.work?.title || ni.photography?.title || ni.externalTitle || "";
 	})();
 
 	// Photo/external link background image
@@ -518,7 +515,6 @@ export default function AutoPresentation({
 								const ni = next.item;
 								const thumb =
 									ni.work?.images?.thumbnail ||
-									ni.animation?.images?.thumbnail ||
 									ni.photography?.images?.thumbnail ||
 									ni.externalThumbnail?.images?.thumbnail;
 								return thumb ? (

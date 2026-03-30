@@ -11,13 +11,11 @@ import authRoutes from "./routes/auth";
 import mediaRoutes from "./routes/media";
 import dashboardRoutes from "./routes/dashboard";
 import worksRoutes from "./routes/works";
-import animationsRoutes from "./routes/animations";
 import homepageRoutes from "./routes/homepage";
 import contentRoutes from "./routes/content";
 import usersRoutes from "./routes/users";
 import photographyRoutes from "./routes/photography";
 import publicWorksRoutes from "./routes/public/works";
-import publicAnimationsRoutes from "./routes/public/animations";
 import publicHomepageRoutes from "./routes/public/homepage";
 import publicPagesRoutes from "./routes/public/pages";
 import publicPhotographyRoutes from "./routes/public/photography";
@@ -187,9 +185,6 @@ app.use("/api/dashboard", dashboardRoutes);
 // Works routes
 app.use("/api/works", worksRoutes);
 
-// Animations routes
-app.use("/api/animations", animationsRoutes);
-
 // Homepage routes
 app.use("/api/homepage", homepageRoutes);
 
@@ -231,7 +226,6 @@ const publicRate = rateLimit({
 });
 app.use("/api/public", publicRate);
 app.use("/api/public/works", publicWorksRoutes);
-app.use("/api/public/animations", publicAnimationsRoutes);
 app.use("/api/public/homepage", publicHomepageRoutes);
 app.use("/api/public/pages", publicPagesRoutes);
 app.use("/api/public/photography", publicPhotographyRoutes);

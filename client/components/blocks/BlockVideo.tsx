@@ -13,8 +13,8 @@ export function BlockVideo({ item, className = "" }: BlockVideoProps) {
 	const [isVisible, setIsVisible] = useState(false);
 	const [isLoaded, setIsLoaded] = useState(false);
 
-	// Get entity data (work or animation)
-	const entity = item.work || item.animation;
+	// Get entity data
+	const entity = item.work;
 
 	// Get video URL — use clip if available, otherwise entity video
 	const videoUrl = item.clip?.url || entity?.videoUrl || "";

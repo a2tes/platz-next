@@ -14,8 +14,7 @@ export interface BlockRendererProps {
 	storageUrl?: string;
 	/** Custom renderer for work items */
 	renderWorkItem?: (workId: number, settings: any) => React.ReactNode;
-	/** Custom renderer for animation items */
-	renderAnimationItem?: (animationId: number, settings: any) => React.ReactNode;
+
 	/** Additional class name */
 	className?: string;
 	/** Click handler for edit mode */
@@ -27,7 +26,6 @@ export function BlockRenderer({
 	mode = "view",
 	storageUrl = "",
 	renderWorkItem,
-	renderAnimationItem,
 	className,
 	onBlockClick,
 }: BlockRendererProps) {
@@ -76,15 +74,6 @@ export function BlockRenderer({
 					<div key={index} className="relative aspect-video">
 						{item.workId && renderWorkItem ? (
 							renderWorkItem(item.workId, {
-								cropX: item.cropX,
-								cropY: item.cropY,
-								cropW: item.cropW,
-								cropH: item.cropH,
-								trimStart: item.trimStart,
-								trimEnd: item.trimEnd,
-							})
-						) : item.animationId && renderAnimationItem ? (
-							renderAnimationItem(item.animationId, {
 								cropX: item.cropX,
 								cropY: item.cropY,
 								cropW: item.cropW,

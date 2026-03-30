@@ -84,7 +84,6 @@ export class TaxonomyService {
 						select: {
 							works: true,
 							photography: true,
-							animations: true,
 						},
 					},
 				},
@@ -138,7 +137,6 @@ export class TaxonomyService {
 					select: {
 						works: true,
 						photography: true,
-						animations: true,
 					},
 				},
 			},

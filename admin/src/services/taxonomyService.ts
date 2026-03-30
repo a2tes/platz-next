@@ -21,7 +21,6 @@ export interface Taxonomy {
 	_count?: {
 		works: number;
 		photography: number;
-		animations: number;
 	};
 	// Added for BaseEntity compatibility (mapped from name)
 	title?: string;

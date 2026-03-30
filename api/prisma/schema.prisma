@@ -27,9 +27,7 @@ model User {
   activities           Activity[]
   sessions             Session[]
   revisions            WorkRevision[]
-  animationRevisions   AnimationRevision[]
   createdWorks         Work[]          @relation("WorkCreatedBy")
-  createdAnimations    Animation[]     @relation("AnimationCreatedBy")
   createdPhotographers Photographer[]  @relation("PhotographerCreatedBy")
   createdContentPages   ContentPage[]    @relation("ContentPageCreatedBy")
   createdPresentations  Presentation[]   @relation("PresentationCreatedBy")
@@ -70,8 +68,6 @@ model MediaFile {
   folder                   MediaFolder?   @relation(fields: [folderId], references: [id])
   worksVideoFile           Work[]         @relation("WorkVideoFile")
   worksPreviewImage        Work[]         @relation("WorkPreviewImage")
-  animationsVideoFile      Animation[]    @relation("AnimationVideoFile")
-  animationsPreviewImage   Animation[]    @relation("AnimationPreviewImage")
   photographyImage         Photography[]  @relation("PhotographyImage")
   photographyPreviewImage  Photography[]  @relation("PhotographyPreviewImage")
   photographersAvatar      Photographer[] @relation("PhotographerAvatar")
@@ -341,7 +337,6 @@ enum TaxonomyType {
 
 enum BlockPageType {
   WORKS
-  ANIMATIONS
 }
 
 enum BlockType {
@@ -416,14 +411,12 @@ model Presentation {
 // ============================================
 
 enum PresentationSectionType {
-  ANIMATIONS
   PHOTOGRAPHY
   MIXED
 }
 
 enum PresentationItemType {
   WORK
-  ANIMATION
   PHOTOGRAPHY
   EXTERNAL_LINK
 }
@@ -449,7 +442,6 @@ model PresentationItem {
   sectionId            Int                    @map("section_id")
   itemType             PresentationItemType
   workId               Int?                   @map("work_id")
-  animationId          Int?                   @map("animation_id")
   photographyId        Int?                   @map("photography_id")
   externalUrl          String?                @map("external_url")
   externalTitle        String?                @map("external_title")
@@ -462,63 +454,10 @@ model PresentationItem {
   // Relations
   section            PresentationSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   work               Work?               @relation(fields: [workId], references: [id], onDelete: Cascade)
-  animation          Animation?          @relation(fields: [animationId], references: [id], onDelete: Cascade)
   photography        Photography?        @relation(fields: [photographyId], references: [id], onDelete: Cascade)
   externalThumbnail  MediaFile?          @relation("PresentationItemExternalThumbnail", fields: [externalThumbnailId], references: [id], onDelete: SetNull)
 
   @@map("presentation_items")
-}
-
-model Animation {
-  id               Int       @id @default(autoincrement())
-  title            String
-  slug             String    @unique
-  shortDescription String?   @map("short_description") @db.Text
-  // @deprecated - Use AnimationClient junction table instead
-  client           String?   @map("client_legacy")
-  tags             Json
-  videoFileId      Int?      @map("video_file_id")
-  metaDescription  String?   @map("meta_description") @db.Text
-  metaKeywords     String?   @map("meta_keywords") @db.Text
-  previewImageId   Int?      @map("preview_image_id")
-  status           Status    @default(DRAFT)
-  sortOrder        Int       @default(0) @map("sort_order")
-  createdBy        Int?      @map("created_by")
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-  publishedAt      DateTime? @map("published_at")
-  deletedAt        DateTime? @map("deleted_at")
-  purgedAt         DateTime? @map("purged_at")
-
-  // Relations
-  creator      User?              @relation("AnimationCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  videoFile    MediaFile?         @relation("AnimationVideoFile", fields: [videoFileId], references: [id])
-  previewImage MediaFile?         @relation("AnimationPreviewImage", fields: [previewImageId], references: [id])
-  revisions         AnimationRevision[]
-  presentationItems PresentationItem[]
-  taxonomies        AnimationTaxonomy[]
-
-  @@map("animations")
-}
-
-model AnimationRevision {
-  id             Int      @id @default(autoincrement())
-  animationId    Int      @map("animation_id")
-  userId         Int?     @map("user_id")
-  version        Int      @default(1)
-  payload        Json     @db.Json
-  revertedFromId Int?     @map("reverted_from_id")
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  // Relations
-  animation    Animation           @relation(fields: [animationId], references: [id], onDelete: Cascade)
-  user         User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
-  revertedFrom AnimationRevision?  @relation("AnimationRevisionRevert", fields: [revertedFromId], references: [id], onDelete: SetNull)
-  revertedTo   AnimationRevision[] @relation("AnimationRevisionRevert")
-
-  @@index([animationId])
-  @@index([animationId, version(Sort.Desc)])
-  @@map("animation_revisions")
 }
 
 // ============================================
@@ -657,7 +596,6 @@ model Taxonomy {
   creator     User?               @relation("TaxonomyCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
   works       WorkTaxonomy[]
   photography PhotographyTaxonomy[]
-  animations  AnimationTaxonomy[]
 
   @@unique([type, slug])
   @@map("taxonomies")
@@ -685,18 +623,6 @@ model PhotographyTaxonomy {
 
   @@id([photographyId, taxonomyId])
   @@map("photography_taxonomies")
-}
-
-model AnimationTaxonomy {
-  animationId Int @map("animation_id")
-  taxonomyId  Int @map("taxonomy_id")
-
-  // Relations
-  animation Animation @relation(fields: [animationId], references: [id], onDelete: Cascade)
-  taxonomy  Taxonomy  @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
-
-  @@id([animationId, taxonomyId])
-  @@map("animation_taxonomies")
 }
 
 model SiteSetting {

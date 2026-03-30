@@ -24,7 +24,7 @@ const TAXONOMY_TYPES: Record<string, TaxonomyTypeConfig> = {
 		typeSlug: "clients",
 		displayName: "Client",
 		displayNamePlural: "Clients",
-		description: "Manage clients that can be associated with Works, Photography, and Animations.",
+		description: "Manage clients that can be associated with Works and Photography.",
 		icon: <IconUsers className="h-8 w-8 text-muted-foreground" />,
 	},
 	disciplines: {
@@ -78,8 +78,6 @@ function createTaxonomyColumns(): Column<TaxonomyWithTitle>[] {
 				if (item._count.works > 0) parts.push(`${item._count.works} ${item._count.works === 1 ? "work" : "works"}`);
 				if (item._count.photography > 0)
 					parts.push(`${item._count.photography} ${item._count.photography === 1 ? "photo" : "photos"}`);
-				if (item._count.animations > 0)
-					parts.push(`${item._count.animations} ${item._count.animations === 1 ? "animation" : "animations"}`);
 				return <div className="text-sm text-muted-foreground">{parts.length > 0 ? parts.join(", ") : "-"}</div>;
 			},
 		},

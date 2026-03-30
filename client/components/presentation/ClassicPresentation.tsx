@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import WorkModal from "@/components/works/WorkModal";
-import AnimationModal from "@/components/animations/AnimationModal";
 import PhotoModal, { type Photo } from "@/components/photography/PhotoModal";
 import type { PresentationData, PresentationSection, PresentationItem } from "./types";
 
@@ -22,10 +21,6 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 	// Work modal state
 	const [selectedWork, setSelectedWork] = useState<any>(null);
 	const [workCardRect, setWorkCardRect] = useState<CardRect | null>(null);
-
-	// Animation modal state
-	const [selectedAnimation, setSelectedAnimation] = useState<any>(null);
-	const [animCardRect, setAnimCardRect] = useState<CardRect | null>(null);
 
 	// Photo modal state
 	const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
@@ -51,23 +46,6 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 		setWorkCardRect(rect);
 	};
 
-	const handleAnimationClick = (item: PresentationItem, rect: CardRect) => {
-		if (!item.animation) return;
-		const a = item.animation;
-		setSelectedAnimation({
-			title: a.title,
-			slug: a.slug,
-			client: a.clients[0] || "",
-
-			shortDescription: a.shortDescription,
-			videoUrl: a.videoUrl || "",
-			hlsUrl: a.hlsUrl || "",
-			optimizedVideoUrl: a.optimizedVideoUrl || "",
-			videoThumbnailUrl: a.images?.thumbnail || "",
-		});
-		setAnimCardRect(rect);
-	};
-
 	const handlePhotoClick = (item: PresentationItem, rect: CardRect, sectionPhotos: Photo[]) => {
 		if (!item.photography) return;
 		const p = item.photography;
@@ -91,13 +69,7 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 		<div className="min-h-screen bg-black pt-20 pb-20">
 			{/* Sections */}
 			{data.sections.map((section, sIdx) => (
-				<SectionBlock
-					key={sIdx}
-					section={section}
-					onWorkClick={handleWorkClick}
-					onAnimationClick={handleAnimationClick}
-					onPhotoClick={handlePhotoClick}
-				/>
+				<SectionBlock key={sIdx} section={section} onWorkClick={handleWorkClick} onPhotoClick={handlePhotoClick} />
 			))}
 
 			{/* End */}
@@ -114,19 +86,6 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 						onClose={() => {
 							setSelectedWork(null);
 							setWorkCardRect(null);
-						}}
-					/>
-				)}
-			</AnimatePresence>
-
-			<AnimatePresence>
-				{selectedAnimation && (
-					<AnimationModal
-						animation={selectedAnimation}
-						cardRect={animCardRect}
-						onClose={() => {
-							setSelectedAnimation(null);
-							setAnimCardRect(null);
 						}}
 					/>
 				)}
@@ -155,14 +114,13 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 interface SectionBlockProps {
 	section: PresentationSection;
 	onWorkClick: (item: PresentationItem, rect: CardRect) => void;
-	onAnimationClick: (item: PresentationItem, rect: CardRect) => void;
 	onPhotoClick: (item: PresentationItem, rect: CardRect, photos: Photo[]) => void;
 }
 
-function SectionBlock({ section, onWorkClick, onAnimationClick, onPhotoClick }: SectionBlockProps) {
+function SectionBlock({ section, onWorkClick, onPhotoClick }: SectionBlockProps) {
 	// Separate items by type for rendering
 	const hasPhotos = section.items.some((i) => i.itemType === "PHOTOGRAPHY");
-	const hasVideos = section.items.some((i) => i.itemType === "WORK" || i.itemType === "ANIMATION");
+	const hasVideos = section.items.some((i) => i.itemType === "WORK");
 	const hasExternalLinks = section.items.some((i) => i.itemType === "EXTERNAL_LINK");
 
 	// Convert photography items to Photo[] for modal navigation
@@ -200,9 +158,9 @@ function SectionBlock({ section, onWorkClick, onAnimationClick, onPhotoClick }: 
 			{hasVideos && (
 				<div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory -mx-6 px-6 md:-mx-12 md:px-12">
 					{section.items
-						.filter((i) => i.itemType === "WORK" || i.itemType === "ANIMATION")
+						.filter((i) => i.itemType === "WORK")
 						.map((item, idx) => (
-							<VideoCard key={idx} item={item} onWorkClick={onWorkClick} onAnimationClick={onAnimationClick} />
+							<VideoCard key={idx} item={item} onWorkClick={onWorkClick} />
 						))}
 				</div>
 			)}
@@ -239,16 +197,15 @@ function SectionBlock({ section, onWorkClick, onAnimationClick, onPhotoClick }: 
 interface VideoCardProps {
 	item: PresentationItem;
 	onWorkClick: (item: PresentationItem, rect: CardRect) => void;
-	onAnimationClick: (item: PresentationItem, rect: CardRect) => void;
 }
 
-function VideoCard({ item, onWorkClick, onAnimationClick }: VideoCardProps) {
+function VideoCard({ item, onWorkClick }: VideoCardProps) {
 	const cardRef = useRef<HTMLDivElement>(null);
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [isHovering, setIsHovering] = useState(false);
 	const [videoLoaded, setVideoLoaded] = useState(false);
 
-	const entity = item.work || item.animation;
+	const entity = item.work;
 	if (!entity) return null;
 
 	const thumbnail = entity.images?.medium || entity.images?.large || entity.images?.thumbnail || "";
@@ -258,9 +215,6 @@ function VideoCard({ item, onWorkClick, onAnimationClick }: VideoCardProps) {
 		if (item.work) {
 			return item.work.clients[0] || "";
 		}
-		if (item.animation) {
-			return item.animation.clients[0] || "";
-		}
 		return "";
 	})();
 
@@ -268,8 +222,7 @@ function VideoCard({ item, onWorkClick, onAnimationClick }: VideoCardProps) {
 		if (!cardRef.current) return;
 		const rect = cardRef.current.getBoundingClientRect();
 		const cardRect: CardRect = { top: rect.top, left: rect.left, width: rect.width, height: rect.height };
-		if (item.itemType === "WORK") onWorkClick(item, cardRect);
-		else onAnimationClick(item, cardRect);
+		onWorkClick(item, cardRect);
 	};
 
 	const handleMouseEnter = () => {

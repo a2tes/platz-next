@@ -34,7 +34,6 @@ import { useBlockEditorStore } from "@/stores/blockEditorStore";
 import { VideoSettingsModal } from "./VideoSettingsModal";
 import { blocksService, blockPagesService } from "@/services/blocksService";
 import { WorksService, type Work } from "@/services/worksService";
-import { AnimationsService, type Animation } from "@/services/animationsService";
 import { useMediaLibraryStore } from "@/stores/mediaLibraryStore";
 import { MediaService, type MediaFile } from "@/services/mediaService";
 import { toast } from "sonner";
@@ -59,21 +58,12 @@ interface TrimSettings {
 interface BlockContentItem {
 	// Entity reference
 	workId?: number;
-	animationId?: number;
 	// Source media file ID (for existing clip lookup)
 	sourceMediaId?: number;
 	// Display mode: "video" plays clip, "thumbnail" shows static image
 	displayMode?: "video" | "thumbnail";
-	// Structured work/animation data from API
+	// Structured work data from API
 	work?: {
-		title: string;
-		slug?: string;
-		videoUrl: string | null;
-		videoAspectRatio: number;
-		thumbnailUrl: string | null;
-		thumbnailAspectRatio: number;
-	};
-	animation?: {
 		title: string;
 		slug?: string;
 		videoUrl: string | null;
@@ -116,7 +106,7 @@ function getSlotCount(type: BlockType): number {
 
 // Helper to get entity data from a block content item
 function getEntity(item: BlockContentItem) {
-	return item.work || item.animation || null;
+	return item.work || null;
 }
 
 // Sortable Block Item
@@ -200,7 +190,7 @@ function SortableBlockItem({
 						<div key={slotIndex} className={`relative bg-muted rounded-md overflow-hidden group ${spanClass}`}>
 							{item && entity ? (
 								<>
-									{/* Edit Mode: Always show thumbnail — prefer clip thumbnail over work/animation thumbnail */}
+									{/* Edit Mode: Always show thumbnail — prefer clip thumbnail over work thumbnail */}
 									{item.clip?.thumbnailUrl || entity.thumbnailUrl ? (
 										<img
 											src={item.clip?.thumbnailUrl || entity.thumbnailUrl!}
@@ -365,7 +355,7 @@ export function BlockEditorModal() {
 	const [isContentSelectorOpen, setIsContentSelectorOpen] = React.useState(false);
 	const [workSearchQuery, setWorkSearchQuery] = React.useState("");
 	const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState("");
-	const [pageType, setPageType] = React.useState<"WORKS" | "ANIMATIONS" | null>(null);
+	const [pageType, setPageType] = React.useState<"WORKS" | null>(null);
 
 	// Debounce search query
 	React.useEffect(() => {
@@ -384,8 +374,6 @@ export function BlockEditorModal() {
 		mode?: "clip" | "thumbnail";
 		sourceMediaId?: number;
 	} | null>(null);
-
-	const isAnimationsMode = pageType === "ANIMATIONS";
 
 	// Fetch works for selector with infinite scroll
 	const {
@@ -408,31 +396,7 @@ export function BlockEditorModal() {
 			return page < totalPages ? page + 1 : undefined;
 		},
 		initialPageParam: 1,
-		enabled: isContentSelectorOpen && !isAnimationsMode,
-	});
-
-	// Fetch animations for selector with infinite scroll
-	const {
-		data: animationsData,
-		fetchNextPage: fetchNextAnimationsPage,
-		hasNextPage: hasNextAnimationsPage,
-		isFetchingNextPage: isFetchingNextAnimationsPage,
-		isLoading: isAnimationsLoading,
-	} = useInfiniteQuery({
-		queryKey: ["animations", "selector", debouncedSearchQuery],
-		queryFn: ({ pageParam = 1 }) =>
-			AnimationsService.getAnimations({
-				page: pageParam,
-				limit: 10,
-				status: "PUBLISHED",
-				...(debouncedSearchQuery ? { search: debouncedSearchQuery } : {}),
-			}),
-		getNextPageParam: (lastPage) => {
-			const { page, totalPages } = lastPage.meta.pagination;
-			return page < totalPages ? page + 1 : undefined;
-		},
-		initialPageParam: 1,
-		enabled: isContentSelectorOpen && isAnimationsMode,
+		enabled: isContentSelectorOpen,
 	});
 
 	// Flatten all pages into entity lists
@@ -441,18 +405,6 @@ export function BlockEditorModal() {
 		return worksData.pages.flatMap((page) => page.data);
 	}, [worksData?.pages]);
 
-	const allAnimations = React.useMemo(() => {
-		if (!animationsData?.pages) return [];
-		return animationsData.pages.flatMap((page) => page.data);
-	}, [animationsData?.pages]);
-
-	// Unified entity list and loading state
-	const allEntities = isAnimationsMode ? allAnimations : allWorks;
-	const isEntitiesLoading = isAnimationsMode ? isAnimationsLoading : isWorksLoading;
-	const isFetchingNextPage = isAnimationsMode ? isFetchingNextAnimationsPage : isFetchingNextWorksPage;
-	const hasNextPage = isAnimationsMode ? hasNextAnimationsPage : hasNextWorksPage;
-	const fetchNextPage = isAnimationsMode ? fetchNextAnimationsPage : fetchNextWorksPage;
-
 	// Scroll handler for infinite loading
 	const handleWorksScroll = React.useCallback(
 		(e: React.UIEvent<HTMLDivElement>) => {
@@ -460,13 +412,13 @@ export function BlockEditorModal() {
 			const threshold = 100;
 			if (
 				target.scrollHeight - target.scrollTop - target.clientHeight < threshold &&
-				hasNextPage &&
-				!isFetchingNextPage
+				hasNextWorksPage &&
+				!isFetchingNextWorksPage
 			) {
-				fetchNextPage();
+				fetchNextWorksPage();
 			}
 		},
-		[hasNextPage, isFetchingNextPage, fetchNextPage],
+		[hasNextWorksPage, isFetchingNextWorksPage, fetchNextWorksPage],
 	);
 
 	// DnD sensors
@@ -504,7 +456,7 @@ export function BlockEditorModal() {
 					const pages = await blockPagesService.getBlockPages();
 					const page = pages.find((p: any) => p.id === modelId);
 					if (page) {
-						setPageType(page.type as "WORKS" | "ANIMATIONS");
+						setPageType(page.type as "WORKS");
 					}
 				} catch {
 					// Default to WORKS if page type can't be determined
@@ -522,13 +474,11 @@ export function BlockEditorModal() {
 				// API response already matches BlockContentItem structure
 				const convertedItems = items.map((apiItem: any) => {
 					if (!apiItem) return null;
-					if (!apiItem.work && !apiItem.animation) return null;
+					if (!apiItem.work) return null;
 					return {
 						workId: apiItem.workId,
-						animationId: apiItem.animationId,
 						displayMode: apiItem.displayMode || "video",
 						work: apiItem.work,
-						animation: apiItem.animation,
 						clip: apiItem.clip,
 					} as BlockContentItem;
 				});
@@ -631,11 +581,10 @@ export function BlockEditorModal() {
 										const entity = getEntity(item);
 										if (entity) {
 											// Update the entity's thumbnailUrl with the generated thumbnail
-											const entityKey = item.work ? "work" : "animation";
 											newContent[slotIndex] = {
 												...item,
-												[entityKey]: {
-													...item[entityKey],
+												work: {
+													...entity,
 													thumbnailUrl: data.thumbnailUrl || entity.thumbnailUrl,
 												},
 											};
@@ -716,22 +665,16 @@ export function BlockEditorModal() {
 
 				// Filter out null items and serialize to DB format
 				const contentItems = block.content
-					.filter((item): item is BlockContentItem => item !== null && !!(item.workId || item.animationId))
+					.filter((item): item is BlockContentItem => item !== null && !!item.workId)
 					.map((item, index) => {
 						// Find matching DB item to preserve processedVideo/generatedThumbnail
 						const dbItem = dbItems[index];
-						const dbProcessedVideo =
-							dbItem && dbItem.workId === item.workId && dbItem.animationId === item.animationId
-								? dbItem.processedVideo
-								: undefined;
+						const dbProcessedVideo = dbItem && dbItem.workId === item.workId ? dbItem.processedVideo : undefined;
 						const dbGeneratedThumbnail =
-							dbItem && dbItem.workId === item.workId && dbItem.animationId === item.animationId
-								? dbItem.generatedThumbnail
-								: undefined;
+							dbItem && dbItem.workId === item.workId ? dbItem.generatedThumbnail : undefined;
 
 						return {
 							...(item.workId && { workId: item.workId }),
-							...(item.animationId && { animationId: item.animationId }),
 							displayMode: item.displayMode || "video",
 							cropSettings: item.clip?.cropSettings || undefined,
 							trimSettings: item.clip?.trimSettings || undefined,
@@ -939,76 +882,10 @@ export function BlockEditorModal() {
 		setPendingSlotClick(null);
 	};
 
-	// Handle Animation selected from list
-	const handleAnimationSelected = async (animation: Animation) => {
-		if (!pendingSlotClick) return;
-
-		const { blockId, slotIndex } = pendingSlotClick;
-		const block = blocks.find((b) => b.id === blockId);
-		if (!block) return;
-
-		// Get video/media from animation
-		const videoUrl = animation.videoFile?.video?.default || animation.videoFile?.video?.original || null;
-		const thumbnailUrl =
-			animation.previewImage?.images?.thumbnail ||
-			animation.previewImage?.images?.large ||
-			animation.videoFile?.images?.thumbnail ||
-			null;
-
-		const newItem: BlockContentItem = {
-			animationId: animation.id,
-			sourceMediaId: animation.videoFileId ?? undefined,
-			displayMode: "video",
-			animation: {
-				title: animation.title,
-				slug: animation.slug,
-				videoUrl,
-				videoAspectRatio: 16 / 9,
-				thumbnailUrl,
-				thumbnailAspectRatio: 16 / 9,
-			},
-		};
-
-		// Check if the animation's video has a default clip
-		if (animation.videoFileId) {
-			try {
-				const defaultClip = await MediaService.getDefaultClip(animation.videoFileId);
-				if (defaultClip && defaultClip.status === "COMPLETED") {
-					newItem.clip = {
-						videoUrl: defaultClip.outputUrl || null,
-						thumbnailUrl: defaultClip.thumbnailUrl || null,
-						status: "completed",
-						error: null,
-						cropSettings: defaultClip.cropSettings as CropSettings | null,
-						trimSettings: defaultClip.trimSettings as TrimSettings | null,
-					};
-				} else if (defaultClip && (defaultClip.status === "PENDING" || defaultClip.status === "PROCESSING")) {
-					newItem.clip = {
-						videoUrl: null,
-						thumbnailUrl: null,
-						status: defaultClip.status.toLowerCase() as "pending" | "processing",
-						error: null,
-						cropSettings: defaultClip.cropSettings as CropSettings | null,
-						trimSettings: defaultClip.trimSettings as TrimSettings | null,
-					};
-				}
-			} catch {
-				// No default clip — continue without it
-			}
-		}
-
-		const newContent = [...block.content];
-		newContent[slotIndex] = newItem;
-
-		handleUpdateBlock(blockId, { content: newContent });
-		setIsContentSelectorOpen(false);
-		setPendingSlotClick(null);
-	};
-
 	// Handle media selected from library (for direct media selection)
 	const handleMediaSelected = (_file: MediaFile) => {
-		// Direct media selection is not supported — only works/animations can be added to blocks
-		toast.info("Please select a work or animation instead");
+		// Direct media selection is not supported — only works can be added to blocks
+		toast.info("Please select a work instead");
 		setIsContentSelectorOpen(false);
 		setPendingSlotClick(null);
 	};
@@ -1130,7 +1007,6 @@ export function BlockEditorModal() {
 					.filter((contentItem): contentItem is BlockContentItem => contentItem !== null)
 					.map((contentItem) => ({
 						...(contentItem.workId && { workId: contentItem.workId }),
-						...(contentItem.animationId && { animationId: contentItem.animationId }),
 						displayMode: contentItem.displayMode || "video",
 						cropSettings: contentItem.clip?.cropSettings || undefined,
 						trimSettings: contentItem.clip?.trimSettings || undefined,
@@ -1207,12 +1083,10 @@ export function BlockEditorModal() {
 			// Get the entity ID from the slot content
 			const slotContent = block.content[selectedSlotIndex];
 			const workIdForSlot = slotContent?.workId;
-			const animationIdForSlot = slotContent?.animationId;
 
 			const result = await blocksService.processVideo(blockIdToProcess, selectedSlotIndex, {
 				...settings,
 				...(workIdForSlot && { workId: workIdForSlot }),
-				...(animationIdForSlot && { animationId: animationIdForSlot }),
 				mode: isThumbnailMode ? "thumbnail" : "clip",
 			});
 			toast.success(
@@ -1394,17 +1268,13 @@ export function BlockEditorModal() {
 				<DialogContent className="max-w-2xl flex flex-col">
 					<DialogHeader>
 						<DialogTitle>Select Content</DialogTitle>
-						<DialogDescription>
-							{isAnimationsMode
-								? "Choose an animation or select media directly"
-								: "Choose a work or select media directly"}
-						</DialogDescription>
+						<DialogDescription>Choose a work or select media directly</DialogDescription>
 					</DialogHeader>
 
 					{/* Search */}
 					<div className="flex gap-2 mb-4">
 						<Input
-							placeholder={isAnimationsMode ? "Search animations..." : "Search works..."}
+							placeholder="Search works..."
 							value={workSearchQuery}
 							onChange={(e) => setWorkSearchQuery(e.target.value)}
 							className="flex-1"
@@ -1418,24 +1288,18 @@ export function BlockEditorModal() {
 					{/* Entity List */}
 					<div className="h-[400px] border rounded-md overflow-y-auto" onScroll={handleWorksScroll}>
 						<div className="p-2 space-y-1">
-							{isEntitiesLoading ? (
+							{isWorksLoading ? (
 								<div className="text-center text-muted-foreground py-8">Loading...</div>
-							) : allEntities.length === 0 ? (
+							) : allWorks.length === 0 ? (
 								<div className="text-center text-muted-foreground py-8">
-									{workSearchQuery
-										? `No ${isAnimationsMode ? "animations" : "works"} found`
-										: `No ${isAnimationsMode ? "animations" : "works"} available`}
+									{workSearchQuery ? "No works found" : "No works available"}
 								</div>
 							) : (
 								<>
-									{allEntities.map((entity: any) => (
+									{allWorks.map((entity: any) => (
 										<button
 											key={entity.id}
-											onClick={() =>
-												isAnimationsMode
-													? handleAnimationSelected(entity as Animation)
-													: handleWorkSelected(entity as Work)
-											}
+											onClick={() => handleWorkSelected(entity as Work)}
 											className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors text-left"
 										>
 											{/* Thumbnail */}
@@ -1462,7 +1326,7 @@ export function BlockEditorModal() {
 											{entity.videoFile && <IconVideo className="w-4 h-4 text-muted-foreground shrink-0" />}
 										</button>
 									))}
-									{isFetchingNextPage && (
+									{isFetchingNextWorksPage && (
 										<div className="text-center text-muted-foreground py-4 text-sm">Loading more...</div>
 									)}
 								</>

@@ -110,10 +110,10 @@ export function createStandardActions<T extends BaseEntity>(): (config: {
 }
 
 /**
- * Create standard navigation for Works/Presentations/Animations
+ * Create standard navigation for Works
  */
 export interface WorksNavigationConfig {
-	currentPath: "/works" | "/animations";
+	currentPath: "/works";
 }
 
 export function createWorksNavigation(config: WorksNavigationConfig): NavigationItem[] {

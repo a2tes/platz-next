@@ -8,14 +8,13 @@ export type BlockType =
 	| "QUOTE"
 	| "MEDIA";
 
-export type BlockPageType = "WORKS" | "ANIMATIONS";
+export type BlockPageType = "WORKS";
 
 export type BlockStatus = "DRAFT" | "PUBLISHED" | "UNLISTED";
 
 // Block Content Item (for column blocks)
 export interface BlockContentItem {
 	workId?: number;
-	animationId?: number;
 	// Crop settings (percentage-based for CSS clip-path)
 	cropX?: number;
 	cropY?: number;
@@ -62,23 +61,6 @@ export interface BlockPage {
 
 // Work Reference (minimal data for block editor)
 export interface WorkReference {
-	id: number;
-	title: string;
-	slug: string;
-	videoFile?: {
-		id: number;
-		uuid: string;
-		hlsUrl?: string;
-		optimizedVideoUrl?: string;
-	};
-	previewImage?: {
-		id: number;
-		uuid: string;
-	};
-}
-
-// Animation Reference
-export interface AnimationReference {
 	id: number;
 	title: string;
 	slug: string;

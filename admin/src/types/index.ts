@@ -128,7 +128,6 @@ export interface Taxonomy {
 	_count?: {
 		works: number;
 		photography: number;
-		animations: number;
 	};
 }
 

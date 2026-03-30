@@ -36,7 +36,6 @@ export interface TrimSettings {
 
 export interface BlockContentItem {
 	workId?: number;
-	animationId?: number;
 	cropX?: number;
 	cropY?: number;
 	cropW?: number;
@@ -471,28 +470,6 @@ export class BlockPageService {
 	}
 
 	/**
-	 * Get animation with video file for clip processing
-	 */
-	async getAnimationWithVideo(animationId: number) {
-		return prisma.animation.findUnique({
-			where: { id: animationId },
-			select: {
-				id: true,
-				slug: true,
-				videoFileId: true,
-				videoFile: {
-					select: {
-						id: true,
-						processingStatus: true,
-						metadata: true,
-						optimizedUrls: true,
-					},
-				},
-			},
-		});
-	}
-
-	/**
 	 * Compute aspect ratio from MediaFile metadata
 	 */
 	private computeVideoAspectRatio(videoFile: any): number {
@@ -510,46 +487,32 @@ export class BlockPageService {
 	 * Public mode returns minimal data for rendering
 	 */
 	async enrichBlocksWithWorkDetails(blocks: any[], { minimal = true }: { minimal?: boolean } = {}) {
-		// Collect all unique workIds and animationIds from all blocks
+		// Collect all unique workIds from all blocks
 		const workIds = new Set<number>();
-		const animationIds = new Set<number>();
 		for (const block of blocks) {
 			const items = (block.content as BlockContent)?.items || [];
 			for (const item of items) {
 				if (item.workId) {
 					workIds.add(item.workId);
 				}
-				if (item.animationId) {
-					animationIds.add(item.animationId);
-				}
 			}
 		}
 
-		if (workIds.size === 0 && animationIds.size === 0) {
+		if (workIds.size === 0) {
 			return blocks;
 		}
 
-		// Fetch works and animations in parallel
-		const [works, animations] = await Promise.all([
+		// Fetch works
+		const works =
 			workIds.size > 0
-				? prisma.work.findMany({
+				? await prisma.work.findMany({
 						where: { id: { in: Array.from(workIds) }, status: "PUBLISHED", deletedAt: null },
 						include: {
 							videoFile: true,
 							previewImage: true,
 						},
 					})
-				: [],
-			animationIds.size > 0
-				? prisma.animation.findMany({
-						where: { id: { in: Array.from(animationIds) }, status: "PUBLISHED", deletedAt: null },
-						include: {
-							videoFile: true,
-							previewImage: true,
-						},
-					})
-				: [],
-		]);
+				: [];
 
 		// Create a lookup map with work data including aspect ratios
 		const workMap = new Map(
@@ -589,43 +552,6 @@ export class BlockPageService {
 			}),
 		);
 
-		// Create a lookup map for animation data
-		const animationMap = new Map(
-			animations.map((a) => {
-				const serializedVideoFile = serializeMediaFile(a.videoFile);
-				const serializedPreviewImage = a.previewImage ? serializeMediaFile(a.previewImage) : null;
-
-				const thumbnailUrl =
-					serializedPreviewImage?.images?.medium ||
-					serializedPreviewImage?.images?.thumbnail ||
-					serializedVideoFile?.images?.medium ||
-					serializedVideoFile?.images?.thumbnail ||
-					serializedVideoFile?.thumbnailPath ||
-					null;
-
-				const videoAspectRatio = this.computeVideoAspectRatio(a.videoFile);
-
-				return [
-					a.id,
-					{
-						title: a.title,
-						slug: a.slug,
-						client: a.client || "",
-
-						shortDescription: a.shortDescription || "",
-						videoUrl:
-							serializedVideoFile?.video?.mp4_720p ||
-							serializedVideoFile?.video?.mp4 ||
-							serializedVideoFile?.video?.default ||
-							null,
-						videoAspectRatio,
-						thumbnailUrl,
-						thumbnailAspectRatio: videoAspectRatio,
-					},
-				];
-			}),
-		);
-
 		// Fetch ClipJobs to use as source of truth for clip status/thumbnails
 		// (block content processedVideo can become stale if save mutation overwrites webhook data)
 		const clipJobsByBlockSlot = new Map<string, any>();
@@ -650,14 +576,12 @@ export class BlockPageService {
 		return blocks.map((block) => {
 			const items = (block.content as BlockContent)?.items || [];
 			const enrichedItems = items.map((item: BlockContentItem, itemIndex: number) => {
-				const entityId = item.workId || item.animationId;
+				const entityId = item.workId;
 				if (!entityId) return item;
 
-				const isAnimation = !!item.animationId;
-				const entity = isAnimation ? animationMap.get(entityId) : workMap.get(entityId);
+				const entity = workMap.get(entityId);
 				if (!entity) return item;
 
-				const entityKey = isAnimation ? "animation" : "work";
 				const displayMode = item.displayMode || "video";
 
 				// Per-item thumbnail: block-specific generated thumbnail takes priority
@@ -681,9 +605,8 @@ export class BlockPageService {
 
 					const result: any = {
 						...(item.workId && { workId: item.workId }),
-						...(item.animationId && { animationId: item.animationId }),
 						displayMode,
-						[entityKey]: enrichedWork,
+						work: enrichedWork,
 					};
 
 					// Only include clip object when displayMode is "video"
@@ -751,7 +674,7 @@ export class BlockPageService {
 				return {
 					display: displayMode,
 					...(clipUrl && { clip: { url: clipUrl } }),
-					[entityKey]: {
+					work: {
 						...entity,
 						thumbnailUrl: publicThumbnailUrl,
 						thumbnailAspectRatio: itemThumbnailAspectRatio,

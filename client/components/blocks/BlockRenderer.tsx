@@ -22,9 +22,9 @@ interface BlockItemRendererProps {
 	onItemClick?: (item: BlockContentItem, rect?: BlockClickRect) => void;
 }
 
-/** Get the entity data from a block item — either work or animation */
+/** Get the entity data from a block item */
 function getEntity(item: BlockContentItem) {
-	return item.work || item.animation || null;
+	return item.work || null;
 }
 
 function BlockItemRenderer({ block, onItemClick }: BlockItemRendererProps) {

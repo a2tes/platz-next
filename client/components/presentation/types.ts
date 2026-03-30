@@ -19,25 +19,6 @@ export interface PresentationWork {
 	agencies: string[];
 }
 
-export interface PresentationAnimation {
-	id: number;
-	slug: string;
-	title: string;
-	shortDescription: string;
-	videoUrl: string | null;
-	hlsUrl: string | null;
-	optimizedVideoUrl: string | null;
-	images: {
-		thumbnail?: string;
-		small?: string;
-		medium?: string;
-		large?: string;
-		original?: string;
-	} | null;
-	clients: string[];
-	agencies: string[];
-}
-
 export interface PresentationPhotography {
 	id: number;
 	title: string;
@@ -58,10 +39,9 @@ export interface PresentationPhotography {
 }
 
 export interface PresentationItem {
-	itemType: "WORK" | "ANIMATION" | "PHOTOGRAPHY" | "EXTERNAL_LINK";
+	itemType: "WORK" | "PHOTOGRAPHY" | "EXTERNAL_LINK";
 	sortOrder: number;
 	work?: PresentationWork;
-	animation?: PresentationAnimation;
 	photography?: PresentationPhotography;
 	externalUrl?: string;
 	externalTitle?: string;

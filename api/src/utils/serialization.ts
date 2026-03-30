@@ -284,26 +284,3 @@ export function serializeMediaFileWithCrop(mediaFile: any, mediable: any): any {
 
 	return base;
 }
-
-/**
- * Serialize Animation objects with all nested MediaFile objects
- */
-export function serializeAnimation(animation: any) {
-	if (!animation) return animation;
-
-	return {
-		...animation,
-		videoFile: serializeMediaFile(animation.videoFile),
-		previewImage: serializeMediaFile(animation.previewImage),
-		revisions: animation.revisions?.map((revision: any) => ({
-			id: revision.id,
-			version: revision.version,
-			createdAt: serializeDate(revision.createdAt),
-			userId: revision.userId,
-			animationId: revision.animationId,
-			user: revision.user?.name,
-			revertedFromId: revision.revertedFromId,
-			payload: typeof revision.payload === "string" ? JSON.parse(revision.payload) : revision.payload,
-		})),
-	};
-}

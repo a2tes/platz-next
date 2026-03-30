@@ -1,7 +1,7 @@
 import { getApiUrl } from "./utils";
 
 export type BlockType = "ONE_COLUMN" | "TWO_COLUMN" | "THREE_COLUMN" | "FOUR_COLUMN" | "ONE_TWO" | "TWO_ONE";
-export type BlockPageType = "WORKS" | "ANIMATIONS";
+export type BlockPageType = "WORKS";
 
 export interface BlockWork {
 	title: string;
@@ -17,28 +17,14 @@ export interface BlockWork {
 	thumbnailAspectRatio: number;
 }
 
-export interface BlockAnimation {
-	title: string;
-	slug: string;
-	client: string;
-	shortDescription: string;
-	videoUrl: string | null;
-	videoAspectRatio: number;
-	thumbnail: string | null;
-	thumbnailUrl: string | null;
-	thumbnailAspectRatio: number;
-}
-
 export interface ProcessedVideo {
 	url?: string;
 }
 
 export interface BlockContentItem {
 	workId?: number;
-	animationId?: number;
 	clip?: ProcessedVideo;
 	work?: BlockWork;
-	animation?: BlockAnimation;
 	display?: "video" | "thumbnail";
 }
 
@@ -76,7 +62,7 @@ export async function getBlockPage(
 	try {
 		const page = options?.page || 1;
 		const limit = options?.limit || 5;
-		const endpoint = type === "WORKS" ? "works" : "animations";
+		const endpoint = "works";
 		const res = await fetch(`${getApiUrl()}/api/public/${endpoint}?page=${page}&limit=${limit}`);
 		if (!res.ok) {
 			return null;

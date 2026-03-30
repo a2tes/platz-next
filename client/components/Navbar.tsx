@@ -74,14 +74,6 @@ export default function Navbar({ theme = "light", fixed = false }: { theme?: "li
 						>
 							WORKS
 						</Link>
-						<Link
-							href="/animations"
-							className={`block py-2 text-lg font-semibold transition-opacity hover:opacity-70 ${
-								pathname === "/animations" ? "opacity-100" : "opacity-80"
-							}`}
-						>
-							ANIMATIONS
-						</Link>
 						<button
 							className="w-full text-left py-2 text-lg font-semibold transition-opacity hover:opacity-70 flex items-center justify-between"
 							id="mobilePhotographyToggle"
@@ -182,11 +174,6 @@ export default function Navbar({ theme = "light", fixed = false }: { theme?: "li
 				<li>
 					<Link href="/works" className={`nav-link ${pathname === "/works" ? "active" : ""}`}>
 						WORKS<span></span>
-					</Link>
-				</li>
-				<li>
-					<Link href="/animations" className={`nav-link ${pathname === "/animations" ? "active" : ""}`}>
-						ANIMATIONS<span></span>
 					</Link>
 				</li>
 				<li>

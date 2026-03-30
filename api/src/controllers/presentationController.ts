@@ -96,22 +96,6 @@ export const getPresentationByToken = async (req: Request, res: Response) => {
 					};
 				}
 
-				if (item.itemType === "ANIMATION" && item.animation) {
-					const a = item.animation;
-					const videoFile = serializeMediaFile(a.videoFile);
-					result.animation = {
-						id: a.id,
-						slug: a.slug,
-						title: a.title,
-						shortDescription: a.shortDescription,
-						videoUrl: videoFile?.video?.mp4_720p || videoFile?.video?.mp4 || videoFile?.video?.default || null,
-						hlsUrl: videoFile?.video?.hls || null,
-						optimizedVideoUrl: videoFile?.video?.mp4 || null,
-						images: videoFile?.images || null,
-						clients: a.clients?.map((ac: any) => ac.client?.title).filter(Boolean) || [],
-					};
-				}
-
 				if (item.itemType === "PHOTOGRAPHY" && item.photography) {
 					const ph = item.photography;
 					const image = serializeMediaFile(ph.image);
@@ -247,17 +231,5 @@ export const getPhotographyOptions = async (req: Request, res: Response) => {
 	} catch (error) {
 		console.error("Error getting photography options:", error);
 		res.status(500).json({ error: "Failed to fetch photography options" });
-	}
-};
-
-export const getAnimationOptions = async (req: Request, res: Response) => {
-	try {
-		const search = req.query.search as string;
-
-		const animations = await presentationService.getAnimationOptions({ search });
-		res.json(serializeBigInt(animations));
-	} catch (error) {
-		console.error("Error getting animation options:", error);
-		res.status(500).json({ error: "Failed to fetch animation options" });
 	}
 };

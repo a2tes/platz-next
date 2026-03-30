@@ -35,7 +35,7 @@ export interface PresentationSection {
 	id: number;
 	presentationId: number;
 	title: string;
-	type: "ANIMATIONS" | "PHOTOGRAPHY" | "MIXED";
+	type: "PHOTOGRAPHY" | "MIXED";
 	sortOrder: number;
 	items: PresentationItem[];
 }
@@ -43,9 +43,8 @@ export interface PresentationSection {
 export interface PresentationItem {
 	id: number;
 	sectionId: number;
-	itemType: "WORK" | "ANIMATION" | "PHOTOGRAPHY" | "EXTERNAL_LINK";
+	itemType: "WORK" | "PHOTOGRAPHY" | "EXTERNAL_LINK";
 	workId?: number;
-	animationId?: number;
 	photographyId?: number;
 	externalThumbnailId?: number;
 	externalUrl?: string;
@@ -53,11 +52,6 @@ export interface PresentationItem {
 	externalDescription?: string;
 	sortOrder: number;
 	work?: {
-		id: number;
-		title: string;
-		previewImage?: { url: string };
-	};
-	animation?: {
 		id: number;
 		title: string;
 		previewImage?: { url: string };
@@ -87,14 +81,13 @@ export interface PresentationWork {
 
 export interface SectionInput {
 	title: string;
-	type: "ANIMATIONS" | "PHOTOGRAPHY" | "MIXED";
+	type: "PHOTOGRAPHY" | "MIXED";
 	items: ItemInput[];
 }
 
 export interface ItemInput {
-	itemType: "WORK" | "ANIMATION" | "PHOTOGRAPHY" | "EXTERNAL_LINK";
+	itemType: "WORK" | "PHOTOGRAPHY" | "EXTERNAL_LINK";
 	workId?: number;
-	animationId?: number;
 	photographyId?: number;
 	externalUrl?: string;
 	externalTitle?: string;
@@ -127,13 +120,6 @@ export interface PhotographyOption {
 	photographer?: { id: number; title: string };
 	clients?: { client: { id: number; title: string } }[];
 	categories?: { category: { id: number; title: string } }[];
-}
-
-export interface AnimationOption {
-	id: number;
-	title: string;
-	previewImage?: { url: string };
-	videoFile?: { url: string };
 }
 
 export const PresentationService = {
@@ -262,14 +248,6 @@ export const PresentationService = {
 		if (params.clientId) searchParams.append("clientId", params.clientId.toString());
 		if (params.search) searchParams.append("search", params.search);
 		const response = await api.get<PhotographyOption[]>(`/api/presentations/photography-options?${searchParams}`);
-		return response.data;
-	},
-
-	// Animation options for presentation builder
-	getAnimationOptions: async (params: { search?: string } = {}) => {
-		const searchParams = new URLSearchParams();
-		if (params.search) searchParams.append("search", params.search);
-		const response = await api.get<AnimationOption[]>(`/api/presentations/animation-options?${searchParams}`);
 		return response.data;
 	},
 };

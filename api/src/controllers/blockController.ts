@@ -140,7 +140,7 @@ export async function deleteBlock(req: Request, res: Response, next: NextFunctio
 export async function processVideo(req: Request, res: Response, next: NextFunction) {
 	try {
 		const { id } = req.params;
-		const { slotIndex, workId, animationId, cropSettings, trimSettings, mode } = req.body;
+		const { slotIndex, workId, cropSettings, trimSettings, mode } = req.body;
 
 		// Validate required fields
 		if (slotIndex === undefined || slotIndex === null) {
@@ -171,14 +171,14 @@ export async function processVideo(req: Request, res: Response, next: NextFuncti
 		const content = block.content as BlockContent;
 		let items = content?.items || [];
 
-		// If slot doesn't exist but workId/animationId is provided, create the slot
+		// If slot doesn't exist but workId is provided, create the slot
 		let item = items[slotIndex];
-		if (!item && (workId || animationId)) {
+		if (!item && workId) {
 			// Extend items array to include this slot
 			while (items.length <= slotIndex) {
 				items.push({});
 			}
-			items[slotIndex] = workId ? { workId } : { animationId };
+			items[slotIndex] = { workId };
 			item = items[slotIndex];
 
 			// Save the updated block content
@@ -191,37 +191,26 @@ export async function processVideo(req: Request, res: Response, next: NextFuncti
 			return res.status(400).json({ error: `Slot ${slotIndex} not found in block` });
 		}
 
-		// Use workId/animationId from request if provided, otherwise from existing item
+		// Use workId from request if provided, otherwise from existing item
 		const targetWorkId = workId || item.workId;
-		const targetAnimationId = animationId || item.animationId;
 
-		// Must have a workId or animationId with video
-		if (!targetWorkId && !targetAnimationId) {
-			return res.status(400).json({ error: "Block slot does not have an associated work or animation" });
+		// Must have a workId with video
+		if (!targetWorkId) {
+			return res.status(400).json({ error: "Block slot does not have an associated work" });
 		}
 
-		// Get the entity (work or animation) to find the video file
+		// Get the work to find the video file
 		let entityVideoFileId: number | null = null;
 		let entityVideoFile: any = null;
 		let entityId: number | null = null;
 
-		if (targetWorkId) {
-			const work = await blockPageService.getWorkWithVideo(targetWorkId);
-			if (!work) {
-				return res.status(404).json({ error: "Work not found" });
-			}
-			entityVideoFileId = work.videoFileId;
-			entityVideoFile = work.videoFile;
-			entityId = work.id;
-		} else if (targetAnimationId) {
-			const animation = await blockPageService.getAnimationWithVideo(targetAnimationId);
-			if (!animation) {
-				return res.status(404).json({ error: "Animation not found" });
-			}
-			entityVideoFileId = animation.videoFileId;
-			entityVideoFile = animation.videoFile;
-			entityId = animation.id;
+		const work = await blockPageService.getWorkWithVideo(targetWorkId);
+		if (!work) {
+			return res.status(404).json({ error: "Work not found" });
 		}
+		entityVideoFileId = work.videoFileId;
+		entityVideoFile = work.videoFile;
+		entityId = work.id;
 
 		if (!entityVideoFileId || !entityVideoFile) {
 			return res.status(400).json({ error: "Entity does not have a video file" });

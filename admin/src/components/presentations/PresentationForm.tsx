@@ -64,7 +64,6 @@ import {
 	SectionInput,
 	ItemInput,
 	PhotographyOption,
-	AnimationOption,
 } from "@/services/presentationService";
 import { WorksService } from "@/services/worksService";
 import { PhotographyService, Photographer } from "@/services/photographyService";
@@ -77,9 +76,8 @@ import { toast } from "sonner";
 // ============================================
 
 const itemSchema = z.object({
-	itemType: z.enum(["WORK", "ANIMATION", "PHOTOGRAPHY", "EXTERNAL_LINK"]),
+	itemType: z.enum(["WORK", "PHOTOGRAPHY", "EXTERNAL_LINK"]),
 	workId: z.number().optional(),
-	animationId: z.number().optional(),
 	photographyId: z.number().optional(),
 	externalUrl: z.string().optional(),
 	externalTitle: z.string().optional(),
@@ -92,7 +90,7 @@ const itemSchema = z.object({
 
 const sectionSchema = z.object({
 	title: z.string().min(1, "Section title is required"),
-	type: z.enum(["ANIMATIONS", "PHOTOGRAPHY", "MIXED"]),
+	type: z.enum(["PHOTOGRAPHY", "MIXED"]),
 	items: z.array(itemSchema),
 });
 
@@ -127,21 +125,12 @@ function SortableItem({ id, item, onRemove }: { id: string; item: ItemFormValue;
 	const typeIcon =
 		item.itemType === "WORK" ? (
 			<Film className="h-3.5 w-3.5" />
-		) : item.itemType === "ANIMATION" ? (
-			<Film className="h-3.5 w-3.5" />
 		) : item.itemType === "EXTERNAL_LINK" ? (
 			<ExternalLink className="h-3.5 w-3.5" />
 		) : (
 			<Camera className="h-3.5 w-3.5" />
 		);
-	const typeLabel =
-		item.itemType === "WORK"
-			? "Work"
-			: item.itemType === "ANIMATION"
-				? "Animation"
-				: item.itemType === "EXTERNAL_LINK"
-					? "External Link"
-					: "Photo";
+	const typeLabel = item.itemType === "WORK" ? "Work" : item.itemType === "EXTERNAL_LINK" ? "External Link" : "Photo";
 
 	return (
 		<div
@@ -301,7 +290,6 @@ function SortableSection({ id, index, form, onRemove, isDraggingAny }: SortableS
 													</SelectTrigger>
 												</FormControl>
 												<SelectContent>
-													<SelectItem value="ANIMATIONS">Animations</SelectItem>
 													<SelectItem value="PHOTOGRAPHY">Photography</SelectItem>
 													<SelectItem value="MIXED">Mixed</SelectItem>
 												</SelectContent>
@@ -366,14 +354,13 @@ interface AddItemDialogProps {
 }
 
 function AddItemDialog({ sectionType, existingItems, onAdd, open, onOpenChange }: AddItemDialogProps) {
-	const initialTab =
-		sectionType === "ANIMATIONS" ? "ANIMATION" : sectionType === "PHOTOGRAPHY" ? "PHOTOGRAPHY" : "WORK";
-	const [tab, setTab] = useState<"WORK" | "ANIMATION" | "PHOTOGRAPHY" | "EXTERNAL_LINK">(initialTab);
+	const initialTab = sectionType === "PHOTOGRAPHY" ? "PHOTOGRAPHY" : "WORK";
+	const [tab, setTab] = useState<"WORK" | "PHOTOGRAPHY" | "EXTERNAL_LINK">(initialTab);
 
 	// Sync tab when sectionType changes (e.g. user changes section type while dialog is mounted)
 	useEffect(() => {
-		const newTab = sectionType === "ANIMATIONS" ? "ANIMATION" : sectionType === "PHOTOGRAPHY" ? "PHOTOGRAPHY" : "WORK";
-		setTab(newTab as "WORK" | "ANIMATION" | "PHOTOGRAPHY" | "EXTERNAL_LINK");
+		const newTab = sectionType === "PHOTOGRAPHY" ? "PHOTOGRAPHY" : "WORK";
+		setTab(newTab as "WORK" | "PHOTOGRAPHY" | "EXTERNAL_LINK");
 	}, [sectionType]);
 	const [search, setSearch] = useState("");
 	const [selectedPhotographerId, setSelectedPhotographerId] = useState<number | null>(null);
@@ -406,14 +393,6 @@ function AddItemDialog({ sectionType, existingItems, onAdd, open, onOpenChange }
 			}),
 		staleTime: 2 * 60 * 1000,
 		enabled: open && tab === "PHOTOGRAPHY",
-	});
-
-	// Fetch animation options
-	const { data: animationOptions } = useQuery({
-		queryKey: ["presentation-animation-options", search],
-		queryFn: () => PresentationService.getAnimationOptions({ search: search || undefined }),
-		staleTime: 2 * 60 * 1000,
-		enabled: open && tab === "ANIMATION",
 	});
 
 	// Fetch photographers for filter
@@ -457,24 +436,20 @@ function AddItemDialog({ sectionType, existingItems, onAdd, open, onOpenChange }
 	}, [tab]);
 
 	const existingWorkIds = new Set(existingItems.filter((i) => i.itemType === "WORK").map((i) => i.workId));
-	const existingAnimationIds = new Set(
-		existingItems.filter((i) => i.itemType === "ANIMATION").map((i) => i.animationId),
-	);
 	const existingPhotoIds = new Set(
 		existingItems.filter((i) => i.itemType === "PHOTOGRAPHY").map((i) => i.photographyId),
 	);
 
 	const toggleSelection = (item: ItemFormValue) => {
-		const key =
-			item.itemType === "WORK" ? item.workId : item.itemType === "ANIMATION" ? item.animationId : item.photographyId;
+		const key = item.itemType === "WORK" ? item.workId : item.photographyId;
 		const exists = selectedItems.find((s) => {
-			const sKey = s.itemType === "WORK" ? s.workId : s.itemType === "ANIMATION" ? s.animationId : s.photographyId;
+			const sKey = s.itemType === "WORK" ? s.workId : s.photographyId;
 			return sKey === key && s.itemType === item.itemType;
 		});
 		if (exists) {
 			setSelectedItems((prev) =>
 				prev.filter((s) => {
-					const sKey = s.itemType === "WORK" ? s.workId : s.itemType === "ANIMATION" ? s.animationId : s.photographyId;
+					const sKey = s.itemType === "WORK" ? s.workId : s.photographyId;
 					return !(sKey === key && s.itemType === item.itemType);
 				}),
 			);
@@ -485,7 +460,7 @@ function AddItemDialog({ sectionType, existingItems, onAdd, open, onOpenChange }
 
 	const isSelected = (itemType: string, id: number) => {
 		return selectedItems.some((s) => {
-			const sKey = s.itemType === "WORK" ? s.workId : s.itemType === "ANIMATION" ? s.animationId : s.photographyId;
+			const sKey = s.itemType === "WORK" ? s.workId : s.photographyId;
 			return sKey === id && s.itemType === itemType;
 		});
 	};
@@ -518,11 +493,7 @@ function AddItemDialog({ sectionType, existingItems, onAdd, open, onOpenChange }
 
 	// Available tabs based on section type
 	const availableTabs: readonly string[] =
-		sectionType === "ANIMATIONS"
-			? ["ANIMATION", "EXTERNAL_LINK"]
-			: sectionType === "PHOTOGRAPHY"
-				? ["PHOTOGRAPHY", "EXTERNAL_LINK"]
-				: ["WORK", "ANIMATION", "PHOTOGRAPHY", "EXTERNAL_LINK"];
+		sectionType === "PHOTOGRAPHY" ? ["PHOTOGRAPHY", "EXTERNAL_LINK"] : ["WORK", "PHOTOGRAPHY", "EXTERNAL_LINK"];
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -551,18 +522,6 @@ function AddItemDialog({ sectionType, existingItems, onAdd, open, onOpenChange }
 								)}
 							>
 								Works
-							</button>
-						)}
-						{availableTabs.includes("ANIMATION") && (
-							<button
-								type="button"
-								onClick={() => setTab("ANIMATION")}
-								className={cn(
-									"flex-1 px-3 py-1.5 text-sm rounded-md transition-colors",
-									tab === "ANIMATION" ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50",
-								)}
-							>
-								Animations
 							</button>
 						)}
 						{availableTabs.includes("PHOTOGRAPHY") && (
@@ -632,61 +591,6 @@ function AddItemDialog({ sectionType, existingItems, onAdd, open, onOpenChange }
 										>
 											<span>{w.title}</span>
 											{(selected || alreadyAdded) && <Check className="h-4 w-4 text-primary" />}
-										</button>
-									);
-								})
-							)}
-						</div>
-					</div>
-				)}
-
-				{/* ANIMATION TAB */}
-				{tab === "ANIMATION" && (
-					<div className="my-3 space-y-3 flex-1 overflow-hidden flex flex-col">
-						<div className="relative">
-							<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-							<Input
-								placeholder="Search animations..."
-								value={search}
-								onChange={(e) => setSearch(e.target.value)}
-								className="pl-9"
-							/>
-						</div>
-						<div className="overflow-y-auto border rounded-md max-h-[300px]">
-							{!animationOptions || animationOptions.length === 0 ? (
-								<div className="p-4 text-sm text-muted-foreground text-center">No animations found</div>
-							) : (
-								animationOptions.map((a) => {
-									const alreadyAdded = existingAnimationIds.has(a.id);
-									const selected = isSelected("ANIMATION", a.id);
-									return (
-										<button
-											key={a.id}
-											type="button"
-											disabled={alreadyAdded}
-											onClick={() =>
-												toggleSelection({
-													itemType: "ANIMATION",
-													animationId: a.id,
-													_label: a.title,
-													_image: a.previewImage?.url,
-												})
-											}
-											className={cn(
-												"w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-accent transition-colors",
-												selected && "bg-accent",
-												alreadyAdded && "opacity-50 cursor-not-allowed",
-											)}
-										>
-											{a.previewImage?.url ? (
-												<img src={a.previewImage.url} alt="" className="h-8 w-12 rounded object-cover" />
-											) : (
-												<div className="h-8 w-12 rounded bg-muted flex items-center justify-center">
-													<Film className="h-3.5 w-3.5" />
-												</div>
-											)}
-											<span className="flex-1 text-left truncate">{a.title}</span>
-											{(selected || alreadyAdded) && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
 										</button>
 									);
 								})
@@ -891,25 +795,14 @@ export function PresentationForm({ initialData }: PresentationFormProps) {
 					.map((item) => ({
 						itemType: item.itemType,
 						workId: item.workId || undefined,
-						animationId: item.animationId || undefined,
 						photographyId: item.photographyId || undefined,
 						externalUrl: item.externalUrl || undefined,
 						externalTitle: item.externalTitle || undefined,
 						externalDescription: item.externalDescription || undefined,
 						externalThumbnailId: item.externalThumbnailId || undefined,
-						_label:
-							item.work?.title ||
-							item.animation?.title ||
-							item.photography?.title ||
-							item.externalTitle ||
-							item.externalUrl ||
-							"Unknown",
+						_label: item.work?.title || item.photography?.title || item.externalTitle || item.externalUrl || "Unknown",
 						_image:
-							item.work?.previewImage?.url ||
-							item.animation?.previewImage?.url ||
-							item.photography?.image?.url ||
-							item.externalThumbnail?.url ||
-							undefined,
+							item.work?.previewImage?.url || item.photography?.image?.url || item.externalThumbnail?.url || undefined,
 					})),
 			})) || [];
 
@@ -959,7 +852,7 @@ export function PresentationForm({ initialData }: PresentationFormProps) {
 	const handleAddSection = () => {
 		appendSection({
 			title: "",
-			type: "ANIMATIONS",
+			type: "MIXED",
 			items: [],
 		});
 	};
@@ -974,7 +867,6 @@ export function PresentationForm({ initialData }: PresentationFormProps) {
 				items: s.items.map((item) => ({
 					itemType: item.itemType,
 					workId: item.workId,
-					animationId: item.animationId,
 					photographyId: item.photographyId,
 					externalUrl: item.externalUrl,
 					externalTitle: item.externalTitle,

@@ -19,14 +19,13 @@ interface GetAllPresentationsOptions {
 
 interface SectionInput {
 	title: string;
-	type: "ANIMATIONS" | "PHOTOGRAPHY" | "MIXED";
+	type: "PHOTOGRAPHY" | "MIXED";
 	items: ItemInput[];
 }
 
 interface ItemInput {
-	itemType: "WORK" | "ANIMATION" | "PHOTOGRAPHY" | "EXTERNAL_LINK";
+	itemType: "WORK" | "PHOTOGRAPHY" | "EXTERNAL_LINK";
 	workId?: number;
-	animationId?: number;
 	photographyId?: number;
 	externalUrl?: string;
 	externalTitle?: string;
@@ -149,11 +148,6 @@ export const getPresentationById = async (id: number) => {
 									previewImage: true,
 								},
 							},
-							animation: {
-								include: {
-									previewImage: true,
-								},
-							},
 							photography: {
 								include: {
 									image: true,
@@ -179,15 +173,6 @@ export const getPresentationByToken = async (token: string) => {
 					items: {
 						include: {
 							work: {
-								include: {
-									previewImage: true,
-									videoFile: true,
-									clients: {
-										include: { client: true },
-									},
-								},
-							},
-							animation: {
 								include: {
 									previewImage: true,
 									videoFile: true,
@@ -258,7 +243,6 @@ export const createPresentation = async (data: CreatePresentationData) => {
 					create: section.items.map((item, iIndex) => ({
 						itemType: item.itemType,
 						workId: item.workId || null,
-						animationId: item.animationId || null,
 						photographyId: item.photographyId || null,
 						sortOrder: iIndex,
 					})),
@@ -314,8 +298,6 @@ export const updatePresentation = async (id: number, data: UpdatePresentationDat
 								create: section.items.map((item, iIndex) => ({
 									itemType: item.itemType,
 									workId: item.workId || null,
-									animationId: item.animationId || null,
-									photographyId: item.photographyId || null,
 
 									externalUrl: item.externalUrl || null,
 									externalTitle: item.externalTitle || null,
@@ -410,31 +392,6 @@ export const getPhotographyOptions = async (options: {
 			photographer: { select: { id: true, title: true } },
 			clients: { include: { client: { select: { id: true, name: true } } } },
 			categories: { include: { category: { select: { id: true, title: true } } } },
-		},
-		orderBy: { sortOrder: "asc" },
-		take: 200,
-	});
-};
-
-// ============================================
-// ANIMATION OPTIONS FOR PRESENTATION
-// ============================================
-
-export const getAnimationOptions = async (options: { search?: string }) => {
-	const where: any = {
-		status: "PUBLISHED",
-		deletedAt: null,
-	};
-
-	if (options.search) {
-		where.title = { contains: options.search };
-	}
-
-	return db.animation.findMany({
-		where,
-		include: {
-			previewImage: true,
-			videoFile: true,
 		},
 		orderBy: { sortOrder: "asc" },
 		take: 200,

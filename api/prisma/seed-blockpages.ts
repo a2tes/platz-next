@@ -24,13 +24,9 @@ async function main() {
 		const worksPage = await ensureBlockPage(BlockPageType.WORKS, "Works Page", Status.PUBLISHED);
 		console.log(`✅ Created block page: ${worksPage.type} (${worksPage.title})`);
 
-		const animationsPage = await ensureBlockPage(BlockPageType.ANIMATIONS, "Animations Page", Status.PUBLISHED);
-		console.log(`✅ Created block page: ${animationsPage.type} (${animationsPage.title})`);
-
 		console.log("\n🎉 BlockPages seeding completed successfully!");
 		console.log("📋 Seeded data summary:");
 		console.log(`- Block page (WORKS): "${worksPage.title}" - Status: ${worksPage.status}`);
-		console.log(`- Block page (ANIMATIONS): "${animationsPage.title}" - Status: ${animationsPage.status}`);
 	} catch (error) {
 		console.error("❌ Error during seeding:", error);
 		throw error;

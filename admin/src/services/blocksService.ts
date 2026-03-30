@@ -12,7 +12,7 @@ export type BlockType =
 	| "ONE_TWO"
 	| "TWO_ONE"
 	| "CUSTOM_COLUMN";
-export type BlockPageType = "WORKS" | "ANIMATIONS";
+export type BlockPageType = "WORKS";
 export type BlockStatus = "DRAFT" | "PUBLISHED" | "UNLISTED";
 
 export interface BlockContentItem {
@@ -21,7 +21,6 @@ export interface BlockContentItem {
 	mediaUrl?: string;
 	thumbnailUrl?: string;
 	workId?: number;
-	animationId?: number;
 	cropSettings?: {
 		x: number;
 		y: number;
@@ -170,7 +169,6 @@ export const blocksService = {
 		slotIndex: number,
 		settings: {
 			workId?: number;
-			animationId?: number;
 			cropSettings?: BlockContentItem["cropSettings"];
 			trimSettings?: BlockContentItem["trimSettings"];
 			mode?: "clip" | "thumbnail";
