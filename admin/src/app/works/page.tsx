@@ -3,7 +3,7 @@
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { EntityListPage, EntityListConfig, EntityService } from "@/components/page/entity-list-page";
 import { Work, WorksService } from "@/services/worksService";
-import { createStandardColumns, createStandardActions, createWorksNavigation } from "@/lib/entity-list-helpers";
+import { createStandardColumns, createStandardActions } from "@/lib/entity-list-helpers";
 import { IconMovie, IconLayoutGrid } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { useBlockEditorStore } from "@/stores/blockEditorStore";
@@ -66,9 +66,6 @@ const worksConfig: EntityListConfig<Work> = {
 	// Edit mode
 	editMode: "route",
 	editRoute: "/works",
-
-	// Navigation
-	navigation: createWorksNavigation({ currentPath: "/works" }),
 
 	// View path for public frontend (plural to match route)
 	viewItemBasePath: "/works",

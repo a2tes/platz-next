@@ -19,8 +19,6 @@ const pages = [
 	{ name: "Legal", href: "/legal" },
 ];
 
-const worksLinks = [{ name: "All Works", href: "/works" }];
-
 const taxonomiesLinks = [
 	{ name: "Clients", href: "/taxonomies/clients" },
 	{ name: "Disciplines", href: "/taxonomies/disciplines" },
@@ -76,9 +74,9 @@ function NavSection({
 function SidebarContent({ pathname, user }: { pathname: string; user: { role?: string } | null }) {
 	const { openModal } = useMediaLibraryStore();
 
-	const sections = ["Pages", "Works", "Taxonomies"] as const;
+	const sections = ["Pages", "Taxonomies"] as const;
 	const initialOpen = sections.find((s) => {
-		const links = { Pages: pages, Works: worksLinks, Taxonomies: taxonomiesLinks }[s];
+		const links = { Pages: pages, Taxonomies: taxonomiesLinks }[s];
 		return links.some((l) => pathname.startsWith(l.href));
 	});
 	const [openSection, setOpenSection] = React.useState<string | null>(initialOpen ?? null);
@@ -108,13 +106,17 @@ function SidebarContent({ pathname, user }: { pathname: string; user: { role?: s
 				open={openSection === "Pages"}
 				onToggle={() => toggle("Pages")}
 			/>
-			<NavSection
-				label="Works"
-				links={worksLinks}
-				pathname={pathname}
-				open={openSection === "Works"}
-				onToggle={() => toggle("Works")}
-			/>
+			<Link
+				href="/works"
+				className={cn(
+					"rounded-md px-3 py-2 text-sm font-medium transition-colors",
+					pathname === "/works" || pathname.startsWith("/works/")
+						? "bg-accent text-accent-foreground"
+						: "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+				)}
+			>
+				Works
+			</Link>
 			{user?.role === "ADMIN" && (
 				<Link
 					href="/animations"
