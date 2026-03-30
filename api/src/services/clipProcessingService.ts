@@ -872,41 +872,6 @@ export class ClipProcessingService {
 					});
 				}
 			}
-
-			// Update director hero video if this is a director_hero context
-			if (clipJob.contextType === "director_hero" && clipJob.contextId) {
-				await this.updateDirectorHeroWithCompletedClip(clipJob.contextId, {
-					status: ClipProcessingStatus.COMPLETED,
-					url: outputUrl,
-					thumbnailUrl,
-					settingsHash: jobSettingsHash,
-					clipJobId: clipJob.id,
-				});
-			}
-
-			// Update homepage selection if this is a homepage context
-			if (clipJob.contextType === "homepage" && clipJob.contextId) {
-				await prisma.homepageDirector.update({
-					where: { id: clipJob.contextId },
-					data: {
-						videoSource: "clip",
-						clipJobId: clipJob.id,
-					},
-				});
-				console.log(`[ClipProcessing] Updated homepage selection ${clipJob.contextId}: COMPLETED`);
-			}
-
-			// Update directors page selection if this is a directors_page context
-			if (clipJob.contextType === "directors_page" && clipJob.contextId) {
-				await prisma.directorsPageSelection.update({
-					where: { id: clipJob.contextId },
-					data: {
-						videoSource: "clip",
-						clipJobId: clipJob.id,
-					},
-				});
-				console.log(`[ClipProcessing] Updated directors page selection ${clipJob.contextId}: COMPLETED`);
-			}
 		} else {
 			// Mark as failed
 			await clipJobService.markFailed(clipJob.id, errorMessage || "Unknown error");
@@ -955,26 +920,6 @@ export class ClipProcessingService {
 						error: errorMessage || "Unknown error",
 					});
 				}
-			}
-
-			// Update director hero video with failure if director_hero context
-			if (clipJob.contextType === "director_hero" && clipJob.contextId) {
-				await this.updateDirectorHeroWithCompletedClip(clipJob.contextId, {
-					status: ClipProcessingStatus.FAILED,
-					error: errorMessage || "Unknown error",
-					settingsHash: jobSettingsHash,
-					clipJobId: clipJob.id,
-				});
-			}
-
-			// Log homepage clip failure
-			if (clipJob.contextType === "homepage" && clipJob.contextId) {
-				console.error(`[ClipProcessing] Homepage selection ${clipJob.contextId} clip failed: ${errorMessage}`);
-			}
-
-			// Log directors page clip failure
-			if (clipJob.contextType === "directors_page" && clipJob.contextId) {
-				console.error(`[ClipProcessing] Directors page selection ${clipJob.contextId} clip failed: ${errorMessage}`);
 			}
 		}
 	}
@@ -1141,48 +1086,6 @@ export class ClipProcessingService {
 		console.log(
 			`[ClipProcessing] Updated block ${blockId} slot ${slotIndex} with generated thumbnail ${thumbnailData.clipJobId}`,
 		);
-	}
-
-	/**
-	 * Update director heroVideo with completed/failed clip info
-	 */
-	private async updateDirectorHeroWithCompletedClip(
-		directorId: number,
-		clipData: {
-			status: ClipProcessingStatus;
-			url?: string;
-			thumbnailUrl?: string;
-			error?: string;
-			settingsHash: string;
-			clipJobId: string;
-		},
-	): Promise<void> {
-		const director = await prisma.director.findUnique({
-			where: { id: directorId },
-			select: { heroVideo: true },
-		});
-
-		if (!director) {
-			console.error(`[ClipProcessing] Director not found: ${directorId}`);
-			return;
-		}
-
-		const heroVideo: any = { ...((director.heroVideo as any) || {}) };
-		heroVideo.processedVideo = {
-			status: clipData.status,
-			url: clipData.url || null,
-			thumbnailUrl: clipData.thumbnailUrl || null,
-			error: clipData.error || null,
-			settingsHash: clipData.settingsHash,
-			clipJobId: clipData.clipJobId,
-		};
-
-		await prisma.director.update({
-			where: { id: directorId },
-			data: { heroVideo },
-		});
-
-		console.log(`[ClipProcessing] Updated director ${directorId} hero video: ${clipData.status}`);
 	}
 }
 

@@ -19,11 +19,9 @@ export interface Presentation {
 	createdAt: string;
 	updatedAt: string;
 	_count?: {
-		directors: number;
 		sections: number;
 	};
 	sections?: PresentationSection[];
-	directors?: PresentationDirector[];
 	// BaseEntity compatibility
 	status?: "PUBLISHED" | "DRAFT";
 	slug?: string;
@@ -37,7 +35,7 @@ export interface PresentationSection {
 	id: number;
 	presentationId: number;
 	title: string;
-	type: "DIRECTORS" | "ANIMATIONS" | "PHOTOGRAPHY" | "MIXED";
+	type: "ANIMATIONS" | "PHOTOGRAPHY" | "MIXED";
 	sortOrder: number;
 	items: PresentationItem[];
 }
@@ -49,17 +47,15 @@ export interface PresentationItem {
 	workId?: number;
 	animationId?: number;
 	photographyId?: number;
-	directorId?: number;
+	externalThumbnailId?: number;
 	externalUrl?: string;
 	externalTitle?: string;
 	externalDescription?: string;
-	externalThumbnailId?: number;
 	sortOrder: number;
 	work?: {
 		id: number;
 		title: string;
 		previewImage?: { url: string };
-		directors?: { director: { id: number; name?: string; title?: string; avatar?: { url: string } } }[];
 	};
 	animation?: {
 		id: number;
@@ -72,27 +68,7 @@ export interface PresentationItem {
 		image?: { url: string };
 		photographer?: { id: number; title: string };
 	};
-	director?: {
-		id: number;
-		name?: string;
-		title?: string;
-		avatar?: { url: string };
-	};
 	externalThumbnail?: { url: string; images?: Record<string, string> };
-}
-
-export interface PresentationDirector {
-	id: number;
-	directorId: number;
-	sortOrder: number;
-	director: {
-		id: number;
-		name: string;
-		avatar?: {
-			url: string;
-		};
-	};
-	works: PresentationWork[];
 }
 
 export interface PresentationWork {
@@ -111,7 +87,7 @@ export interface PresentationWork {
 
 export interface SectionInput {
 	title: string;
-	type: "DIRECTORS" | "ANIMATIONS" | "PHOTOGRAPHY" | "MIXED";
+	type: "ANIMATIONS" | "PHOTOGRAPHY" | "MIXED";
 	items: ItemInput[];
 }
 
@@ -120,7 +96,6 @@ export interface ItemInput {
 	workId?: number;
 	animationId?: number;
 	photographyId?: number;
-	directorId?: number;
 	externalUrl?: string;
 	externalTitle?: string;
 	externalDescription?: string;
@@ -137,11 +112,6 @@ export interface CreatePresentationDto {
 	validUntil?: string | null;
 	isActive?: boolean;
 	sections?: SectionInput[];
-	// Legacy support
-	directors?: {
-		directorId: number;
-		works: number[];
-	}[];
 }
 
 export interface UpdatePresentationDto extends Partial<CreatePresentationDto> {}

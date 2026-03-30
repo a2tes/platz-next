@@ -12,7 +12,6 @@ import {
 	Bars3Icon,
 	PlayIcon,
 	TagIcon,
-	UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { Work } from "../../services/worksService";
 
@@ -96,7 +95,7 @@ export const SortableWorkRow: React.FC<SortableWorkRowProps> = ({ work, onEdit, 
 								<h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{work.title}</h3>
 								<span
 									className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-										work.status
+										work.status,
 									)}`}
 								>
 									{work.status === "PUBLISHED" ? (
@@ -110,13 +109,6 @@ export const SortableWorkRow: React.FC<SortableWorkRowProps> = ({ work, onEdit, 
 
 							<div className="mt-1 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
 								<span>Client: {work.client}</span>
-
-								{work.directors.length > 0 && (
-									<div className="flex items-center">
-										<UserGroupIcon className="h-4 w-4 mr-1" />
-										<span className="truncate max-w-xs">{work.directors.map((d) => d.director.title).join(", ")}</span>
-									</div>
-								)}
 
 								{work.tags.length > 0 && (
 									<div className="flex items-center">

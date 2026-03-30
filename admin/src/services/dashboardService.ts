@@ -52,11 +52,6 @@ export interface DashboardStats {
 			draft: number;
 			total: number;
 		};
-		directors: {
-			published: number;
-			draft: number;
-			total: number;
-		};
 		photographers: {
 			published: number;
 			draft: number;
@@ -65,9 +60,6 @@ export interface DashboardStats {
 		users: {
 			published: number;
 			draft: number;
-			total: number;
-		};
-		homepageDirectors: {
 			total: number;
 		};
 		mediaFiles: {

@@ -66,7 +66,7 @@ import {
 	PhotographyOption,
 	AnimationOption,
 } from "@/services/presentationService";
-import { WorksService, Director } from "@/services/worksService";
+import { WorksService } from "@/services/worksService";
 import { PhotographyService, Photographer } from "@/services/photographyService";
 import { taxonomyServices } from "@/services/taxonomyService";
 import { useMediaLibraryStore } from "@/stores/mediaLibraryStore";
@@ -81,7 +81,6 @@ const itemSchema = z.object({
 	workId: z.number().optional(),
 	animationId: z.number().optional(),
 	photographyId: z.number().optional(),
-	directorId: z.number().optional(),
 	externalUrl: z.string().optional(),
 	externalTitle: z.string().optional(),
 	externalDescription: z.string().optional(),
@@ -93,7 +92,7 @@ const itemSchema = z.object({
 
 const sectionSchema = z.object({
 	title: z.string().min(1, "Section title is required"),
-	type: z.enum(["DIRECTORS", "ANIMATIONS", "PHOTOGRAPHY", "MIXED"]),
+	type: z.enum(["ANIMATIONS", "PHOTOGRAPHY", "MIXED"]),
 	items: z.array(itemSchema),
 });
 
@@ -163,10 +162,7 @@ function SortableItem({ id, item, onRemove }: { id: string; item: ItemFormValue;
 			)}
 			<div className="flex-1 min-w-0">
 				<p className="text-sm font-medium truncate">{item._label || "Unknown"}</p>
-				<p className="text-xs text-muted-foreground">
-					{typeLabel}
-					{item.directorId ? " (with director)" : ""}
-				</p>
+				<p className="text-xs text-muted-foreground">{typeLabel}</p>
 			</div>
 			<Button
 				type="button"
@@ -191,10 +187,9 @@ interface SortableSectionProps {
 	form: any;
 	onRemove: () => void;
 	isDraggingAny: boolean;
-	directors: Director[];
 }
 
-function SortableSection({ id, index, form, onRemove, isDraggingAny, directors }: SortableSectionProps) {
+function SortableSection({ id, index, form, onRemove, isDraggingAny }: SortableSectionProps) {
 	const [isOpen, setIsOpen] = useState(true);
 	const [isAddItemOpen, setIsAddItemOpen] = useState(false);
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -306,7 +301,6 @@ function SortableSection({ id, index, form, onRemove, isDraggingAny, directors }
 													</SelectTrigger>
 												</FormControl>
 												<SelectContent>
-													<SelectItem value="DIRECTORS">Directors (Works)</SelectItem>
 													<SelectItem value="ANIMATIONS">Animations</SelectItem>
 													<SelectItem value="PHOTOGRAPHY">Photography</SelectItem>
 													<SelectItem value="MIXED">Mixed</SelectItem>
@@ -346,7 +340,6 @@ function SortableSection({ id, index, form, onRemove, isDraggingAny, directors }
 							{/* Add items button */}
 							<AddItemDialog
 								sectionType={sectionType}
-								directors={directors}
 								existingItems={items}
 								onAdd={addItems}
 								open={isAddItemOpen}
@@ -366,14 +359,13 @@ function SortableSection({ id, index, form, onRemove, isDraggingAny, directors }
 
 interface AddItemDialogProps {
 	sectionType: string;
-	directors: Director[];
 	existingItems: ItemFormValue[];
 	onAdd: (items: ItemFormValue[]) => void;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }
 
-function AddItemDialog({ sectionType, directors, existingItems, onAdd, open, onOpenChange }: AddItemDialogProps) {
+function AddItemDialog({ sectionType, existingItems, onAdd, open, onOpenChange }: AddItemDialogProps) {
 	const initialTab =
 		sectionType === "ANIMATIONS" ? "ANIMATION" : sectionType === "PHOTOGRAPHY" ? "PHOTOGRAPHY" : "WORK";
 	const [tab, setTab] = useState<"WORK" | "ANIMATION" | "PHOTOGRAPHY" | "EXTERNAL_LINK">(initialTab);
@@ -384,7 +376,6 @@ function AddItemDialog({ sectionType, directors, existingItems, onAdd, open, onO
 		setTab(newTab as "WORK" | "ANIMATION" | "PHOTOGRAPHY" | "EXTERNAL_LINK");
 	}, [sectionType]);
 	const [search, setSearch] = useState("");
-	const [selectedDirectorId, setSelectedDirectorId] = useState<number | null>(null);
 	const [selectedPhotographerId, setSelectedPhotographerId] = useState<number | null>(null);
 	const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 	const [selectedItems, setSelectedItems] = useState<ItemFormValue[]>([]);
@@ -395,14 +386,14 @@ function AddItemDialog({ sectionType, directors, existingItems, onAdd, open, onO
 	const [externalThumbnailUrl, setExternalThumbnailUrl] = useState<string | null>(null);
 	const openSelectorModal = useMediaLibraryStore((s) => s.openSelectorModal);
 
-	// Fetch directors with works
-	const { data: directorsResponse } = useQuery({
-		queryKey: ["directors", "all"],
-		queryFn: () => WorksService.getDirectors({ limit: 1000 }),
-		staleTime: 5 * 60 * 1000,
-		enabled: open && (tab === "WORK" || sectionType === "DIRECTORS" || sectionType === "MIXED"),
+	// Fetch works for the WORK tab
+	const { data: worksResponse } = useQuery({
+		queryKey: ["presentation-works", search],
+		queryFn: () => WorksService.getWorks({ limit: 100, search: search || undefined, status: "PUBLISHED" }),
+		staleTime: 2 * 60 * 1000,
+		enabled: open && tab === "WORK",
 	});
-	const allDirectors = directorsResponse?.data || [];
+	const allWorks = worksResponse?.data || [];
 
 	// Fetch photography options
 	const { data: photographyOptions } = useQuery({
@@ -459,7 +450,6 @@ function AddItemDialog({ sectionType, directors, existingItems, onAdd, open, onO
 	useEffect(() => {
 		setSearch("");
 		setSelectedItems([]);
-		setSelectedDirectorId(null);
 		setSelectedPhotographerId(null);
 		setSelectedCategoryId(null);
 		setExternalUrl("");
@@ -528,20 +518,11 @@ function AddItemDialog({ sectionType, directors, existingItems, onAdd, open, onO
 
 	// Available tabs based on section type
 	const availableTabs: readonly string[] =
-		sectionType === "DIRECTORS"
-			? ["WORK", "EXTERNAL_LINK"]
-			: sectionType === "ANIMATIONS"
-				? ["ANIMATION", "EXTERNAL_LINK"]
-				: sectionType === "PHOTOGRAPHY"
-					? ["PHOTOGRAPHY", "EXTERNAL_LINK"]
-					: ["WORK", "ANIMATION", "PHOTOGRAPHY", "EXTERNAL_LINK"];
-
-	// Works content: show directors then their works
-	const selectedDirector = allDirectors.find((d) => d.id === selectedDirectorId);
-	const directorWorks = selectedDirector?.works?.map((dw) => dw.work) || [];
-	const filteredWorks = search
-		? directorWorks.filter((w) => w.title.toLowerCase().includes(search.toLowerCase()))
-		: directorWorks;
+		sectionType === "ANIMATIONS"
+			? ["ANIMATION", "EXTERNAL_LINK"]
+			: sectionType === "PHOTOGRAPHY"
+				? ["PHOTOGRAPHY", "EXTERNAL_LINK"]
+				: ["WORK", "ANIMATION", "PHOTOGRAPHY", "EXTERNAL_LINK"];
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -614,70 +595,48 @@ function AddItemDialog({ sectionType, directors, existingItems, onAdd, open, onO
 				{/* WORK TAB */}
 				{tab === "WORK" && (
 					<div className="my-3 space-y-3 flex-1 overflow-hidden flex flex-col">
-						{/* Director selector */}
-						<Select
-							value={selectedDirectorId?.toString() || ""}
-							onValueChange={(val) => setSelectedDirectorId(val ? parseInt(val) : null)}
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="Select a director..." />
-							</SelectTrigger>
-							<SelectContent>
-								{allDirectors.map((d) => (
-									<SelectItem key={d.id} value={d.id.toString()}>
-										{d.title}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-
-						{selectedDirectorId && (
-							<>
-								<div className="relative">
-									<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-									<Input
-										placeholder="Search works..."
-										value={search}
-										onChange={(e) => setSearch(e.target.value)}
-										className="pl-9"
-									/>
-								</div>
-								<div className="overflow-y-auto border rounded-md max-h-[300px]">
-									{filteredWorks.length === 0 ? (
-										<div className="p-4 text-sm text-muted-foreground text-center">No works found</div>
-									) : (
-										filteredWorks.map((w) => {
-											const alreadyAdded = existingWorkIds.has(w.id);
-											const selected = isSelected("WORK", w.id);
-											return (
-												<button
-													key={w.id}
-													type="button"
-													disabled={alreadyAdded}
-													onClick={() =>
-														toggleSelection({
-															itemType: "WORK",
-															workId: w.id,
-															directorId: selectedDirectorId,
-															_label: w.title,
-															_image: undefined,
-														})
-													}
-													className={cn(
-														"w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-accent transition-colors",
-														selected && "bg-accent",
-														alreadyAdded && "opacity-50 cursor-not-allowed",
-													)}
-												>
-													<span>{w.title}</span>
-													{(selected || alreadyAdded) && <Check className="h-4 w-4 text-primary" />}
-												</button>
-											);
-										})
-									)}
-								</div>
-							</>
-						)}
+						<div className="relative">
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+							<Input
+								placeholder="Search works..."
+								value={search}
+								onChange={(e) => setSearch(e.target.value)}
+								className="pl-9"
+							/>
+						</div>
+						<div className="overflow-y-auto border rounded-md max-h-[300px]">
+							{allWorks.length === 0 ? (
+								<div className="p-4 text-sm text-muted-foreground text-center">No works found</div>
+							) : (
+								allWorks.map((w) => {
+									const alreadyAdded = existingWorkIds.has(w.id);
+									const selected = isSelected("WORK", w.id);
+									return (
+										<button
+											key={w.id}
+											type="button"
+											disabled={alreadyAdded}
+											onClick={() =>
+												toggleSelection({
+													itemType: "WORK",
+													workId: w.id,
+													_label: w.title,
+													_image: w.previewImage?.images?.thumbnail || w.previewImage?.images?.original || undefined,
+												})
+											}
+											className={cn(
+												"w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-accent transition-colors",
+												selected && "bg-accent",
+												alreadyAdded && "opacity-50 cursor-not-allowed",
+											)}
+										>
+											<span>{w.title}</span>
+											{(selected || alreadyAdded) && <Check className="h-4 w-4 text-primary" />}
+										</button>
+									);
+								})
+							)}
+						</div>
 					</div>
 				)}
 
@@ -920,14 +879,6 @@ export function PresentationForm({ initialData }: PresentationFormProps) {
 	const [loading, setLoading] = useState(false);
 	const [isDraggingAny, setIsDraggingAny] = useState(false);
 
-	// Fetch directors (cached)
-	const { data: directorsResponse } = useQuery({
-		queryKey: ["directors", "all"],
-		queryFn: () => WorksService.getDirectors({ limit: 1000 }),
-		staleTime: 5 * 60 * 1000,
-	});
-	const directors = directorsResponse?.data || [];
-
 	// Transform initialData sections → form values
 	const initialSections: SectionFormValue[] =
 		initialData?.sections
@@ -942,7 +893,6 @@ export function PresentationForm({ initialData }: PresentationFormProps) {
 						workId: item.workId || undefined,
 						animationId: item.animationId || undefined,
 						photographyId: item.photographyId || undefined,
-						directorId: item.directorId || undefined,
 						externalUrl: item.externalUrl || undefined,
 						externalTitle: item.externalTitle || undefined,
 						externalDescription: item.externalDescription || undefined,
@@ -1009,7 +959,7 @@ export function PresentationForm({ initialData }: PresentationFormProps) {
 	const handleAddSection = () => {
 		appendSection({
 			title: "",
-			type: "DIRECTORS",
+			type: "ANIMATIONS",
 			items: [],
 		});
 	};
@@ -1026,7 +976,6 @@ export function PresentationForm({ initialData }: PresentationFormProps) {
 					workId: item.workId,
 					animationId: item.animationId,
 					photographyId: item.photographyId,
-					directorId: item.directorId,
 					externalUrl: item.externalUrl,
 					externalTitle: item.externalTitle,
 					externalDescription: item.externalDescription,
@@ -1161,7 +1110,6 @@ export function PresentationForm({ initialData }: PresentationFormProps) {
 													form={form}
 													onRemove={() => removeSection(index)}
 													isDraggingAny={isDraggingAny}
-													directors={directors}
 												/>
 											))}
 										</SortableContext>

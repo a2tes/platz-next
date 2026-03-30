@@ -34,12 +34,6 @@ interface Work {
 	optimizedVideoUrl?: string;
 	previewVideoUrl?: string;
 	videoThumbnailUrl?: string;
-	directors?: Array<{
-		director: {
-			title: string;
-			slug?: string;
-		};
-	}>;
 }
 
 export default function WorkDetailPage() {
@@ -90,11 +84,6 @@ export default function WorkDetailPage() {
 		slug: work.slug,
 		client: work.client || "",
 		shortDescription: work.shortDescription || "",
-		directors:
-			work.directors?.map((d) => ({
-				title: d.director.title,
-				...(d.director.slug ? { slug: d.director.slug } : {}),
-			})) || [],
 		// Use 720p for background videos
 		videoUrl: work.videoUrl720p || work.videoUrl || "",
 		// Use 480p for hover previews
@@ -114,8 +103,6 @@ export default function WorkDetailPage() {
 		setSelectedWork(null);
 		setSelectedCardRect(null);
 	};
-
-	const directorName = work?.directors?.map((d) => d.director.title).join(", ") || "";
 
 	if (loading) {
 		return (
@@ -220,7 +207,6 @@ export default function WorkDetailPage() {
 						}}
 					>
 						<div className="hero-work-trigger">
-							{directorName && <p className="text-gray-400 text-sm uppercase tracking-widest mb-2">{directorName}</p>}
 							<h1 className="text-white text-4xl md:text-6xl font-bold mb-4">{work.title}</h1>
 							{work.shortDescription && <p className="text-gray-300 text-lg max-w-2xl mb-6">{work.shortDescription}</p>}
 							<div className="flex items-center gap-4">

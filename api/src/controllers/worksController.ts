@@ -34,7 +34,6 @@ const createWorkSchema = z.object({
 	metaKeywords: z.string().optional(),
 	previewImageId: z.number().nullable().optional(),
 	status: z.enum(["DRAFT", "PUBLISHED"]).default("DRAFT"),
-	directorIds: z.array(z.number()).default([]),
 	clientIds: z.array(z.number()).default([]),
 	disciplineIds: z.array(z.number()).default([]),
 	sectorIds: z.array(z.number()).default([]),

@@ -537,10 +537,6 @@ export class BlockPageService {
 						include: {
 							videoFile: true,
 							previewImage: true,
-							directors: {
-								orderBy: { sortOrder: "asc" },
-								include: { director: true },
-							},
 						},
 					})
 				: [],
@@ -580,13 +576,6 @@ export class BlockPageService {
 						client: w.client || "",
 
 						shortDescription: w.shortDescription || "",
-						directors: (w.directors as any[])
-							.filter((wd: any) => wd.director?.status !== "DRAFT")
-							.map((wd: any) => ({
-								title: wd.director?.title,
-								...(wd.director?.status === "PUBLISHED" ? { slug: wd.director?.slug } : {}),
-							}))
-							.filter((d: any) => d.title),
 						videoUrl:
 							serializedVideoFile?.video?.mp4_720p ||
 							serializedVideoFile?.video?.mp4 ||

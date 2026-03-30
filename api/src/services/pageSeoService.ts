@@ -8,7 +8,7 @@ export interface UpsertPageSeoData {
 }
 
 // Valid page keys for listing/index pages
-export const VALID_PAGE_KEYS = ["homepage", "works", "animations", "directors", "photography"] as const;
+export const VALID_PAGE_KEYS = ["homepage", "works", "animations", "photography"] as const;
 
 export type PageKey = (typeof VALID_PAGE_KEYS)[number];
 

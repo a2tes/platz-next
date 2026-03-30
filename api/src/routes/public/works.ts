@@ -29,13 +29,6 @@ router.get(
 			},
 			include: {
 				videoFile: true,
-				directors: {
-					select: {
-						director: {
-							select: { title: true, slug: true, status: true },
-						},
-					},
-				},
 			},
 		});
 
@@ -65,15 +58,6 @@ router.get(
 			optimizedVideoUrl: serializedVideoFile?.video?.mp4 || null,
 			previewVideoUrl: serializedVideoFile?.video?.preview || serializedVideoFile?.video?.mp4_720p || null,
 			videoThumbnailUrl: serializedVideoFile?.images?.thumbnail || null,
-			// Directors (published only)
-			directors: (work as any).directors
-				.filter((wd: any) => wd.director.status !== "DRAFT")
-				.map((wd: any) => ({
-					director: {
-						title: wd.director.title,
-						...(wd.director.status === "PUBLISHED" ? { slug: wd.director.slug } : {}),
-					},
-				})),
 		};
 
 		res.json({ success: true, data });

@@ -13,61 +13,6 @@ export interface Revision {
 	revertedFromId?: number | null;
 }
 
-export interface Director {
-	id: number;
-	title: string;
-	slug: string;
-	shortDescription: string;
-	biography: string;
-	links?: Array<{ title: string; url: string }>;
-	avatarId?: number;
-	avatar?: MediaFile;
-	ogImageId?: number | null;
-	heroWorkId?: number | null;
-	heroMediaId?: number | null;
-	heroVideo?: {
-		cropSettings?: { x: number; y: number; width: number; height: number; aspect: number; aspectLabel?: string } | null;
-		trimSettings?: { startTime: number; endTime: number } | null;
-		processedVideo?: {
-			status: string;
-			url?: string | null;
-			thumbnailUrl?: string | null;
-			error?: string | null;
-			settingsHash?: string;
-			clipJobId?: string;
-		} | null;
-	} | null;
-	metaDescription?: string;
-	metaKeywords?: string;
-	status?: "DRAFT" | "PUBLISHED" | "UNLISTED";
-	publishedAt?: string | null;
-	createdBy?: number | null;
-	creator?: { id: number; name: string; email: string } | null;
-	createdAt: string;
-	updatedAt: string;
-	works?: Array<{
-		work: {
-			id: number;
-			title: string;
-			status: "DRAFT" | "PUBLISHED";
-		};
-	}>;
-}
-
-export interface DirectorWorkLink {
-	workId: number;
-	directorId: number;
-	sortOrder: number;
-	work: {
-		id: number;
-		title: string;
-		status: "DRAFT" | "PUBLISHED";
-		slug: string;
-		previewImage?: MediaFile;
-		videoFile?: MediaFile;
-	};
-}
-
 export interface Work {
 	id: number;
 	title: string;
@@ -97,9 +42,6 @@ export interface Work {
 	videoFile?: MediaFile;
 	previewImage?: MediaFile;
 	revisions?: Revision[];
-	directors: Array<{
-		director: Director;
-	}>;
 	taxonomies?: Array<{
 		taxonomy: { id: number; type: string; name: string; slug: string };
 	}>;
@@ -119,7 +61,6 @@ export interface CreateWorkData {
 	metaKeywords?: string;
 	previewImageId?: number;
 	status: "DRAFT" | "PUBLISHED";
-	directorIds: number[];
 	taxonomyIds?: number[];
 }
 
@@ -137,34 +78,7 @@ export interface UpdateWorkData {
 	metaKeywords?: string;
 	previewImageId?: number;
 	status?: "DRAFT" | "PUBLISHED";
-	directorIds?: number[];
 	taxonomyIds?: number[];
-}
-
-export interface CreateDirectorData {
-	title: string;
-	slug?: string;
-	shortDescription: string;
-	biography: string;
-	links?: Array<{ title: string; url: string }>;
-	avatarId?: number;
-	ogImageId?: number | null;
-	metaDescription?: string;
-	metaKeywords?: string;
-	status?: "DRAFT" | "PUBLISHED" | "UNLISTED";
-}
-
-export interface UpdateDirectorData {
-	title?: string;
-	slug?: string;
-	shortDescription?: string;
-	biography?: string;
-	links?: Array<{ title: string; url: string }>;
-	avatarId?: number;
-	ogImageId?: number | null;
-	metaDescription?: string;
-	metaKeywords?: string;
-	status?: "DRAFT" | "PUBLISHED" | "UNLISTED";
 }
 
 export interface PaginatedResponse<T> {
@@ -343,135 +257,6 @@ export class WorksService {
 		return response.data.data;
 	}
 
-	// Directors API methods
-	static async createDirector(data: CreateDirectorData): Promise<Director> {
-		const response = await api.post<ApiResponse<Director>>("/api/works/directors", data);
-		return response.data.data;
-	}
-
-	static async getDirectors(
-		params: {
-			page?: number;
-			limit?: number;
-			search?: string;
-			sortBy?: "title" | "createdAt" | "updatedAt";
-			sortOrder?: "asc" | "desc";
-			status?: "DRAFT" | "PUBLISHED" | "ALL";
-			mine?: boolean;
-		} = {},
-	): Promise<PaginatedResponse<Director>> {
-		const searchParams = new URLSearchParams();
-
-		if (params.page) searchParams.append("page", params.page.toString());
-		if (params.limit) searchParams.append("limit", params.limit.toString());
-		if (params.search) searchParams.append("search", params.search);
-		if (params.sortBy) searchParams.append("sortBy", params.sortBy);
-		if (params.sortOrder) searchParams.append("sortOrder", params.sortOrder);
-		if (params.status) searchParams.append("status", params.status);
-		if (params.mine) searchParams.append("mine", String(params.mine));
-
-		const response = await api.get<PaginatedResponse<Director>>(`/api/works/directors?${searchParams}`);
-		return response.data;
-	}
-
-	static async getDirector(id: number): Promise<Director> {
-		const response = await api.get<ApiResponse<Director>>(`/api/works/directors/${id}`);
-		return response.data.data;
-	}
-
-	static async getDirectorWorks(directorId: number): Promise<DirectorWorkLink[]> {
-		const response = await api.get<ApiResponse<DirectorWorkLink[]>>(`/api/works/directors/${directorId}/works`);
-		return response.data.data;
-	}
-
-	static async reorderDirectorWorks(
-		directorId: number,
-		workIds: number[],
-	): Promise<{ message: string; count: number }> {
-		const response = await api.put<ApiResponse<{ message: string; count: number }>>(
-			`/api/works/directors/${directorId}/works/reorder`,
-			{ workIds },
-		);
-		return response.data.data;
-	}
-
-	static async getDirectorWorksPaginated(
-		directorId: number,
-		params?: { page?: number; limit?: number; search?: string },
-	): Promise<PaginatedResponse<any>> {
-		const response = await api.get<PaginatedResponse<any>>(`/api/works/directors/${directorId}/works/paginated`, {
-			params,
-		});
-		return response.data;
-	}
-
-	// Hero Video
-	static async setHeroVideo(
-		directorId: number,
-		data: { heroWorkId: number; cropSettings?: any; trimSettings?: any },
-	): Promise<void> {
-		await api.put(`/api/works/directors/${directorId}/hero-video`, data);
-	}
-
-	static async processHeroVideo(
-		directorId: number,
-		data: { cropSettings?: any; trimSettings?: any },
-	): Promise<{ jobId: string; settingsHash: string; status: string }> {
-		const response = await api.post<ApiResponse<{ jobId: string; settingsHash: string; status: string }>>(
-			`/api/works/directors/${directorId}/hero-video/process`,
-			data,
-		);
-		return response.data.data;
-	}
-
-	static async removeHeroVideo(directorId: number): Promise<void> {
-		await api.delete(`/api/works/directors/${directorId}/hero-video`);
-	}
-
-	static async updateDirector(id: number, data: UpdateDirectorData): Promise<Director> {
-		const response = await api.put<ApiResponse<Director>>(`/api/works/directors/${id}`, data);
-		return response.data.data;
-	}
-
-	static async deleteDirector(id: number): Promise<void> {
-		await api.delete(`/api/works/directors/${id}`);
-	}
-
-	// Bulk operations - Directors
-	static async bulkDeleteDirectors(ids: number[]): Promise<void> {
-		try {
-			await api.post(`/api/works/directors/bulk/delete`, { ids });
-		} catch (err: unknown) {
-			const e = err as { response?: { status?: number } };
-			if (e?.response?.status === 404) {
-				await Promise.all(ids.map((id) => this.deleteDirector(id)));
-				return;
-			}
-			throw err;
-		}
-	}
-
-	static async bulkPurgeDirectors(ids: number[]): Promise<void> {
-		try {
-			await api.post(`/api/works/directors/bulk/purge`, { ids });
-		} catch (err: unknown) {
-			const e = err as { response?: { status?: number } };
-			if (e?.response?.status === 404) {
-				await Promise.all(ids.map((id) => this.purgeDirector(id)));
-				return;
-			}
-			throw err;
-		}
-	}
-
-	static async publishDirector(id: number): Promise<void> {
-		await api.patch(`/api/works/directors/${id}/publish`);
-	}
-
-	static async unpublishDirector(id: number): Promise<void> {
-		await api.patch(`/api/works/directors/${id}/unpublish`);
-	}
-
 	// Trash methods for Works
 	static async getTrashedWorks(
 		params: {
@@ -501,38 +286,6 @@ export class WorksService {
 
 	static async purgeWork(id: number): Promise<void> {
 		await api.post(`/api/works/${id}/purge`);
-	}
-
-	// Trash methods for Directors
-	static async getTrashedDirectors(
-		params: {
-			page?: number;
-			limit?: number;
-			search?: string;
-		} = {},
-	): Promise<PaginatedResponse<Director>> {
-		const searchParams = new URLSearchParams();
-
-		if (params.page) searchParams.append("page", params.page.toString());
-		if (params.limit) searchParams.append("limit", params.limit.toString());
-		if (params.search) searchParams.append("search", params.search);
-
-		const response = await api.get<PaginatedResponse<Director>>(`/api/works/directors/trash?${searchParams}`);
-		return response.data;
-	}
-
-	static async restoreDirector(id: number): Promise<Director> {
-		const response = await api.post<ApiResponse<Director>>(`/api/works/directors/${id}/restore`);
-		return response.data.data;
-	}
-
-	static async purgeDirector(id: number): Promise<void> {
-		await api.post(`/api/works/directors/${id}/purge`);
-	}
-
-	static async getDirectorsCounts(): Promise<WorksCounts> {
-		const response = await api.get<ApiResponse<WorksCounts>>("/api/works/directors/counts");
-		return response.data.data;
 	}
 
 	static async revertToRevision(workId: number, revisionId: number): Promise<Work> {

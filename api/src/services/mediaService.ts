@@ -278,7 +278,6 @@ export class MediaService {
 							// Count usage across different content types
 							worksVideoFile: true,
 							worksPreviewImage: true,
-							directorsAvatar: true,
 							photographyImage: true,
 							photographyPreviewImage: true,
 							photographersAvatar: true,
@@ -706,7 +705,6 @@ export class MediaService {
 							select: {
 								worksVideoFile: true,
 								worksPreviewImage: true,
-								directorsAvatar: true,
 								photographyImage: true,
 								photographyPreviewImage: true,
 								photographersAvatar: true,
@@ -878,7 +876,6 @@ export class MediaService {
 							select: {
 								worksVideoFile: true,
 								worksPreviewImage: true,
-								directorsAvatar: true,
 								photographyImage: true,
 								photographyPreviewImage: true,
 								photographersAvatar: true,
@@ -1302,7 +1299,6 @@ export class MediaService {
 			include: {
 				worksVideoFile: { select: { id: true, title: true } },
 				worksPreviewImage: { select: { id: true, title: true } },
-				directorsAvatar: { select: { id: true, title: true } },
 				photographyImage: { select: { id: true, title: true } },
 				photographyPreviewImage: { select: { id: true, title: true } },
 				photographersAvatar: { select: { id: true, title: true } },
@@ -1328,7 +1324,6 @@ export class MediaService {
 				...file.worksVideoFile.map((w: any) => ({ ...w, usage: "Video" })),
 				...file.worksPreviewImage.map((w: any) => ({ ...w, usage: "Preview Image" })),
 			],
-			directors: file.directorsAvatar.map((d: any) => ({ ...d, usage: "Avatar" })),
 			photography: [
 				...file.photographyImage.map((p: any) => ({ ...p, usage: "Image" })),
 				...file.photographyPreviewImage.map((p: any) => ({ ...p, usage: "Preview Image" })),
@@ -1446,7 +1441,6 @@ export class MediaService {
 							select: {
 								worksVideoFile: true,
 								worksPreviewImage: true,
-								directorsAvatar: true,
 								photographyImage: true,
 								photographyPreviewImage: true,
 								photographersAvatar: true,

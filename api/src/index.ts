@@ -13,7 +13,6 @@ import dashboardRoutes from "./routes/dashboard";
 import worksRoutes from "./routes/works";
 import animationsRoutes from "./routes/animations";
 import homepageRoutes from "./routes/homepage";
-import directorsPageRoutes from "./routes/directorsPage";
 import contentRoutes from "./routes/content";
 import usersRoutes from "./routes/users";
 import photographyRoutes from "./routes/photography";
@@ -25,8 +24,6 @@ import publicPhotographyRoutes from "./routes/public/photography";
 import publicPhotographersRoutes from "./routes/public/photographers";
 import publicPhotoCategoriesRoutes from "./routes/public/photoCategories";
 import publicNavbarRoutes from "./routes/public/navbar";
-import publicDirectorsRoutes from "./routes/public/directors";
-import publicDirectorsPageRoutes from "./routes/public/directorsPage";
 import presentationRoutes from "./routes/presentation";
 import publicPresentationRoutes from "./routes/public/presentation";
 import blocksRoutes from "./routes/blocks";
@@ -196,8 +193,6 @@ app.use("/api/animations", animationsRoutes);
 // Homepage routes
 app.use("/api/homepage", homepageRoutes);
 
-app.use("/api/directors-page", directorsPageRoutes);
-
 // Photography routes
 app.use("/api/photography", photographyRoutes);
 
@@ -243,8 +238,6 @@ app.use("/api/public/photography", publicPhotographyRoutes);
 app.use("/api/public/photographers", publicPhotographersRoutes);
 app.use("/api/public/photo-categories", publicPhotoCategoriesRoutes);
 app.use("/api/public/navbar", publicNavbarRoutes);
-app.use("/api/public/directors", publicDirectorsRoutes);
-app.use("/api/public/directors-page", publicDirectorsPageRoutes);
 app.use("/api/public/page-seo", publicPageSeoRoutes);
 app.use("/api/public/settings", publicSettingsRoutes);
 app.use("/api/public/presentations", publicPresentationRoutes);

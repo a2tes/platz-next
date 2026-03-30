@@ -416,7 +416,7 @@ export default function AnimationModal({ animation, cardRect, onClose }: Animati
 										{(() => {
 											const details = [
 												animation.client && { key: "client", label: "CLIENT", value: animation.client },
-
+											].filter(Boolean) as { key: string; label: string; value: string }[];
 
 											if (details.length === 0) return null;
 
@@ -492,6 +492,6 @@ export default function AnimationModal({ animation, cardRect, onClose }: Animati
 				</motion.button>
 			</motion.div>
 		</>,
-		document.body
+		document.body,
 	);
 }

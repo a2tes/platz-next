@@ -575,25 +575,6 @@ export class ClipJobService {
 	 * Get clip usage — where is this clip referenced?
 	 */
 	async getClipUsage(clipJobId: string) {
-		const [homepageDirectors, directorsPageSelections] = await Promise.all([
-			prisma.homepageDirector.findMany({
-				where: { clipJobId },
-				select: {
-					id: true,
-					work: { select: { id: true, title: true } },
-					director: { select: { id: true, title: true } },
-				},
-			}),
-			prisma.directorsPageSelection.findMany({
-				where: { clipJobId },
-				select: {
-					id: true,
-					work: { select: { id: true, title: true } },
-					director: { select: { id: true, title: true } },
-				},
-			}),
-		]);
-
 		// Check block content JSON for clipJobId references
 		const blocks = await prisma.block.findMany({
 			where: {
@@ -614,12 +595,6 @@ export class ClipJobService {
 					if (block.modelName === "work") {
 						const work = await prisma.work.findUnique({ where: { id: block.modelId }, select: { title: true } });
 						modelTitle = work?.title || null;
-					} else if (block.modelName === "director") {
-						const director = await prisma.director.findUnique({
-							where: { id: block.modelId },
-							select: { title: true },
-						});
-						modelTitle = director?.title || null;
 					} else if (block.modelName === "block_page") {
 						const page = await prisma.blockPage.findUnique({ where: { id: block.modelId }, select: { title: true } });
 						modelTitle = page?.title || null;
@@ -629,7 +604,7 @@ export class ClipJobService {
 			}),
 		);
 
-		return { homepageDirectors, directorsPageSelections, blocks: enrichedBlocks };
+		return { blocks: enrichedBlocks };
 	}
 
 	/**
@@ -637,8 +612,7 @@ export class ClipJobService {
 	 */
 	async deleteClip(clipJobId: string) {
 		const usage = await this.getClipUsage(clipJobId);
-		const isInUse =
-			usage.homepageDirectors.length > 0 || usage.directorsPageSelections.length > 0 || usage.blocks.length > 0;
+		const isInUse = usage.blocks.length > 0;
 
 		if (isInUse) {
 			throw new Error("Cannot delete clip: it is currently in use");

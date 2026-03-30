@@ -294,7 +294,6 @@ export default function AutoPresentation({
 	const itemSubtitle = (() => {
 		if (item.work) {
 			const parts: string[] = [];
-			if (item.director) parts.push(item.director.title);
 			if (item.work.clients.length) parts.push(item.work.clients[0]);
 			return parts.join(" · ");
 		}

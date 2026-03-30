@@ -31,7 +31,6 @@ function formatFieldName(field: string): string {
 		status: "Status",
 		sortOrder: "Sort Order",
 		publishedAt: "Published At",
-		directorIds: "Directors",
 	};
 	return fieldNameMap[field] || field;
 }
@@ -60,24 +59,6 @@ function formatFieldValue(value: unknown, fieldName: string, work?: Work, payloa
 
 	if (Array.isArray(value)) {
 		if (value.length === 0) return "—";
-
-		// Handle directorIds - first check payload for directorNames, then fall back to work object
-		if (fieldName === "directorIds") {
-			const namesFromPayload = payload?.["directorNames"];
-			if (Array.isArray(namesFromPayload) && namesFromPayload.length > 0) {
-				return namesFromPayload.join(", ");
-			}
-			if (work?.directors) {
-				const titles = value
-					.map((id) => {
-						const director = work.directors.find((d) => d.director.id === Number(id));
-						return director?.director.title;
-					})
-					.filter(Boolean);
-				return titles.length > 0 ? titles.join(", ") : "—";
-			}
-			return "—";
-		}
 
 		// Handle objects in array (like gallery items)
 		if (value.length > 0 && typeof value[0] === "object") {

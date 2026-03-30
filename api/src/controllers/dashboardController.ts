@@ -145,21 +145,17 @@ export class DashboardController {
 			// Get total counts for different modules
 			const [
 				totalWorks,
-				totalDirectors,
 				totalPhotography,
 				totalPhotographers,
 				totalMediaFiles,
 				totalUsers,
-				totalHomepageDirectors,
 				// recentActivities,
 			] = await Promise.all([
 				prisma.work.count(),
-				prisma.director.count(),
 				prisma.photography.count(),
 				prisma.photographer.count(),
 				prisma.mediaFile.count(),
 				prisma.user.count(),
-				prisma.homepageDirector.count(),
 				ActivityService.getActivities({ limit: 5 }),
 			]);
 
@@ -172,11 +168,6 @@ export class DashboardController {
 			const [publishedPhotography, draftPhotography] = await Promise.all([
 				prisma.photography.count({ where: { status: "PUBLISHED" } }),
 				prisma.photography.count({ where: { status: "DRAFT" } }),
-			]);
-
-			const [publishedDirectors, draftDirectors] = await Promise.all([
-				prisma.director.count({ where: { status: "PUBLISHED" } }),
-				prisma.director.count({ where: { status: "DRAFT" } }),
 			]);
 
 			const [publishedPhotographers, draftPhotographers] = await Promise.all([
@@ -212,11 +203,6 @@ export class DashboardController {
 						draft: draftPhotography,
 						total: totalPhotography,
 					},
-					directors: {
-						published: publishedDirectors,
-						draft: draftDirectors,
-						total: totalDirectors,
-					},
 					photographers: {
 						published: publishedPhotographers,
 						draft: draftPhotographers,
@@ -226,9 +212,6 @@ export class DashboardController {
 						published: publishedUsers,
 						draft: draftUsers,
 						total: totalUsers,
-					},
-					homepageDirectors: {
-						total: totalHomepageDirectors,
 					},
 					mediaFiles: {
 						total: totalMediaFiles,

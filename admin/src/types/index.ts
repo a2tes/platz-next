@@ -67,7 +67,6 @@ export interface Work {
 	client: string;
 	tags: string[];
 	videoFile?: MediaFile;
-	directors: Director[];
 	metaDescription?: string;
 	metaKeywords?: string;
 	previewImage?: MediaFile;
@@ -76,17 +75,6 @@ export interface Work {
 	createdAt: string;
 	updatedAt: string;
 	publishedAt?: string;
-}
-
-export interface Director {
-	id: number;
-	title: string;
-	shortDescription: string;
-	biography: string;
-	avatar?: MediaFile;
-	works: Work[];
-	createdAt: string;
-	updatedAt: string;
 }
 
 export interface Photography {
@@ -185,7 +173,6 @@ export interface WorkForm {
 	client: string;
 	tags: string[];
 	videoFileId?: number;
-	directorIds: number[];
 	metaDescription?: string;
 	metaKeywords?: string;
 	previewImageId?: number;

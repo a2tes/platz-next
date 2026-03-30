@@ -710,16 +710,6 @@ export class MediaService {
 	 * Get clip usage info
 	 */
 	static async getClipUsage(clipId: string): Promise<{
-		homepageDirectors: Array<{
-			id: number;
-			work: { id: number; title: string } | null;
-			director: { id: number; title: string } | null;
-		}>;
-		directorsPageSelections: Array<{
-			id: number;
-			work: { id: number; title: string } | null;
-			director: { id: number; title: string } | null;
-		}>;
 		blocks: Array<{ id: number; modelName: string; modelId: number | null; modelTitle: string | null }>;
 	}> {
 		const response = await api.get(`/api/clip-jobs/${clipId}/usage`);

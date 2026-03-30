@@ -14,16 +14,12 @@ import { useAuthStore } from "@/stores/authStore";
 
 const pages = [
 	{ name: "Homepage", href: "/homepage" },
-	{ name: "Directors", href: "/directors" },
 	{ name: "About", href: "/about" },
 	{ name: "Contact", href: "/contact" },
 	{ name: "Legal", href: "/legal" },
 ];
 
-const worksLinks = [
-	{ name: "All Works", href: "/works" },
-	{ name: "Directors", href: "/works/directors" },
-];
+const worksLinks = [{ name: "All Works", href: "/works" }];
 
 const taxonomiesLinks = [
 	{ name: "Clients", href: "/taxonomies/clients" },

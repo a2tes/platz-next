@@ -16,7 +16,7 @@ const getPresentationActions = ({ filterTab, onEdit, onTogglePublish, onDelete, 
 		{
 			label: (item: Presentation) => (item.status === "PUBLISHED" ? "View" : "Preview"),
 			onClick: (item: Presentation) => {
-				window.open(`${publicUrl}/directors?ref=${item.token}`, "_blank");
+				window.open(`${publicUrl}/presentation?ref=${item.token}`, "_blank");
 			},
 			show: (item: Presentation) => filterTab !== "trash",
 		},
@@ -86,7 +86,7 @@ const presentationsConfig: EntityListConfig<Presentation> = {
 	// navigation: removed - this page is deprecated, use /presentations instead
 
 	// View path (unused because of custom actions, but required by type)
-	viewItemBasePath: "/directors",
+	viewItemBasePath: "/presentation",
 };
 
 function PresentationsPageContent() {

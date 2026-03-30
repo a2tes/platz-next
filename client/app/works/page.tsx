@@ -25,7 +25,6 @@ interface Work {
 	shortDescription: string;
 	subtitle?: string;
 	caseStudy?: string;
-	directors?: Array<{ title: string; slug?: string }>;
 	videoUrl: string;
 	videoThumbnailUrl: string;
 	images: {
@@ -124,7 +123,6 @@ export default function Works() {
 			shortDescription: item.work.shortDescription,
 			subtitle: item.work.subtitle,
 			caseStudy: item.work.caseStudy,
-			directors: item.work.directors,
 			videoUrl: item.work.videoUrl || "",
 			videoThumbnailUrl: item.work.thumbnail || "",
 			images: null,

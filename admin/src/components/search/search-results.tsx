@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { IconBriefcase, IconCamera, IconUser, IconFileText } from "@tabler/icons-react";
+import { IconBriefcase, IconCamera, IconFileText } from "@tabler/icons-react";
 import { SearchResult } from "@/services/searchService";
 import { Button } from "@/components/ui/button";
 
@@ -16,14 +16,12 @@ interface SearchResultsProps {
 const moduleIcons = {
 	works: IconBriefcase,
 	photography: IconCamera,
-	directors: IconUser,
 	content: IconFileText,
 };
 
 const moduleColors = {
 	works: "text-blue-600",
 	photography: "text-green-600",
-	directors: "text-purple-600",
 	content: "text-gray-600",
 };
 

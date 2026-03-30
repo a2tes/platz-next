@@ -15,7 +15,6 @@ export interface PresentationWork {
 		large?: string;
 		original?: string;
 	} | null;
-	directors: Array<{ title: string; slug: string }>;
 	clients: string[];
 	agencies: string[];
 }
@@ -64,12 +63,6 @@ export interface PresentationItem {
 	work?: PresentationWork;
 	animation?: PresentationAnimation;
 	photography?: PresentationPhotography;
-	director?: {
-		id: number;
-		title: string;
-		slug: string;
-		avatar: any;
-	};
 	externalUrl?: string;
 	externalTitle?: string;
 	externalDescription?: string;

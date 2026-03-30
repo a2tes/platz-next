@@ -43,7 +43,6 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 			shortDescription: w.shortDescription,
 			subtitle: w.subtitle,
 			caseStudy: w.caseStudy,
-			directors: w.directors,
 			videoUrl: w.videoUrl || "",
 			hlsUrl: w.hlsUrl || "",
 			optimizedVideoUrl: w.optimizedVideoUrl || "",
@@ -257,7 +256,7 @@ function VideoCard({ item, onWorkClick, onAnimationClick }: VideoCardProps) {
 	const title = entity.title;
 	const subtitle = (() => {
 		if (item.work) {
-			return item.work.clients[0] || item.work.directors[0]?.title || "";
+			return item.work.clients[0] || "";
 		}
 		if (item.animation) {
 			return item.animation.clients[0] || "";

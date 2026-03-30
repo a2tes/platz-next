@@ -30,7 +30,6 @@ model User {
   animationRevisions   AnimationRevision[]
   createdWorks         Work[]          @relation("WorkCreatedBy")
   createdAnimations    Animation[]     @relation("AnimationCreatedBy")
-  createdDirectors     Director[]      @relation("DirectorCreatedBy")
   createdPhotographers Photographer[]  @relation("PhotographerCreatedBy")
   createdContentPages   ContentPage[]    @relation("ContentPageCreatedBy")
   createdPresentations  Presentation[]   @relation("PresentationCreatedBy")
@@ -73,9 +72,6 @@ model MediaFile {
   worksPreviewImage        Work[]         @relation("WorkPreviewImage")
   animationsVideoFile      Animation[]    @relation("AnimationVideoFile")
   animationsPreviewImage   Animation[]    @relation("AnimationPreviewImage")
-  directorsAvatar          Director[]     @relation("DirectorAvatar")
-  directorsOgImage         Director[]     @relation("DirectorOgImage")
-  directorsHeroMedia       Director[]     @relation("DirectorHeroMedia")
   photographyImage         Photography[]  @relation("PhotographyImage")
   photographyPreviewImage  Photography[]  @relation("PhotographyPreviewImage")
   photographersAvatar      Photographer[] @relation("PhotographerAvatar")
@@ -138,14 +134,9 @@ model Work {
   creator           User?              @relation("WorkCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
   videoFile         MediaFile?         @relation("WorkVideoFile", fields: [videoFileId], references: [id])
   previewImage      MediaFile?         @relation("WorkPreviewImage", fields: [previewImageId], references: [id])
-  directors         WorkDirector[]
-  homepageDirectors HomepageDirector[]
-  directorsPageSelections DirectorsPageSelection[]
   revisions         WorkRevision[]
-  presentationDirectorWorks PresentationDirectorWork[]
   presentationItems PresentationItem[]
   clipJobs          ClipJob[]
-  heroForDirectors  Director[]         @relation("DirectorHeroWork")
   taxonomies        WorkTaxonomy[]
 
   @@map("works")
@@ -171,55 +162,7 @@ model WorkRevision {
   @@map("work_revisions")
 }
 
-model Director {
-  id               Int       @id @default(autoincrement())
-  title            String
-  slug             String    @unique
-  shortDescription String?   @map("short_description") @db.Text
-  biography        String?   @db.Text
-  links            Json?
-  avatarId         Int?      @map("avatar_id")
-  ogImageId        Int?      @map("og_image_id")
-  heroWorkId       Int?      @map("hero_work_id")
-  heroMediaId      Int?      @map("hero_media_id")
-  heroVideo        Json?     @map("hero_video")
-  metaDescription  String?   @map("meta_description") @db.Text
-  metaKeywords     String?   @map("meta_keywords") @db.Text
-  status           Status    @default(DRAFT)
-  createdBy        Int?      @map("created_by")
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-  publishedAt      DateTime? @map("published_at")
-  deletedAt        DateTime? @map("deleted_at")
-  purgedAt         DateTime? @map("purged_at")
 
-  // Relations
-  avatar            MediaFile?         @relation("DirectorAvatar", fields: [avatarId], references: [id])
-  ogImage           MediaFile?         @relation("DirectorOgImage", fields: [ogImageId], references: [id])
-  heroWork          Work?              @relation("DirectorHeroWork", fields: [heroWorkId], references: [id], onDelete: SetNull)
-  heroMedia         MediaFile?         @relation("DirectorHeroMedia", fields: [heroMediaId], references: [id])
-  creator           User?              @relation("DirectorCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  works             WorkDirector[]
-  homepageDirectors HomepageDirector[]
-  directorsPageSelection DirectorsPageSelection?
-  presentationDirectors PresentationDirector[]
-  presentationItems     PresentationItem[] @relation("PresentationItemDirector")
-
-  @@map("directors")
-}
-
-model WorkDirector {
-  workId     Int @map("work_id")
-  directorId Int @map("director_id")
-  sortOrder  Int @default(0) @map("sort_order")
-
-  // Relations
-  work     Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
-  director Director @relation(fields: [directorId], references: [id], onDelete: Cascade)
-
-  @@id([workId, directorId])
-  @@map("work_directors")
-}
 
 model Photography {
   id              Int       @id @default(autoincrement())
@@ -284,43 +227,7 @@ model Photographer {
   @@map("photographers")
 }
 
-model HomepageDirector {
-  id          Int      @id @default(autoincrement())
-  directorId  Int      @map("director_id")
-  workId      Int      @map("work_id")
-  sortOrder   Int      @default(0) @map("sort_order")
-  videoSource String   @default("original") @map("video_source") // "original", "default_clip", "clip"
-  clipJobId   String?  @map("clip_job_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  director Director @relation(fields: [directorId], references: [id], onDelete: Cascade)
-  work     Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
-  clipJob  ClipJob? @relation(fields: [clipJobId], references: [id], onDelete: SetNull)
-
-  @@index([clipJobId])
-  @@map("homepage_directors")
-}
-
-model DirectorsPageSelection {
-  id          Int      @id @default(autoincrement())
-  directorId  Int      @unique @map("director_id")
-  workId      Int      @map("work_id")
-  sortOrder   Int      @default(0) @map("sort_order")
-  videoSource String   @default("original") @map("video_source") // "original", "default_clip", "clip"
-  clipJobId   String?  @map("clip_job_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  director Director @relation(fields: [directorId], references: [id], onDelete: Cascade)
-  work     Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
-  clipJob  ClipJob? @relation("DirectorsPageClipJob", fields: [clipJobId], references: [id], onDelete: SetNull)
-
-  @@index([clipJobId])
-  @@map("directors_page_selections")
-}
 
 model ContentPage {
   id              Int       @id @default(autoincrement())
@@ -498,39 +405,10 @@ model Presentation {
   updatedAt          DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  directors   PresentationDirector[]
   sections    PresentationSection[]
   creator     User?     @relation("PresentationCreatedBy", fields: [createdBy], references: [id])
 
   @@map("presentations")
-}
-
-model PresentationDirector {
-  id             Int @id @default(autoincrement())
-  presentationId Int @map("presentation_id")
-  directorId     Int @map("director_id")
-  sortOrder      Int @default(0) @map("sort_order")
-
-  // Relations
-  presentation Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
-  director     Director     @relation(fields: [directorId], references: [id], onDelete: Cascade)
-  works        PresentationDirectorWork[]
-
-  @@unique([presentationId, directorId])
-  @@map("presentation_directors")
-}
-
-model PresentationDirectorWork {
-  presentationDirectorId Int @map("presentation_director_id")
-  workId                 Int @map("work_id")
-  sortOrder              Int @default(0) @map("sort_order")
-
-  // Relations
-  presentationDirector PresentationDirector @relation(fields: [presentationDirectorId], references: [id], onDelete: Cascade)
-  work                 Work                 @relation(fields: [workId], references: [id], onDelete: Cascade)
-
-  @@id([presentationDirectorId, workId])
-  @@map("presentation_director_works")
 }
 
 // ============================================
@@ -538,7 +416,6 @@ model PresentationDirectorWork {
 // ============================================
 
 enum PresentationSectionType {
-  DIRECTORS
   ANIMATIONS
   PHOTOGRAPHY
   MIXED
@@ -574,7 +451,6 @@ model PresentationItem {
   workId               Int?                   @map("work_id")
   animationId          Int?                   @map("animation_id")
   photographyId        Int?                   @map("photography_id")
-  directorId           Int?                   @map("director_id")
   externalUrl          String?                @map("external_url")
   externalTitle        String?                @map("external_title")
   externalDescription  String?                @map("external_description") @db.Text
@@ -588,7 +464,6 @@ model PresentationItem {
   work               Work?               @relation(fields: [workId], references: [id], onDelete: Cascade)
   animation          Animation?          @relation(fields: [animationId], references: [id], onDelete: Cascade)
   photography        Photography?        @relation(fields: [photographyId], references: [id], onDelete: Cascade)
-  director           Director?           @relation("PresentationItemDirector", fields: [directorId], references: [id], onDelete: SetNull)
   externalThumbnail  MediaFile?          @relation("PresentationItemExternalThumbnail", fields: [externalThumbnailId], references: [id], onDelete: SetNull)
 
   @@map("presentation_items")
@@ -744,9 +619,6 @@ model ClipJob {
   // Relations
   sourceMedia       MediaFile      @relation(fields: [sourceMediaId], references: [id], onDelete: Cascade)
   work              Work?          @relation(fields: [workId], references: [id], onDelete: SetNull)
-  homepageDirectors HomepageDirector[]
-  directorsPageSelections DirectorsPageSelection[] @relation("DirectorsPageClipJob")
-  
   // Unique constraint: same video + same settings = same clip (deduplication)
   @@unique([sourceMediaId, settingsHash])
   

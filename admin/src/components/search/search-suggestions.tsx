@@ -1,21 +1,21 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { IconSearch, IconClock } from "@tabler/icons-react"
-import { Button } from "@/components/ui/button"
+import * as React from "react";
+import { IconSearch, IconClock } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
 
 interface SearchSuggestionsProps {
-	suggestions: string[]
-	recentSearches: string[]
-	onSuggestionClick: (suggestion: string) => void
-	onRecentSearchClick: (search: string) => void
+	suggestions: string[];
+	recentSearches: string[];
+	onSuggestionClick: (suggestion: string) => void;
+	onRecentSearchClick: (search: string) => void;
 }
 
 export function SearchSuggestions({
 	suggestions,
 	recentSearches,
 	onSuggestionClick,
-	onRecentSearchClick
+	onRecentSearchClick,
 }: SearchSuggestionsProps) {
 	return (
 		<div className="space-y-4">
@@ -69,10 +69,10 @@ export function SearchSuggestions({
 			{suggestions.length === 0 && recentSearches.length === 0 && (
 				<div className="text-center py-6">
 					<div className="text-muted-foreground">
-						Search across all modules including works, photography, directors, and content pages.
+						Search across all modules including works, photography, and content pages.
 					</div>
 				</div>
 			)}
 		</div>
-	)
+	);
 }

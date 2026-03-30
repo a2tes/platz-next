@@ -100,20 +100,14 @@ export default function DashboardStats({ className = "" }: DashboardStatsProps) 
 		{
 			title: "Homepage",
 			url: "/homepage",
-			value: stats.contentStats.homepageDirectors.total,
-			subtext: `${stats.contentStats.homepageDirectors.total} published`,
+			value: 0,
+			subtext: "",
 		},
 		{
 			title: "Works",
 			url: "/works",
 			value: stats.contentStats.works.total,
 			subtext: formatPubDraft(stats.contentStats.works.published, stats.contentStats.works.draft),
-		},
-		{
-			title: "Directors",
-			url: "/works/directors",
-			value: stats.contentStats.directors.total,
-			subtext: formatPubDraft(stats.contentStats.directors.published, stats.contentStats.directors.draft),
 		},
 		{
 			title: "Photography",

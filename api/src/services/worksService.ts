@@ -40,7 +40,6 @@ export interface CreateWorkData {
 	metaKeywords?: string;
 	previewImageId?: number | null;
 	status: Status;
-	directorIds: number[];
 	taxonomyIds?: number[];
 }
 
@@ -59,7 +58,6 @@ export interface UpdateWorkData {
 	metaKeywords?: string | null;
 	previewImageId?: number | null;
 	status?: Status;
-	directorIds?: number[];
 	taxonomyIds?: number[];
 	publishedAt?: Date | null;
 }
@@ -85,8 +83,7 @@ export class WorksService {
 	 * Create a new work
 	 */
 	async createWork(data: CreateWorkData, userId?: number) {
-		const { directorIds, taxonomyIds, ...workData } = data;
-
+		const { taxonomyIds, ...workData } = data;
 		// Generate unique slug
 		const baseSlug = slugify(data.title);
 		const slug = await generateUniqueSlug(baseSlug, async (s) => {
@@ -110,12 +107,9 @@ export class WorksService {
 				sortOrder,
 				publishedAt: workData.status === "PUBLISHED" ? new Date() : null,
 				createdBy: userId,
-				directors: {
-					create: directorIds.map((directorId) => ({ directorId })),
-				},
 				taxonomies: taxonomyIds?.length
 					? {
-							create: taxonomyIds.map((taxonomyId) => ({ taxonomyId })),
+							create: taxonomyIds.map((taxonomyId: number) => ({ taxonomyId })),
 						}
 					: undefined,
 			} as any,
@@ -137,15 +131,6 @@ export class WorksService {
 								id: true,
 								name: true,
 								email: true,
-							},
-						},
-					},
-				},
-				directors: {
-					include: {
-						director: {
-							include: {
-								avatar: true,
 							},
 						},
 					},
@@ -177,8 +162,6 @@ export class WorksService {
 				status: work.status,
 				sortOrder: work.sortOrder,
 				publishedAt: work.publishedAt,
-				directorIds: ((work as any).directors || []).map((wd: any) => wd.directorId),
-				directorNames: ((work as any).directors || []).map((wd: any) => wd.director.title),
 			};
 
 			// Clean the snapshot to remove null/undefined/empty values
@@ -207,15 +190,6 @@ export class WorksService {
 									id: true,
 									name: true,
 									email: true,
-								},
-							},
-						},
-					},
-					directors: {
-						include: {
-							director: {
-								include: {
-									avatar: true,
 								},
 							},
 						},
@@ -284,15 +258,6 @@ export class WorksService {
 							email: true,
 						},
 					},
-					directors: {
-						include: {
-							director: {
-								include: {
-									avatar: true,
-								},
-							},
-						},
-					},
 				} as any,
 				orderBy,
 				skip,
@@ -354,15 +319,6 @@ export class WorksService {
 								id: true,
 								name: true,
 								email: true,
-							},
-						},
-					},
-				},
-				directors: {
-					include: {
-						director: {
-							include: {
-								avatar: true,
 							},
 						},
 					},
@@ -451,15 +407,6 @@ export class WorksService {
 						},
 					},
 				},
-				directors: {
-					include: {
-						director: {
-							include: {
-								avatar: true,
-							},
-						},
-					},
-				},
 			} as any,
 		});
 
@@ -470,7 +417,7 @@ export class WorksService {
 	 * Update work
 	 */
 	async updateWork(id: number, data: UpdateWorkData, userId?: number) {
-		const { directorIds, taxonomyIds, ...workData } = data;
+		const { taxonomyIds, ...workData } = data;
 
 		// Get current work first to fetch existing revisions and current relations
 		const currentWork = await prisma.work.findUnique({
@@ -480,7 +427,6 @@ export class WorksService {
 					orderBy: { createdAt: "desc" },
 					take: 1,
 				},
-				directors: { select: { directorId: true } },
 				taxonomies: { select: { taxonomyId: true } },
 			},
 		});
@@ -512,18 +458,10 @@ export class WorksService {
 			data: {
 				...workData,
 				// Only update relations if explicitly provided (not undefined)
-				// If directorIds is provided, update it (even if empty array - that's intentional)
-				// If directorIds is undefined, keep existing relations
-				...(directorIds !== undefined && {
-					directors: {
-						deleteMany: {},
-						create: directorIds.map((directorId) => ({ directorId })),
-					},
-				}),
 				...(taxonomyIds !== undefined && {
 					taxonomies: {
 						deleteMany: {},
-						create: taxonomyIds.map((taxonomyId) => ({ taxonomyId })),
+						create: taxonomyIds.map((taxonomyId: number) => ({ taxonomyId })),
 					},
 				}),
 			},
@@ -538,15 +476,6 @@ export class WorksService {
 								id: true,
 								name: true,
 								email: true,
-							},
-						},
-					},
-				},
-				directors: {
-					include: {
-						director: {
-							include: {
-								avatar: true,
 							},
 						},
 					},
@@ -578,15 +507,6 @@ export class WorksService {
 				}
 			}
 
-			// Compare relation changes if provided
-			if (!hasChanges && directorIds !== undefined) {
-				const currentDirectorIds = (currentWork.directors || []).map((d) => d.directorId).sort((a, b) => a - b);
-				const newDirectorIds = [...directorIds].sort((a, b) => a - b);
-				if (JSON.stringify(currentDirectorIds) !== JSON.stringify(newDirectorIds)) {
-					hasChanges = true;
-				}
-			}
-
 			// Only create revision if there are actual changes
 			if (hasChanges) {
 				const nextVersion = (currentWork.revisions?.[0]?.version || 0) + 1;
@@ -608,8 +528,6 @@ export class WorksService {
 					status: work.status,
 					sortOrder: work.sortOrder,
 					publishedAt: work.publishedAt,
-					directorIds: ((work as any).directors || []).map((wd: any) => wd.directorId),
-					directorNames: ((work as any).directors || []).map((wd: any) => wd.director.title),
 				};
 
 				// Clean the snapshot to remove null/undefined/empty values
@@ -643,7 +561,6 @@ export class WorksService {
 
 	/**
 	 * Delete work (move to trash)
-	 * Directors and Cast relationships are preserved
 	 */
 	async deleteWork(id: number) {
 		const work = await prisma.work.findUnique({
@@ -656,7 +573,6 @@ export class WorksService {
 		}
 
 		// Soft delete only - preserve all relationships
-		// Directors and Cast will remain attached
 		return prisma.work.update({
 			where: { id },
 			data: {
@@ -668,7 +584,6 @@ export class WorksService {
 
 	/**
 	 * Move work to trash
-	 * Directors and Cast relationships are preserved
 	 */
 	async trashWork(id: number) {
 		const work = await prisma.work.findUnique({
@@ -681,7 +596,6 @@ export class WorksService {
 		}
 
 		// Soft delete only - preserve all relationships
-		// Directors and Cast will remain attached
 		return prisma.work.update({
 			where: { id },
 			data: { deletedAt: new Date() } as any,
@@ -699,8 +613,7 @@ export class WorksService {
 	}
 
 	/**
-	 * Purge work (permanently hide from UI and detach all relationships)
-	 * Unlike trash, purge allows detaching Directors and Cast
+	 * Purge work (permanently hide from UI)
 	 */
 	async purgeWork(id: number) {
 		const work = await prisma.work.findUnique({
@@ -711,11 +624,6 @@ export class WorksService {
 		if (!work) {
 			throw new Error(`Work with id ${id} not found`);
 		}
-
-		// Permanently set purgedAt
-		// Delete all director/homepage associations to detach
-		await prisma.workDirector.deleteMany({ where: { workId: id } });
-		await prisma.homepageDirector.deleteMany({ where: { workId: id } });
 
 		return prisma.work.update({
 			where: { id },
@@ -728,7 +636,6 @@ export class WorksService {
 
 	/**
 	 * Bulk delete works (move to Trash)
-	 * Directors and Cast relationships are preserved
 	 */
 	async bulkDeleteWorks(ids: number[]) {
 		if (!ids.length)
@@ -782,8 +689,7 @@ export class WorksService {
 	}
 
 	/**
-	 * Bulk purge works (permanently hide from UI and detach all relationships)
-	 * Unlike bulk delete, purge allows detaching Directors and Cast
+	 * Bulk purge works (permanently hide from UI)
 	 */
 	async bulkPurgeWorks(ids: number[]) {
 		if (!ids.length)
@@ -819,14 +725,6 @@ export class WorksService {
 			});
 
 		if (validIds.length) {
-			// Delete all relationships for the works being purged
-			await prisma.workDirector.deleteMany({
-				where: { workId: { in: validIds } },
-			});
-			await prisma.homepageDirector.deleteMany({
-				where: { workId: { in: validIds } },
-			});
-
 			// Then mark as purged
 			await prisma.work.updateMany({
 				where: { id: { in: validIds } },
@@ -858,15 +756,6 @@ export class WorksService {
 			include: {
 				videoFile: true,
 				previewImage: true,
-				directors: {
-					include: {
-						director: {
-							include: {
-								avatar: true,
-							},
-						},
-					},
-				},
 			} as any,
 		});
 
@@ -1002,15 +891,6 @@ export class WorksService {
 			include: {
 				videoFile: true,
 				previewImage: true,
-				directors: {
-					include: {
-						director: {
-							include: {
-								avatar: true,
-							},
-						},
-					},
-				},
 			} as any,
 		});
 
@@ -1094,19 +974,6 @@ export class WorksService {
 			data: updateData,
 		});
 
-		// Update directors
-		if (payload.directorIds) {
-			await prisma.workDirector.deleteMany({
-				where: { workId: workId },
-			});
-			await prisma.workDirector.createMany({
-				data: payload.directorIds.map((directorId: number) => ({
-					workId: workId,
-					directorId: directorId,
-				})),
-			});
-		}
-
 		// Create a new revision for this revert action
 		const currentWork = await this.getWorkById(workId);
 		if (currentWork && currentWork.revisions) {
@@ -1129,8 +996,6 @@ export class WorksService {
 				status: currentWork.status,
 				sortOrder: currentWork.sortOrder,
 				publishedAt: currentWork.publishedAt,
-				directorIds: ((currentWork as any).directors || []).map((wd: any) => wd.directorId),
-				directorNames: ((currentWork as any).directors || []).map((wd: any) => wd.director.title),
 			};
 
 			// Clean the snapshot to remove null/undefined/empty values

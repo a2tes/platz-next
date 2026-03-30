@@ -19,7 +19,7 @@ interface GetAllPresentationsOptions {
 
 interface SectionInput {
 	title: string;
-	type: "DIRECTORS" | "ANIMATIONS" | "PHOTOGRAPHY" | "MIXED";
+	type: "ANIMATIONS" | "PHOTOGRAPHY" | "MIXED";
 	items: ItemInput[];
 }
 
@@ -28,7 +28,6 @@ interface ItemInput {
 	workId?: number;
 	animationId?: number;
 	photographyId?: number;
-	directorId?: number;
 	externalUrl?: string;
 	externalTitle?: string;
 	externalDescription?: string;
@@ -46,11 +45,6 @@ interface CreatePresentationData {
 	isActive?: boolean;
 	createdBy?: number;
 	sections?: SectionInput[];
-	// Legacy support
-	directors?: {
-		directorId: number;
-		works: number[];
-	}[];
 }
 
 interface UpdatePresentationData {
@@ -63,11 +57,6 @@ interface UpdatePresentationData {
 	validUntil?: Date | string | null;
 	isActive?: boolean;
 	sections?: SectionInput[];
-	// Legacy support
-	directors?: {
-		directorId: number;
-		works: number[];
-	}[];
 }
 
 export const getAllPresentations = async (options: GetAllPresentationsOptions = {}) => {
@@ -102,7 +91,7 @@ export const getAllPresentations = async (options: GetAllPresentationsOptions = 
 			take: limit,
 			include: {
 				_count: {
-					select: { directors: true, sections: true },
+					select: { sections: true },
 				},
 				creator: {
 					select: { id: true, name: true, email: true },
@@ -158,9 +147,6 @@ export const getPresentationById = async (id: number) => {
 							work: {
 								include: {
 									previewImage: true,
-									directors: {
-										include: { director: { include: { avatar: true } } },
-									},
 								},
 							},
 							animation: {
@@ -172,30 +158,6 @@ export const getPresentationById = async (id: number) => {
 								include: {
 									image: true,
 									photographer: true,
-								},
-							},
-							director: {
-								include: { avatar: true },
-							},
-						},
-						orderBy: { sortOrder: "asc" },
-					},
-				},
-				orderBy: { sortOrder: "asc" },
-			},
-			// Keep old relation for backward compat
-			directors: {
-				include: {
-					director: {
-						include: {
-							avatar: true,
-						},
-					},
-					works: {
-						include: {
-							work: {
-								include: {
-									previewImage: true,
 								},
 							},
 						},
@@ -220,9 +182,6 @@ export const getPresentationByToken = async (token: string) => {
 								include: {
 									previewImage: true,
 									videoFile: true,
-									directors: {
-										include: { director: true },
-									},
 									clients: {
 										include: { client: true },
 									},
@@ -249,34 +208,7 @@ export const getPresentationByToken = async (token: string) => {
 									},
 								},
 							},
-							director: {
-								include: {
-									avatar: true,
-								},
-							},
 							externalThumbnail: true,
-						},
-						orderBy: { sortOrder: "asc" },
-					},
-				},
-				orderBy: { sortOrder: "asc" },
-			},
-			// Keep old relation for backward compat
-			directors: {
-				include: {
-					director: {
-						include: {
-							avatar: true,
-						},
-					},
-					works: {
-						include: {
-							work: {
-								include: {
-									previewImage: true,
-									videoFile: true,
-								},
-							},
 						},
 						orderBy: { sortOrder: "asc" },
 					},
@@ -328,24 +260,7 @@ export const createPresentation = async (data: CreatePresentationData) => {
 						workId: item.workId || null,
 						animationId: item.animationId || null,
 						photographyId: item.photographyId || null,
-						directorId: item.directorId || null,
 						sortOrder: iIndex,
-					})),
-				},
-			})),
-		};
-	}
-
-	// Legacy director-based creation
-	if (data.directors && data.directors.length > 0) {
-		createData.directors = {
-			create: data.directors.map((d, index) => ({
-				directorId: d.directorId,
-				sortOrder: index,
-				works: {
-					create: d.works.map((workId, wIndex) => ({
-						workId,
-						sortOrder: wIndex,
 					})),
 				},
 			})),
@@ -374,9 +289,8 @@ export const updatePresentation = async (id: number, data: UpdatePresentationDat
 	}
 
 	const hasSections = data.sections !== undefined;
-	const hasDirectors = data.directors !== undefined;
 
-	if (hasSections || hasDirectors) {
+	if (hasSections) {
 		return prisma.$transaction(async (tx: any) => {
 			await tx.presentation.update({
 				where: { id },
@@ -402,7 +316,7 @@ export const updatePresentation = async (id: number, data: UpdatePresentationDat
 									workId: item.workId || null,
 									animationId: item.animationId || null,
 									photographyId: item.photographyId || null,
-									directorId: item.directorId || null,
+
 									externalUrl: item.externalUrl || null,
 									externalTitle: item.externalTitle || null,
 									externalDescription: item.externalDescription || null,
@@ -415,38 +329,11 @@ export const updatePresentation = async (id: number, data: UpdatePresentationDat
 				}
 			}
 
-			// Handle legacy directors
-			if (hasDirectors) {
-				await tx.presentationDirector.deleteMany({
-					where: { presentationId: id },
-				});
-
-				for (const [index, d] of data.directors!.entries()) {
-					await tx.presentationDirector.create({
-						data: {
-							presentationId: id,
-							directorId: d.directorId,
-							sortOrder: index,
-							works: {
-								create: d.works.map((workId, wIndex) => ({
-									workId,
-									sortOrder: wIndex,
-								})),
-							},
-						},
-					});
-				}
-			}
-
 			return tx.presentation.findUnique({
 				where: { id },
 				include: {
 					sections: {
 						include: { items: true },
-						orderBy: { sortOrder: "asc" },
-					},
-					directors: {
-						include: { works: true },
 						orderBy: { sortOrder: "asc" },
 					},
 				},

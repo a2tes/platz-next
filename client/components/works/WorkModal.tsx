@@ -19,7 +19,6 @@ interface Work {
 	shortDescription: string;
 	subtitle?: string;
 	caseStudy?: string;
-	directors?: Array<{ title: string; slug?: string }>;
 	videoUrl: string;
 	hlsUrl?: string;
 	optimizedVideoUrl?: string;
@@ -113,7 +112,7 @@ export default function WorkModal({ work, cardRect, onClose }: WorkModalProps) {
 
 			// Rotate details every 3 seconds
 			rotateDetailsIntervalRef.current = setInterval(() => {
-				const detailsCount = [work.client, work.directors?.length].filter(Boolean).length;
+				const detailsCount = [work.client].filter(Boolean).length;
 				setVisibleDetailIndex((prev) => (prev + 1) % detailsCount);
 			}, 5000);
 
@@ -413,49 +412,15 @@ export default function WorkModal({ work, cardRect, onClose }: WorkModalProps) {
 										</div>
 									)}
 
-									{work.directors && work.directors.length > 0 && (
-										<div className="hidden md:block">
-											<div>
-												<span className="uppercase text-gray-200 text-xs md:text-sm">DIRECTOR</span>
-												<p className="text-sm md:text-base">
-													{work.directors.map((d, i) => (
-														<span key={d.slug || d.title}>
-															{i > 0 && ", "}
-															{d.slug ? (
-																<a
-																	href={`/directors/${d.slug}`}
-																	className="underline hover:text-gray-300 transition-colors"
-																	onClick={(e) => e.stopPropagation()}
-																>
-																	{d.title}
-																</a>
-															) : (
-																d.title
-															)}
-														</span>
-													))}
-												</p>
-											</div>
-										</div>
-									)}
-
 									{/* Mobile: show rotating items */}
 									<div className="block md:hidden relative min-h-[4rem]">
 										{(() => {
-											const details = [
-												work.client && { key: "client", label: "CLIENT", value: work.client },
-
-												work.directors &&
-													work.directors.length > 0 && {
-														key: "director",
-														label: "DIRECTOR",
-														directors: work.directors,
-													},
-											].filter(Boolean) as {
+											const details = [work.client && { key: "client", label: "CLIENT", value: work.client }].filter(
+												Boolean,
+											) as {
 												key: string;
 												label: string;
 												value?: string;
-												directors?: Array<{ title: string; slug?: string }>;
 											}[];
 
 											const currentDetail = details[visibleDetailIndex % details.length];
@@ -472,26 +437,7 @@ export default function WorkModal({ work, cardRect, onClose }: WorkModalProps) {
 														className="absolute"
 													>
 														<span className="uppercase text-gray-200 text-xs md:text-sm">{currentDetail.label}</span>
-														<p className="text-sm md:text-base">
-															{currentDetail.directors
-																? currentDetail.directors.map((d, i) => (
-																		<span key={d.slug || d.title}>
-																			{i > 0 && ", "}
-																			{d.slug ? (
-																				<a
-																					href={`/directors/${d.slug}`}
-																					className="underline hover:text-gray-300 transition-colors"
-																					onClick={(e) => e.stopPropagation()}
-																				>
-																					{d.title}
-																				</a>
-																			) : (
-																				d.title
-																			)}
-																		</span>
-																	))
-																: currentDetail.value}
-														</p>
+														<p className="text-sm md:text-base">{currentDetail.value}</p>
 													</motion.div>
 												</AnimatePresence>
 											);

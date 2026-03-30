@@ -118,18 +118,18 @@ export interface EntityService<T extends BaseEntity> {
 // Config for the component
 export interface EntityListConfig<T extends BaseEntity> {
 	// Entity info
-	entityName: string; // "work", "director"
-	entityNamePlural: string; // "works", "directors"
-	entityDisplayName: string; // "Work", "Director"
-	entityDisplayNamePlural: string; // "Works", "Directors"
+	entityName: string; // "work"
+	entityNamePlural: string; // "works"
+	entityDisplayName: string; // "Work"
+	entityDisplayNamePlural: string; // "Works"
 	entityDescription?: string; // Description text for the entity
 
 	icon: React.ReactNode; // Icon for the entity
 
 	// Query keys
-	queryKey: string; // "works", "directors"
-	countsQueryKey: string; // "works-counts", "directors-counts"
-	trashedQueryKey: string; // "trashed-works", "trashed-directors"
+	queryKey: string; // "works"
+	countsQueryKey: string; // "works-counts"
+	trashedQueryKey: string; // "trashed-works"
 
 	// Service
 	service: EntityService<T>;

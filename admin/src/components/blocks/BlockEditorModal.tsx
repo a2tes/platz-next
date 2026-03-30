@@ -386,7 +386,6 @@ export function BlockEditorModal() {
 	} | null>(null);
 
 	const isAnimationsMode = pageType === "ANIMATIONS";
-	const isDirectorMode = modelName === "Director";
 
 	// Fetch works for selector with infinite scroll
 	const {
@@ -409,7 +408,7 @@ export function BlockEditorModal() {
 			return page < totalPages ? page + 1 : undefined;
 		},
 		initialPageParam: 1,
-		enabled: isContentSelectorOpen && !isAnimationsMode && !isDirectorMode,
+		enabled: isContentSelectorOpen && !isAnimationsMode,
 	});
 
 	// Fetch animations for selector with infinite scroll
@@ -436,29 +435,6 @@ export function BlockEditorModal() {
 		enabled: isContentSelectorOpen && isAnimationsMode,
 	});
 
-	// Fetch director works for selector with infinite scroll
-	const {
-		data: directorWorksData,
-		fetchNextPage: fetchNextDirectorWorksPage,
-		hasNextPage: hasNextDirectorWorksPage,
-		isFetchingNextPage: isFetchingNextDirectorWorksPage,
-		isLoading: isDirectorWorksLoading,
-	} = useInfiniteQuery({
-		queryKey: ["director-works", modelId, "selector", debouncedSearchQuery],
-		queryFn: ({ pageParam = 1 }) =>
-			WorksService.getDirectorWorksPaginated(modelId!, {
-				page: pageParam,
-				limit: 10,
-				...(debouncedSearchQuery ? { search: debouncedSearchQuery } : {}),
-			}),
-		getNextPageParam: (lastPage) => {
-			const { page, totalPages } = lastPage.meta.pagination;
-			return page < totalPages ? page + 1 : undefined;
-		},
-		initialPageParam: 1,
-		enabled: isContentSelectorOpen && isDirectorMode && !!modelId,
-	});
-
 	// Flatten all pages into entity lists
 	const allWorks = React.useMemo(() => {
 		if (!worksData?.pages) return [];
@@ -470,33 +446,12 @@ export function BlockEditorModal() {
 		return animationsData.pages.flatMap((page) => page.data);
 	}, [animationsData?.pages]);
 
-	const allDirectorWorks = React.useMemo(() => {
-		if (!directorWorksData?.pages) return [];
-		return directorWorksData.pages.flatMap((page) => page.data.map((item: any) => item.work ?? item));
-	}, [directorWorksData?.pages]);
-
 	// Unified entity list and loading state
-	const allEntities = isDirectorMode ? allDirectorWorks : isAnimationsMode ? allAnimations : allWorks;
-	const isEntitiesLoading = isDirectorMode
-		? isDirectorWorksLoading
-		: isAnimationsMode
-			? isAnimationsLoading
-			: isWorksLoading;
-	const isFetchingNextPage = isDirectorMode
-		? isFetchingNextDirectorWorksPage
-		: isAnimationsMode
-			? isFetchingNextAnimationsPage
-			: isFetchingNextWorksPage;
-	const hasNextPage = isDirectorMode
-		? hasNextDirectorWorksPage
-		: isAnimationsMode
-			? hasNextAnimationsPage
-			: hasNextWorksPage;
-	const fetchNextPage = isDirectorMode
-		? fetchNextDirectorWorksPage
-		: isAnimationsMode
-			? fetchNextAnimationsPage
-			: fetchNextWorksPage;
+	const allEntities = isAnimationsMode ? allAnimations : allWorks;
+	const isEntitiesLoading = isAnimationsMode ? isAnimationsLoading : isWorksLoading;
+	const isFetchingNextPage = isAnimationsMode ? isFetchingNextAnimationsPage : isFetchingNextWorksPage;
+	const hasNextPage = isAnimationsMode ? hasNextAnimationsPage : hasNextWorksPage;
+	const fetchNextPage = isAnimationsMode ? fetchNextAnimationsPage : fetchNextWorksPage;
 
 	// Scroll handler for infinite loading
 	const handleWorksScroll = React.useCallback(
@@ -555,9 +510,6 @@ export function BlockEditorModal() {
 					// Default to WORKS if page type can't be determined
 					setPageType("WORKS");
 				}
-			} else if (modelName === "Director") {
-				// Director blocks always use works
-				setPageType("WORKS");
 			}
 
 			const existingBlocks = await blocksService.getBlocks({ modelName, modelId });
@@ -1504,11 +1456,7 @@ export function BlockEditorModal() {
 											{/* Info */}
 											<div className="flex-1 min-w-0">
 												<div className="font-medium truncate">{entity.title}</div>
-												<div className="text-sm text-muted-foreground truncate">
-													{!isAnimationsMode && entity.directors?.[0]?.director?.title}
-													{entity.client &&
-														`${!isAnimationsMode && entity.directors?.[0]?.director?.title ? " • " : ""}${entity.client}`}
-												</div>
+												<div className="text-sm text-muted-foreground truncate">{entity.client}</div>
 											</div>
 											{/* Video indicator */}
 											{entity.videoFile && <IconVideo className="w-4 h-4 text-muted-foreground shrink-0" />}

@@ -92,21 +92,8 @@ export const getPresentationByToken = async (req: Request, res: Response) => {
 						hlsUrl: videoFile?.video?.hls || null,
 						optimizedVideoUrl: videoFile?.video?.mp4 || null,
 						images: videoFile?.images || null,
-						directors:
-							w.directors?.map((wd: any) => ({
-								title: wd.director.title,
-								slug: wd.director.slug,
-							})) || [],
 						clients: w.clients?.map((wc: any) => wc.client?.title).filter(Boolean) || [],
 					};
-					if (item.director) {
-						result.director = {
-							id: item.director.id,
-							title: item.director.title,
-							slug: item.director.slug,
-							avatar: item.director.avatar ? serializeMediaFile(item.director.avatar) : null,
-						};
-					}
 				}
 
 				if (item.itemType === "ANIMATION" && item.animation) {
@@ -158,46 +145,6 @@ export const getPresentationByToken = async (req: Request, res: Response) => {
 			}),
 		}));
 
-		// Also serialize legacy directors for backward compat
-		const serializedDirectors = (p.directors || []).map((pd: any) => {
-			const { director, works } = pd;
-			const firstWork = works[0]?.work;
-			const firstWorkVideo = firstWork ? serializeMediaFile(firstWork.videoFile) : null;
-
-			return {
-				slug: director.slug,
-				title: director.title,
-				work: firstWork
-					? {
-							title: firstWork.title,
-							slug: firstWork.slug,
-						}
-					: null,
-				videoUrl:
-					firstWorkVideo?.video?.mp4_720p || firstWorkVideo?.video?.mp4 || firstWorkVideo?.video?.default || null,
-				videoUrl720p: firstWorkVideo?.video?.mp4_720p || firstWorkVideo?.video?.mp4 || null,
-				hlsUrl: firstWorkVideo?.video?.hls || null,
-				works: works.map((pw: any) => {
-					const w = pw.work;
-					const videoFile = serializeMediaFile(w.videoFile);
-
-					return {
-						work: {
-							slug: w.slug,
-							title: w.title,
-							shortDescription: w.shortDescription,
-							subtitle: w.subtitle,
-							caseStudy: w.caseStudy,
-							videoUrl: videoFile?.video?.mp4_720p || videoFile?.video?.mp4 || videoFile?.video?.default || null,
-							hlsUrl: videoFile?.video?.hls || null,
-							optimizedVideoUrl: videoFile?.video?.mp4 || null,
-							images: videoFile?.images || null,
-						},
-					};
-				}),
-			};
-		});
-
 		// Return new format: full presentation object with sections
 		res.json({
 			title: p.title,
@@ -206,8 +153,6 @@ export const getPresentationByToken = async (req: Request, res: Response) => {
 			autoPlayEnabled: p.autoPlayEnabled,
 			photoSlideDuration: p.photoSlideDuration,
 			sections: serializedSections,
-			// Legacy data
-			directors: serializedDirectors,
 		});
 	} catch (error) {
 		console.error("Error getting presentation by token:", error);

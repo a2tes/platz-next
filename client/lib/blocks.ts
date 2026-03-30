@@ -10,7 +10,6 @@ export interface BlockWork {
 	shortDescription: string;
 	subtitle?: string;
 	caseStudy?: string;
-	directors?: Array<{ title: string; slug?: string }>;
 	videoUrl: string | null;
 	videoAspectRatio: number;
 	thumbnail: string | null;
@@ -107,47 +106,6 @@ export async function getBlockPage(
 		};
 	} catch (error) {
 		console.error("Failed to fetch block page:", error);
-		return null;
-	}
-}
-
-export async function getDirectorBlocks(
-	slug: string,
-	options?: {
-		page?: number;
-		limit?: number;
-	},
-): Promise<BlockPagePaginatedResponse | null> {
-	try {
-		const page = options?.page || 1;
-		const limit = options?.limit || 5;
-		const res = await fetch(
-			`${getApiUrl()}/api/public/directors/${encodeURIComponent(slug)}/blocks?page=${page}&limit=${limit}`,
-		);
-		if (!res.ok) {
-			return null;
-		}
-		const json = await res.json();
-		const rawBlocks = json.data || [];
-
-		const blocks: Block[] = rawBlocks.map((rawBlock: any) => ({
-			id: rawBlock.id,
-			type: rawBlock.type,
-			content: rawBlock.content?.items || rawBlock.content || [],
-			sortOrder: rawBlock.position ?? 0,
-		}));
-
-		return {
-			blocks,
-			pagination: json.meta?.pagination || {
-				page,
-				limit,
-				total: blocks.length,
-				totalPages: 1,
-			},
-		};
-	} catch (error) {
-		console.error("Failed to fetch director blocks:", error);
 		return null;
 	}
 }

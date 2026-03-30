@@ -67,14 +67,6 @@ export default function Navbar({ theme = "light", fixed = false }: { theme?: "li
 					<DrawerDescription className="sr-only">Main navigation menu</DrawerDescription>
 					<div className="w-full px-4 py-6 space-y-4">
 						<Link
-							href="/directors"
-							className={`block py-2 text-lg font-semibold transition-opacity hover:opacity-70 ${
-								pathname === "/directors" ? "opacity-100" : "opacity-80"
-							}`}
-						>
-							DIRECTORS
-						</Link>
-						<Link
 							href="/works"
 							className={`block py-2 text-lg font-semibold transition-opacity hover:opacity-70 ${
 								pathname === "/works" ? "opacity-100" : "opacity-80"
@@ -187,11 +179,6 @@ export default function Navbar({ theme = "light", fixed = false }: { theme?: "li
 			<ul
 				className={`nav-menu hidden md:flex ${loading ? "opacity-0" : "opacity-100"} transition-opacity duration-200`}
 			>
-				<li>
-					<Link href="/directors" className={`nav-link ${pathname.startsWith("/directors") ? "active" : ""}`}>
-						DIRECTORS <span></span>
-					</Link>
-				</li>
 				<li>
 					<Link href="/works" className={`nav-link ${pathname === "/works" ? "active" : ""}`}>
 						WORKS<span></span>

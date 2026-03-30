@@ -38,7 +38,6 @@ const workSchema = z.object({
 	metaKeywords: z.string().optional(),
 	previewImageId: z.number().nullable().optional(),
 	status: z.enum(["DRAFT", "PUBLISHED"]),
-	directorIds: z.array(z.number()),
 	taxonomyIds: z.array(z.number()).optional(),
 });
 
@@ -75,7 +74,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 			publicationDate: work?.publicationDate ? work.publicationDate.split("T")[0] : "",
 			year: work?.year ?? "",
 			status: work?.status || "DRAFT",
-			directorIds: work?.directors.map((d) => d.director.id) || [],
 			taxonomyIds: work?.taxonomies?.map((t: any) => t.taxonomy.id) || [],
 			videoFileId: work?.videoFileId,
 			previewImageId: work?.previewImageId,
@@ -103,7 +101,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 				publicationDate: work.publicationDate ? work.publicationDate.split("T")[0] : "",
 				year: work.year ?? "",
 				status: work.status,
-				directorIds: (work.directors || []).map((d) => d.director.id),
 				taxonomyIds: (work.taxonomies || []).map((t: any) => t.taxonomy.id),
 				videoFileId: work.videoFileId,
 				previewImageId: work.previewImageId,
@@ -114,12 +111,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 	}, [work, isEditing, reset]);
 
 	// No-op
-
-	// Fetch directors
-	const { data: directorsData } = useQuery({
-		queryKey: ["directors"],
-		queryFn: () => WorksService.getDirectors({ limit: 100 }),
-	});
 
 	// Fetch all clients once
 	const { data: clientsData } = useQuery({
@@ -263,12 +254,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 		});
 	};
 
-	const toggleDirector = (directorId: number) => {
-		const current = watchedValues.directorIds || [];
-		const updated = current.includes(directorId) ? current.filter((id) => id !== directorId) : [...current, directorId];
-		setValue("directorIds", updated);
-	};
-
 	const handleRevertRevision = async (revisionId: number) => {
 		try {
 			if (!work?.id) return;
@@ -289,8 +274,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 			toast.error(message);
 		}
 	};
-
-	const directors = directorsData?.data || [];
 
 	return (
 		<>
@@ -559,40 +542,6 @@ export const WorkForm: React.FC<WorkFormProps> = ({ work, onClose, onSuccess }) 
 									</div>
 								)}
 							</div>
-						</div>
-					</div>
-
-					{/* Directors */}
-					<div className="border rounded-xl">
-						<h3 className="text-lg font-semibold border-b p-4">Directors</h3>
-						<div className="p-4">
-							<Label className="justify-between">
-								Directors{" "}
-								<span className=" text-gray-500 font-normal">
-									{watchedValues.directorIds?.length ? `(${watchedValues.directorIds.length} selected)` : ""}
-								</span>
-							</Label>
-							<ScrollArea className="mt-3 space-y-2 border rounded-md p-2">
-								<div className="space-y-2 max-h-48">
-									{directors.length === 0 ? (
-										<p className="text-sm text-muted-foreground text-center py-4">No directors available</p>
-									) : (
-										directors.map((director) => (
-											<div
-												key={director.id}
-												className={`p-3 rounded-md cursor-pointer transition-colors ${
-													(watchedValues.directorIds || []).includes(director.id)
-														? "bg-primary text-primary-foreground"
-														: "bg-muted hover:bg-muted/80"
-												}`}
-												onClick={() => toggleDirector(director.id)}
-											>
-												<p className="font-medium">{director.title}</p>
-											</div>
-										))
-									)}
-								</div>
-							</ScrollArea>
 						</div>
 					</div>
 				</div>

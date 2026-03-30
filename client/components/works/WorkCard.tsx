@@ -10,7 +10,6 @@ interface Work {
 	shortDescription: string;
 	subtitle?: string;
 	caseStudy?: string;
-	directors?: Array<{ title: string; slug?: string }>;
 	videoUrl: string;
 	hlsUrl?: string;
 	optimizedVideoUrl?: string;

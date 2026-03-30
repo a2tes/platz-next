@@ -3,7 +3,7 @@ import { BaseEntity, FilterTab, NavigationItem } from "@/components/page/entity-
 
 /**
  * Standard columns for entity lists
- * These can be reused across Works, Directors, etc.
+ * These can be reused across Works, etc.
  */
 
 export function createTitleColumn<T extends BaseEntity>(): Column<T> {
@@ -110,10 +110,10 @@ export function createStandardActions<T extends BaseEntity>(): (config: {
 }
 
 /**
- * Create standard navigation for Works/Directors/Presentations/Animations
+ * Create standard navigation for Works/Presentations/Animations
  */
 export interface WorksNavigationConfig {
-	currentPath: "/works" | "/works/directors" | "/animations";
+	currentPath: "/works" | "/animations";
 }
 
 export function createWorksNavigation(config: WorksNavigationConfig): NavigationItem[] {
@@ -122,11 +122,6 @@ export function createWorksNavigation(config: WorksNavigationConfig): Navigation
 			label: "Works",
 			href: "/works",
 			isActive: config.currentPath === "/works",
-		},
-		{
-			label: "Directors",
-			href: "/works/directors",
-			isActive: config.currentPath === "/works/directors",
 		},
 	];
 }

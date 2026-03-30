@@ -2,15 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import {
-	PencilIcon,
-	TrashIcon,
-	EyeIcon,
-	EyeSlashIcon,
-	PlayIcon,
-	TagIcon,
-	UserGroupIcon,
-} from "@heroicons/react/24/outline";
+import { PencilIcon, TrashIcon, EyeIcon, EyeSlashIcon, PlayIcon, TagIcon } from "@heroicons/react/24/outline";
 import { Work } from "../../services/worksService";
 
 interface WorkCardProps {
@@ -67,7 +59,7 @@ export const WorkCard: React.FC<WorkCardProps> = ({ work, onEdit, onDelete, onPu
 				<div className="absolute top-2 right-2">
 					<span
 						className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-							work.status
+							work.status,
 						)}`}
 					>
 						{work.status === "PUBLISHED" ? (
@@ -94,14 +86,6 @@ export const WorkCard: React.FC<WorkCardProps> = ({ work, onEdit, onDelete, onPu
 						<span className="font-medium">Client:</span>
 						<span className="ml-1">{work.client}</span>
 					</div>
-
-					{/* Directors */}
-					{work.directors.length > 0 && (
-						<div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-							<UserGroupIcon className="h-4 w-4 mr-1" />
-							<span className="truncate">{work.directors.map((d) => d.director.title).join(", ")}</span>
-						</div>
-					)}
 
 					{/* Tags */}
 					{work.tags.length > 0 && (

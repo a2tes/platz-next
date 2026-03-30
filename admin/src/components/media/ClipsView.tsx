@@ -348,9 +348,7 @@ export function ClipsView() {
 		},
 	});
 
-	const totalUsage = usageData
-		? usageData.homepageDirectors.length + usageData.directorsPageSelections.length + usageData.blocks.length
-		: 0;
+	const totalUsage = usageData ? usageData.blocks.length : 0;
 	const isInUse = totalUsage > 0;
 
 	// Infinite scroll
@@ -682,42 +680,10 @@ export function ClipsView() {
 											<div className="text-muted-foreground">Not used anywhere yet.</div>
 										) : (
 											<ul className="space-y-1">
-												{usageData.homepageDirectors.map((hd) => (
-													<li key={`hd-${hd.id}`}>
-														<a
-															href="/homepage"
-															target="_blank"
-															rel="noopener noreferrer"
-															className="text-primary hover:underline"
-														>
-															Homepage — {hd.director?.title || "Director"}
-															{hd.work ? ` (${hd.work.title})` : ""}
-														</a>
-													</li>
-												))}
-												{usageData.directorsPageSelections.map((dp) => (
-													<li key={`dp-${dp.id}`}>
-														<a
-															href={dp.director ? `/directors` : "#"}
-															target="_blank"
-															rel="noopener noreferrer"
-															className="text-primary hover:underline"
-														>
-															Directors Page — {dp.director?.title || "Director"}
-															{dp.work ? ` (${dp.work.title})` : ""}
-														</a>
-													</li>
-												))}
 												{usageData.blocks.map((b) => (
 													<li key={`b-${b.id}`}>
 														<a
-															href={
-																b.modelName === "work" && b.modelId
-																	? `/works/${b.modelId}/edit`
-																	: b.modelName === "director" && b.modelId
-																		? `/works/directors/${b.modelId}/edit`
-																		: "#"
-															}
+															href={b.modelName === "work" && b.modelId ? `/works/${b.modelId}/edit` : "#"}
 															target="_blank"
 															rel="noopener noreferrer"
 															className="text-primary hover:underline"

@@ -23,7 +23,7 @@ body {
 	min-height: -webkit-fill-available;
 }
 
-/* iOS Safari için scroll lock - anasayfa ve directors sayfalarında kullanılacak */
+/* iOS Safari scroll lock */
 .ios-scroll-lock {
 	overflow: hidden !important;
 	position: fixed !important;
@@ -226,83 +226,6 @@ nav {
 
 	&.navbar-fixed {
 		@apply fixed top-0 left-0 z-50;
-	}
-}
-
-nav.navbar-dark + .director-containerss {
-	@apply text-black fixed top-1/2 left-1/2 z-10 -translate-x-1/2 transform -translate-y-1/2 w-full;
-
-	.viewport {
-		@apply h-auto overflow-auto;
-		mask-image: unset;
-
-		.scroller {
-			@apply grid grid-cols-1 gap-x-16 gap-y-2;
-
-			.item {
-				@apply text-white font-semibold text-3xl text-center h-auto relative w-fit mx-auto;
-
-				&::after {
-					content: "";
-					@apply absolute bottom-0 left-0 w-0 h-px bg-white transition-all duration-300;
-				}
-
-				&:hover {
-					&::after {
-						@apply w-full;
-					}
-				}
-			}
-		}
-	}
-}
-
-.directors-list,
-.directors-grid {
-	@apply flex items-center justify-center relative z-[1];
-	height: 100vh;
-	height: 100dvh; /* iOS Safari için dynamic viewport height */
-	height: -webkit-fill-available !important;
-}
-
-.directors-list {
-	.director-container {
-		@apply flex items-center justify-center relative z-[1];
-		height: 100vh;
-		height: 100dvh; /* iOS Safari için dynamic viewport height */
-		height: -webkit-fill-available !important;
-
-		.viewport {
-			@apply h-[28rem] overflow-hidden;
-			mask-image: linear-gradient(
-				transparent 0%,
-				rgba(0, 0, 0, 0.7) 45%,
-				black 50%,
-				rgba(0, 0, 0, 0.7) 55%,
-				transparent 100%
-			);
-
-			.scroller {
-				@apply flex flex-col;
-
-				.item {
-					@apply h-[4rem] flex items-center justify-center text-3xl text-white transition-all font-bold;
-				}
-			}
-		}
-	}
-}
-.directors-grid {
-	@apply items-start pt-20 !h-[calc(100vh-10rem)];
-	.director-container {
-		@apply flex items-center justify-center relative z-[1];
-		/* height: 100vh;
-		height: 100dvh;
-		height: -webkit-fill-available !important; */
-
-		.viewport {
-			@apply h-full overflow-auto;
-		}
 	}
 }
 
@@ -517,96 +440,12 @@ nav.navbar-dark + .director-containerss {
 	}
 }
 
-.director-hero-container {
-	@apply relative overflow-hidden;
-	height: 100vh;
-	height: 100dvh; /* iOS Safari için dynamic viewport height */
-
-	video {
-		@apply w-full object-cover;
-		height: 100vh;
-		height: 100dvh;
-	}
-}
-
 #scrollbar-map {
 	@apply fixed right-4 top-1/2 transform -translate-y-1/2 h-1/6 w-1.5 bg-gray-200/50 rounded-full z-50 overflow-hidden opacity-0 border border-black/10 drop-shadow-sm;
 }
 
 #scroll-progress {
 	@apply w-full bg-white opacity-90 rounded-full absolute top-0;
-}
-
-.director-detail {
-	@apply grid grid-cols-3;
-
-	.director-work {
-		@apply relative aspect-square transition-all duration-300 cursor-pointer;
-
-		&:before,
-		&:after {
-			@apply absolute opacity-0 border-white transition-all duration-300;
-			z-index: 10;
-		}
-
-		&:before {
-			content: "";
-			@apply w-10 h-10 top-4 left-4 border-l-2 border-t-2;
-		}
-
-		&:after {
-			content: "";
-			@apply w-10 h-10 bottom-4 right-4 border-r-2 border-b-2;
-		}
-
-		&:hover {
-			&:before,
-			&:after {
-				@apply opacity-100;
-			}
-
-			.work-info {
-				.subtitle {
-					@apply max-h-16;
-				}
-			}
-		}
-
-		.work-info {
-			@apply absolute bottom-4 left-4 z-10;
-			width: calc(100% - 4.5rem);
-			text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-
-			svg {
-				@apply border-2 fill-white border-white rounded-full w-8 h-8 p-2 mx-auto mb-2;
-			}
-
-			.title {
-				@apply text-white font-semibold;
-			}
-
-			.subtitle {
-				@apply text-white font-normal max-h-6 overflow-hidden transition-all duration-300;
-			}
-		}
-
-		.work-media {
-			@apply relative overflow-hidden;
-
-			img {
-				@apply w-full transition-opacity duration-300 opacity-100;
-			}
-
-			video {
-				@apply absolute inset-0 w-full h-full object-cover;
-			}
-
-			&::before {
-				content: "";
-				@apply absolute w-full bottom-0 h-1/4 object-cover bg-gradient-to-t from-black/60 to-transparent transition-all duration-300 z-[2];
-			}
-		}
-	}
 }
 
 .works {

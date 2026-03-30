@@ -101,13 +101,13 @@ export default function EditPresentationPage() {
 								</div>
 								{presentation && (
 									<a
-										href={`${publicUrl}/directors?ref=${presentation.token}`}
+										href={`${publicUrl}/presentation?ref=${presentation.token}`}
 										target="_blank"
 										rel="noopener noreferrer"
 										className="text-sm text-muted-foreground mt-2 inline-flex items-center gap-1 hover:text-foreground transition-colors group"
 									>
 										<span className="group-hover:underline">
-											{publicUrl}/directors?ref={presentation.token}
+											{publicUrl}/presentation?ref={presentation.token}
 										</span>
 										<IconArrowUpRight className="h-3 w-3" />
 									</a>
@@ -129,13 +129,13 @@ export default function EditPresentationPage() {
 										</div>
 										{presentation && (
 											<a
-												href={`${publicUrl}/directors?ref=${presentation.token}`}
+												href={`${publicUrl}/presentation?ref=${presentation.token}`}
 												target="_blank"
 												rel="noopener noreferrer"
 												className="text-sm text-muted-foreground mt-2 inline-flex items-center gap-1 hover:text-foreground transition-colors group"
 											>
 												<span className="group-hover:underline">
-													{publicUrl}/directors?ref={presentation.token}
+													{publicUrl}/presentation?ref={presentation.token}
 												</span>
 												<IconArrowUpRight className="h-3 w-3" />
 											</a>
