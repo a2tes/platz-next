@@ -82,15 +82,15 @@ function groupItemsByClient(items: LocalItem[]): ClientGroup[] {
 	const map = new Map<number, { name: string; items: LocalItem[] }>();
 
 	for (const item of items) {
-		const firstClient = item.clients?.[0]?.client;
-		if (!firstClient) {
+		const clientTaxonomy = item.taxonomies?.find((t) => t.taxonomy?.type === "CLIENT")?.taxonomy;
+		if (!clientTaxonomy) {
 			uncategorized.push(item);
 		} else {
-			const existing = map.get(firstClient.id);
+			const existing = map.get(clientTaxonomy.id);
 			if (existing) {
 				existing.items.push(item);
 			} else {
-				map.set(firstClient.id, { name: firstClient.name, items: [item] });
+				map.set(clientTaxonomy.id, { name: clientTaxonomy.name, items: [item] });
 			}
 		}
 	}
@@ -318,18 +318,20 @@ export function ImagesManager({
 			const movedItem = sourceGroup.items.find((i) => i.id === activeId)!;
 			const newSourceItems = sourceGroup.items.filter((i) => i.id !== activeId);
 
-			// Update client on moved item locally
+			// Update client taxonomy on moved item locally
+			const nonClientTaxonomies = (movedItem.taxonomies || []).filter((t) => t.taxonomy?.type !== "CLIENT");
 			const updatedMovedItem: LocalItem = {
 				...movedItem,
-				clients: targetGroup.clientId
+				taxonomies: targetGroup.clientId
 					? [
+							...nonClientTaxonomies,
 							{
 								photographyId: movedItem.id,
-								clientId: targetGroup.clientId,
-								client: { id: targetGroup.clientId, name: targetGroup.clientName, slug: "" },
+								taxonomyId: targetGroup.clientId,
+								taxonomy: { id: targetGroup.clientId, type: "CLIENT", name: targetGroup.clientName, slug: "" },
 							},
 						]
-					: [],
+					: nonClientTaxonomies,
 			};
 
 			let newTargetItems: LocalItem[];

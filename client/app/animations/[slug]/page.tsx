@@ -1,1 +1,0 @@
-// Removed - animations feature deleted
