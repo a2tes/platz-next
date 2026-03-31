@@ -3,9 +3,10 @@ module.exports = {
 		{
 			name: "platz-client",
 			cwd: "/var/www/platz-next/client",
-			script: "node_modules/.bin/next",
-			args: "start -p 3000",
-			env: {
+			script: "pnpm",
+			args: "start",
+			interpreter: "none",
+			env_production: {
 				NODE_ENV: "production",
 				PORT: 3000,
 			},
@@ -13,9 +14,10 @@ module.exports = {
 		{
 			name: "platz-admin",
 			cwd: "/var/www/platz-next/admin",
-			script: "node_modules/.bin/next",
-			args: "start -p 3001",
-			env: {
+			script: "pnpm",
+			args: "start",
+			interpreter: "none",
+			env_production: {
 				NODE_ENV: "production",
 				PORT: 3001,
 			},
@@ -23,9 +25,10 @@ module.exports = {
 		{
 			name: "platz-api",
 			cwd: "/var/www/platz-next/api",
-			script: "node_modules/.bin/next",
-			args: "start -p 4000",
-			env: {
+			script: "pnpm",
+			args: "start",
+			interpreter: "none",
+			env_production: {
 				NODE_ENV: "production",
 				PORT: 4000,
 			},
