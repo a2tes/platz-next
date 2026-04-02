@@ -7,12 +7,7 @@ import ScrollProgress from "@/components/ScrollProgress";
 import MouseTrail from "@/components/MouseTrail";
 import EditorContent from "@/components/EditorContent";
 import PageFooter from "@/components/PageFooter";
-import dynamic from "next/dynamic";
 import { getApiUrl } from "@/lib/utils";
-
-const DropdownMenu = dynamic(() => import("@/components/DropdownMenu"), {
-	ssr: false,
-});
 
 export default function LegalPage({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = use(params);
@@ -73,7 +68,6 @@ export default function LegalPage({ params }: { params: Promise<{ slug: string }
 			<ScrollProgress />
 			<MouseTrail />
 			<Navbar theme="dark" />
-			<DropdownMenu />
 			<PageFooter />
 
 			<div className="content">

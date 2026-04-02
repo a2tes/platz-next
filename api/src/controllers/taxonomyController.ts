@@ -7,7 +7,6 @@ const VALID_TYPES: Record<string, TaxonomyType> = {
 	clients: "CLIENT",
 	sectors: "SECTOR",
 	disciplines: "DISCIPLINE",
-	"photo-categories": "PHOTO_CATEGORY",
 };
 
 function resolveType(req: Request, res: Response): TaxonomyType | null {

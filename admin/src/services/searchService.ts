@@ -4,7 +4,7 @@ export interface SearchResult {
 	id: number;
 	title: string;
 	description?: string;
-	module: "works" | "photography" | "content";
+	module: "works" | "content";
 	type: string;
 	url: string;
 	createdAt: string;
@@ -37,11 +37,6 @@ export class SearchService {
 
 	static async searchWorks(query: string): Promise<SearchResponse> {
 		const response = await api.get(`/search/works?q=${encodeURIComponent(query)}`);
-		return response.data;
-	}
-
-	static async searchPhotography(query: string): Promise<SearchResponse> {
-		const response = await api.get(`/search/photography?q=${encodeURIComponent(query)}`);
 		return response.data;
 	}
 

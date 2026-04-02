@@ -202,13 +202,6 @@ export function serializeWork(work: any) {
 			revertedFromId: revision.revertedFromId,
 			payload: typeof revision.payload === "string" ? JSON.parse(revision.payload) : revision.payload,
 		})),
-		directors: work.directors?.map((wd: any) => ({
-			...wd,
-			director: {
-				...wd.director,
-				avatar: serializeMediaFile(wd.director?.avatar),
-			},
-		})),
 	};
 }
 

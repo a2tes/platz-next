@@ -10,17 +10,13 @@ const ScrollProgress = dynamic(() => import("@/components/ScrollProgress"), {
 const MouseTrail = dynamic(() => import("@/components/MouseTrail"), {
 	ssr: false,
 });
-const DropdownMenu = dynamic(() => import("@/components/DropdownMenu"), {
-	ssr: false,
-});
 
 export default function Home() {
 	return (
-<>
+		<>
 			<ScrollProgress />
 			<MouseTrail />
 			<Navbar theme="light" fixed />
-			<DropdownMenu />
 			<div className="hero-container">
 				<div className="viewport">
 					<div className="scroller" id="scroller"></div>

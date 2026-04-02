@@ -68,9 +68,7 @@ export function SearchSuggestions({
 			{/* Empty state */}
 			{suggestions.length === 0 && recentSearches.length === 0 && (
 				<div className="text-center py-6">
-					<div className="text-muted-foreground">
-						Search across all modules including works, photography, and content pages.
-					</div>
+					<div className="text-muted-foreground">Search across all modules including works and content pages.</div>
 				</div>
 			)}
 		</div>

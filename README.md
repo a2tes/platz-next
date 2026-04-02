@@ -1,6 +1,6 @@
 # Platz Production Company
 
-A full-stack content management system for a production company, featuring video works management, director portfolios, photography galleries, and client presentations.
+A full-stack content management system for a production company, featuring video works management, client presentations, and media library.
 
 ## Project Structure
 
@@ -97,9 +97,7 @@ See individual README files in each service directory for deployment instruction
 
 ## Features
 
-- **Works Management**: Video projects with directors and starring
-- **Director Portfolios**: Individual director pages with their works
-- **Photography**: Photo galleries with categories and photographers
+- **Works Management**: Video projects
 - **Presentations**: Custom shareable links for client pitches
 - **Media Library**: S3/CloudFront integrated file management
 - **Content Pages**: About, Contact with rich text editor

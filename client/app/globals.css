@@ -555,20 +555,6 @@ nav {
 	}
 }
 
-.director-works {
-	.work-detail {
-		@apply grid-cols-3;
-
-		.work-work {
-			.work-media {
-				video {
-					@apply opacity-100;
-				}
-			}
-		}
-	}
-}
-
 #mousetrail {
 	position: absolute;
 	top: 0;
@@ -581,66 +567,6 @@ nav {
 line {
 	stroke: rgba(0, 0, 0, 0.3);
 	stroke-width: 2;
-}
-
-.photography-container {
-	@apply h-screen flex items-center justify-center;
-
-	.viewport {
-		@apply h-[28rem] overflow-hidden;
-		mask-image: linear-gradient(
-			transparent 0%,
-			rgba(0, 0, 0, 0.7) 45%,
-			black 50%,
-			rgba(0, 0, 0, 0.7) 55%,
-			transparent 100%
-		);
-
-		.scroller {
-			@apply flex flex-col;
-
-			.item {
-				@apply h-[4rem] flex items-center justify-center text-3xl text-white transition-all font-bold;
-			}
-		}
-	}
-}
-
-.photo-item {
-	@apply relative overflow-hidden rounded-lg transition-all duration-300;
-
-	img {
-		@apply h-auto max-w-full rounded-lg transition-transform duration-300;
-	}
-
-	&:hover {
-		img {
-			transform: scale(1.05);
-		}
-
-		.photo-info {
-			@apply opacity-100;
-		}
-	}
-
-	.photo-info {
-		backdrop-filter: blur(1px);
-
-		@apply absolute inset-0 bg-black/20 opacity-0 transition-opacity flex flex-col justify-end p-4 text-white rounded-lg cursor-pointer;
-
-		h3,
-		p {
-			@apply drop-shadow-lg;
-		}
-
-		h3 {
-			@apply text-lg font-semibold;
-		}
-
-		p {
-			@apply text-sm text-white/80;
-		}
-	}
 }
 
 @layer utilities {
@@ -657,141 +583,6 @@ line {
 			1px -1px 2px rgba(0, 0, 0, 0.5),
 			-1px 1px 2px rgba(0, 0, 0, 0.5),
 			1px 1px 2px rgba(0, 0, 0, 0.5);
-	}
-}
-
-:root {
-	--photography-menu-text-primary: @apply text-black;
-	--photography-menu-text-secondary: @apply text-gray-500;
-	--photography-menu-text-disabled: @apply text-gray-200;
-}
-
-#photographyMenuDropdown {
-	@apply fixed z-50 grid grid-cols-2 text-sm rounded-lg shadow-md border bg-white text-gray-900;
-	left: 8rem !important;
-	right: 13rem !important;
-	top: 5rem !important;
-
-	@media (max-width: 768px) {
-		@apply grid-cols-1;
-		left: 1rem !important;
-		right: 1rem !important;
-		top: auto !important;
-		max-height: 70vh;
-		overflow-y: auto;
-	}
-
-	.photographyMenuCol {
-		@apply col-span-1 p-8;
-
-		&:first-child {
-			@apply bg-black text-gray-200 rounded-tl-lg;
-
-			li {
-				a {
-					&:hover {
-						@apply text-white;
-					}
-
-					&.selected {
-						@apply font-semibold relative;
-
-						&::after {
-							content: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM3ZjdmN2YiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1hcnJvdy11cC1yaWdodC1pY29uIGx1Y2lkZS1hcnJvdy11cC1yaWdodCI+PHBhdGggZD0iTTcgN2gxMHYxMCIvPjxwYXRoIGQ9Ik03IDE3IDE3IDciLz48L3N2Zz4=");
-							@apply ml-1 opacity-100 scale-100;
-						}
-					}
-
-					&.not-selected {
-						@apply font-normal;
-					}
-
-					&:not(.disabled):not(.not-selected) {
-						&:hover {
-							&::after {
-								content: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM3ZjdmN2YiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1hcnJvdy11cC1yaWdodC1pY29uIGx1Y2lkZS1hcnJvdy11cC1yaWdodCI+PHBhdGggZD0iTTcgN2gxMHYxMCIvPjxwYXRoIGQ9Ik03IDE3IDE3IDciLz48L3N2Zz4=");
-								@apply absolute transition-all duration-300 top-0 ml-1 opacity-100 scale-100;
-							}
-						}
-					}
-
-					&.disabled {
-						@apply text-gray-700 cursor-not-allowed;
-						pointer-events: none;
-					}
-
-					&.highlighted {
-						@apply text-white;
-					}
-
-					&.not-highlighted {
-						@apply text-gray-600;
-					}
-				}
-			}
-		}
-
-		h4 {
-			@apply font-normal text-base mb-4;
-		}
-
-		ul {
-			@apply space-y-4 grid grid-cols-2 items-start;
-		}
-
-		li {
-			a {
-				@apply transition-colors cursor-pointer relative block;
-
-				&:hover {
-					@apply text-black hover:font-semibold;
-				}
-
-				&::after {
-					content: "";
-					@apply absolute opacity-0 transition-all duration-300 top-0 scale-50;
-				}
-
-				&.selected {
-					@apply font-semibold relative;
-
-					&::after {
-						content: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM3ZjdmN2YiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1hcnJvdy11cC1yaWdodC1pY29uIGx1Y2lkZS1hcnJvdy11cC1yaWdodCI+PHBhdGggZD0iTTcgN2gxMHYxMCIvPjxwYXRoIGQ9Ik03IDE3IDE3IDciLz48L3N2Zz4=");
-						@apply ml-1 opacity-100 scale-100;
-					}
-				}
-
-				&.not-selected {
-					@apply font-normal;
-				}
-
-				&:not(.disabled):not(.not-selected) {
-					&:hover {
-						&::after {
-							content: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM3ZjdmN2YiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1hcnJvdy11cC1yaWdodC1pY29uIGx1Y2lkZS1hcnJvdy11cC1yaWdodCI+PHBhdGggZD0iTTcgN2gxMHYxMCIvPjxwYXRoIGQ9Ik03IDE3IDE3IDciLz48L3N2Zz4=");
-							@apply absolute transition-all duration-300 top-0 ml-1 opacity-100 scale-100;
-						}
-					}
-				}
-
-				&.disabled {
-					@apply text-gray-200 cursor-not-allowed;
-					pointer-events: none;
-				}
-
-				&.highlighted {
-					@apply text-black;
-				}
-
-				&.not-highlighted {
-					@apply text-gray-300;
-				}
-			}
-		}
-	}
-
-	#resetSelection {
-		@apply col-span-2 text-center py-3 text-sm rounded-bl-lg rounded-br-lg text-gray-500 hover:text-gray-700 transition-colors border-t bg-white border-gray-100;
 	}
 }
 
@@ -827,17 +618,6 @@ line {
 			flex: 0 0 auto;
 			scroll-snap-align: center;
 		}
-	}
-}
-
-#photographerName {
-	font-size: clamp(2.5rem, 6vw, 6rem);
-	line-height: 1.1;
-}
-
-@media (max-width: 640px) {
-	#photographerName {
-		font-size: clamp(1.75rem, 8vw, 3.5rem);
 	}
 }
 
@@ -982,7 +762,7 @@ line {
 	}
 }
 
-/* Custom Animations for Photography Page */
+/* Custom Animations */
 @keyframes quick-blur {
 	0% {
 		filter: blur(0);

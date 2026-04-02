@@ -83,7 +83,6 @@ export class TaxonomyService {
 					_count: {
 						select: {
 							works: true,
-							photography: true,
 						},
 					},
 				},
@@ -136,7 +135,6 @@ export class TaxonomyService {
 				_count: {
 					select: {
 						works: true,
-						photography: true,
 					},
 				},
 			},

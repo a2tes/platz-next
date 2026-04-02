@@ -47,16 +47,6 @@ export interface DashboardStats {
 			draft: number;
 			total: number;
 		};
-		photography: {
-			published: number;
-			draft: number;
-			total: number;
-		};
-		photographers: {
-			published: number;
-			draft: number;
-			total: number;
-		};
 		users: {
 			published: number;
 			draft: number;
@@ -337,8 +327,6 @@ export class DashboardService {
 		switch (module) {
 			case "works":
 				return "Works";
-			case "photography":
-				return "Photography";
 			case "media":
 				return "Media Gallery";
 			case "homepage":

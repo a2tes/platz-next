@@ -3,18 +3,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { getApiUrl } from "@/lib/utils";
 
-interface Photographer {
-	title: string;
-	slug: string;
-	categories: string[];
-}
-
-interface PhotoCategory {
-	title: string;
-	slug: string;
-	photographers: string[];
-}
-
 interface ContentPage {
 	title: string;
 	slug: string;
@@ -22,30 +10,23 @@ interface ContentPage {
 }
 
 interface NavbarData {
-	photographers: Photographer[];
-	categories: PhotoCategory[];
 	pages: ContentPage[];
 	loading: boolean;
 }
 
 const NavbarContext = createContext<NavbarData>({
-	photographers: [],
-	categories: [],
 	pages: [],
 	loading: true,
 });
 
 export function NavbarProvider({ children }: { children: ReactNode }) {
 	const [data, setData] = useState<NavbarData>({
-		photographers: [],
-		categories: [],
 		pages: [],
 		loading: true,
 	});
 
 	useEffect(() => {
-		// Only fetch if not already loaded
-		if (!data.loading || data.photographers.length > 0) return;
+		if (!data.loading) return;
 
 		let isMounted = true;
 
@@ -55,8 +36,6 @@ export function NavbarProvider({ children }: { children: ReactNode }) {
 				if (res.ok && isMounted) {
 					const json = await res.json();
 					setData({
-						photographers: json.photographers || [],
-						categories: json.categories || [],
 						pages: json.pages || [],
 						loading: false,
 					});

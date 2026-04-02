@@ -35,7 +35,7 @@ export interface PresentationSection {
 	id: number;
 	presentationId: number;
 	title: string;
-	type: "PHOTOGRAPHY" | "MIXED";
+	type: "MIXED";
 	sortOrder: number;
 	items: PresentationItem[];
 }
@@ -43,9 +43,8 @@ export interface PresentationSection {
 export interface PresentationItem {
 	id: number;
 	sectionId: number;
-	itemType: "WORK" | "PHOTOGRAPHY" | "EXTERNAL_LINK";
+	itemType: "WORK" | "EXTERNAL_LINK";
 	workId?: number;
-	photographyId?: number;
 	externalThumbnailId?: number;
 	externalUrl?: string;
 	externalTitle?: string;
@@ -55,12 +54,6 @@ export interface PresentationItem {
 		id: number;
 		title: string;
 		previewImage?: { url: string };
-	};
-	photography?: {
-		id: number;
-		title: string;
-		image?: { url: string };
-		photographer?: { id: number; title: string };
 	};
 	externalThumbnail?: { url: string; images?: Record<string, string> };
 }
@@ -81,14 +74,13 @@ export interface PresentationWork {
 
 export interface SectionInput {
 	title: string;
-	type: "PHOTOGRAPHY" | "MIXED";
+	type: "MIXED";
 	items: ItemInput[];
 }
 
 export interface ItemInput {
-	itemType: "WORK" | "PHOTOGRAPHY" | "EXTERNAL_LINK";
+	itemType: "WORK" | "EXTERNAL_LINK";
 	workId?: number;
-	photographyId?: number;
 	externalUrl?: string;
 	externalTitle?: string;
 	externalDescription?: string;
@@ -112,15 +104,6 @@ export interface UpdatePresentationDto extends Partial<CreatePresentationDto> {}
 // ============================================
 // OPTION TYPES (for adding items to sections)
 // ============================================
-
-export interface PhotographyOption {
-	id: number;
-	title: string;
-	image?: { url: string };
-	photographer?: { id: number; title: string };
-	clients?: { client: { id: number; title: string } }[];
-	categories?: { category: { id: number; title: string } }[];
-}
 
 export const PresentationService = {
 	getPresentations: async (
@@ -231,23 +214,5 @@ export const PresentationService = {
 
 	bulkUnpublish: async (ids: number[]) => {
 		await Promise.all(ids.map((id) => PresentationService.update(id, { isActive: false })));
-	},
-
-	// Photography options for presentation builder
-	getPhotographyOptions: async (
-		params: {
-			photographerId?: number;
-			categoryId?: number;
-			clientId?: number;
-			search?: string;
-		} = {},
-	) => {
-		const searchParams = new URLSearchParams();
-		if (params.photographerId) searchParams.append("photographerId", params.photographerId.toString());
-		if (params.categoryId) searchParams.append("categoryId", params.categoryId.toString());
-		if (params.clientId) searchParams.append("clientId", params.clientId.toString());
-		if (params.search) searchParams.append("search", params.search);
-		const response = await api.get<PhotographyOption[]>(`/api/presentations/photography-options?${searchParams}`);
-		return response.data;
 	},
 };

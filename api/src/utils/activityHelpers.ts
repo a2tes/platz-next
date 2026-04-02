@@ -258,8 +258,6 @@ export class ActivityFormatHelpers {
 		switch (module) {
 			case "works":
 				return "Works";
-			case "photography":
-				return "Photography";
 			case "media":
 				return "Media Gallery";
 			case "homepage":
@@ -280,12 +278,7 @@ export class ActivityFormatHelpers {
 		switch (itemType) {
 			case "work":
 				return "Work";
-			case "director":
-				return "Director";
-			case "photography":
-				return "Photography";
-			case "photographer":
-				return "Photographer";
+
 			case "category":
 				return "Category";
 			case "file":
@@ -362,7 +355,7 @@ export class ActivitySearchHelpers {
 		const lowerQuery = query.toLowerCase();
 
 		// Module suggestions
-		const modules = ["works", "photography", "media", "homepage", "content", "users"];
+		const modules = ["works", "media", "homepage", "content", "users"];
 		modules.forEach((module) => {
 			if (module.includes(lowerQuery)) {
 				suggestions.push(`module:${module}`);
@@ -378,7 +371,7 @@ export class ActivitySearchHelpers {
 		});
 
 		// Type suggestions
-		const types = ["work", "director", "photography", "photographer", "file", "folder", "page"];
+		const types = ["work", "file", "folder", "page"];
 		types.forEach((type) => {
 			if (type.includes(lowerQuery)) {
 				suggestions.push(`type:${type}`);

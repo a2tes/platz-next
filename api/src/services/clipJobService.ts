@@ -26,7 +26,7 @@ export interface TrimSettings {
 
 export interface CreateClipJobParams {
 	sourceMediaId: number;
-	contextType?: string; // "block", "work", "animation", "director", etc. (optional for media library clips)
+	contextType?: string; // "block", "work", etc. (optional for media library clips)
 	contextId?: number; // optional for media library clips
 	slotIndex?: number;
 	workId?: number; // Work ID for verification during updates

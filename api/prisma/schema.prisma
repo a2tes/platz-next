@@ -28,7 +28,6 @@ model User {
   sessions             Session[]
   revisions            WorkRevision[]
   createdWorks         Work[]          @relation("WorkCreatedBy")
-  createdPhotographers Photographer[]  @relation("PhotographerCreatedBy")
   createdContentPages   ContentPage[]    @relation("ContentPageCreatedBy")
   createdPresentations  Presentation[]   @relation("PresentationCreatedBy")
   createdTaxonomies     Taxonomy[]       @relation("TaxonomyCreatedBy")
@@ -68,11 +67,6 @@ model MediaFile {
   folder                   MediaFolder?   @relation(fields: [folderId], references: [id])
   worksVideoFile           Work[]         @relation("WorkVideoFile")
   worksPreviewImage        Work[]         @relation("WorkPreviewImage")
-  photographyImage         Photography[]  @relation("PhotographyImage")
-  photographyPreviewImage  Photography[]  @relation("PhotographyPreviewImage")
-  photographersAvatar      Photographer[] @relation("PhotographerAvatar")
-  photographersCoverImage  Photographer[] @relation("PhotographerCoverImage")
-  photographersPreviewImage Photographer[] @relation("PhotographerPreviewImage")
   contentPagesPreviewImage ContentPage[]  @relation("ContentPagePreviewImage")
   pageSeoOgImages          PageSeo[]      @relation("PageSeoOgImage")
   mediables               Mediable[]
@@ -159,69 +153,6 @@ model WorkRevision {
 }
 
 
-
-model Photography {
-  id              Int       @id @default(autoincrement())
-  title           String
-  slug            String?   @unique
-  description     String?   @db.Text
-  imageId         Int       @map("image_id")
-  photographerId  Int       @map("photographer_id")
-  // @deprecated - Use PhotographyClient junction table instead
-  client          String?   @map("client_legacy")
-  year            Int?
-  location        String?
-  metaDescription String?   @map("meta_description") @db.Text
-  metaKeywords    String?   @map("meta_keywords") @db.Text
-  previewImageId  Int?      @map("preview_image_id")
-  status          Status    @default(DRAFT)
-  sortOrder       Int       @default(0) @map("sort_order")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  publishedAt     DateTime? @map("published_at")
-  deletedAt       DateTime? @map("deleted_at")
-  purgedAt        DateTime? @map("purged_at")
-
-  // Relations
-  image        MediaFile     @relation("PhotographyImage", fields: [imageId], references: [id])
-  photographer Photographer  @relation(fields: [photographerId], references: [id])
-  previewImage MediaFile?    @relation("PhotographyPreviewImage", fields: [previewImageId], references: [id])
-  presentationItems PresentationItem[]
-  taxonomies        PhotographyTaxonomy[]
-
-  @@map("photography")
-}
-
-model Photographer {
-  id              Int       @id @default(autoincrement())
-  title           String
-  slug            String    @unique
-  bio             String?   @db.Text // EditorJS content stored as JSON string
-  avatarId        Int?      @map("avatar_id")
-  coverImageId    Int?      @map("cover_image_id")
-  previewImageId  Int?      @map("preview_image_id")
-  groupByClient   Boolean   @default(true) @map("group_by_client") // Presentation style: true = Client Groups, false = Single Feed
-  tags            Json      @default("[]")
-  metaDescription String?   @map("meta_description") @db.Text
-  metaKeywords    String?   @map("meta_keywords") @db.Text
-  status          Status    @default(DRAFT)
-  sortOrder       Int       @default(0) @map("sort_order")
-  createdBy       Int?      @map("created_by")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  publishedAt     DateTime? @map("published_at")
-  deletedAt       DateTime? @map("deleted_at")
-  purgedAt        DateTime? @map("purged_at")
-
-  // Relations
-  avatar       MediaFile?    @relation("PhotographerAvatar", fields: [avatarId], references: [id])
-  coverImage   MediaFile?    @relation("PhotographerCoverImage", fields: [coverImageId], references: [id])
-  previewImage MediaFile?    @relation("PhotographerPreviewImage", fields: [previewImageId], references: [id])
-  creator      User?         @relation("PhotographerCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  photography  Photography[]
-
-  @@map("photographers")
-}
 
 
 
@@ -314,7 +245,7 @@ enum PageType {
 // SEO metadata for listing/index pages (not tied to a specific entity)
 model PageSeo {
   id              Int       @id @default(autoincrement())
-  pageKey         String    @unique @map("page_key") // e.g., "homepage", "works", "animations", "directors", "photography"
+  pageKey         String    @unique @map("page_key") // e.g., "homepage", "works"
   title           String?   @db.Text
   metaDescription String?   @map("meta_description") @db.Text
   metaKeywords    String?   @map("meta_keywords") @db.Text
@@ -332,7 +263,6 @@ enum TaxonomyType {
   CLIENT
   SECTOR
   DISCIPLINE
-  PHOTO_CATEGORY
 }
 
 enum BlockPageType {
@@ -361,7 +291,7 @@ enum BlockType {
 model Mediable {
   id          Int       @id @default(autoincrement())
   mediaId     Int       @map("media_id")
-  subjectType String    @map("subject_type") // e.g., Work, ContentPage, Photographer
+  subjectType String    @map("subject_type") // e.g., Work, ContentPage
   subjectId   Int       @map("subject_id")
   usageKey    String    @map("usage_key") // e.g., cover, hero, galleryThumb
 
@@ -416,13 +346,11 @@ model Presentation {
 // ============================================
 
 enum PresentationSectionType {
-  PHOTOGRAPHY
   MIXED
 }
 
 enum PresentationItemType {
   WORK
-  PHOTOGRAPHY
   EXTERNAL_LINK
 }
 
@@ -447,7 +375,6 @@ model PresentationItem {
   sectionId            Int                    @map("section_id")
   itemType             PresentationItemType
   workId               Int?                   @map("work_id")
-  photographyId        Int?                   @map("photography_id")
   externalUrl          String?                @map("external_url")
   externalTitle        String?                @map("external_title")
   externalDescription  String?                @map("external_description") @db.Text
@@ -459,7 +386,6 @@ model PresentationItem {
   // Relations
   section            PresentationSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   work               Work?               @relation(fields: [workId], references: [id], onDelete: Cascade)
-  photography        Photography?        @relation(fields: [photographyId], references: [id], onDelete: Cascade)
   externalThumbnail  MediaFile?          @relation("PresentationItemExternalThumbnail", fields: [externalThumbnailId], references: [id], onDelete: SetNull)
 
   @@map("presentation_items")
@@ -600,7 +526,6 @@ model Taxonomy {
   ogImage     MediaFile?          @relation("TaxonomyOgImage", fields: [ogImageId], references: [id])
   creator     User?               @relation("TaxonomyCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
   works       WorkTaxonomy[]
-  photography PhotographyTaxonomy[]
 
   @@unique([type, slug])
   @@map("taxonomies")
@@ -616,18 +541,6 @@ model WorkTaxonomy {
 
   @@id([workId, taxonomyId])
   @@map("work_taxonomies")
-}
-
-model PhotographyTaxonomy {
-  photographyId Int @map("photography_id")
-  taxonomyId    Int @map("taxonomy_id")
-
-  // Relations
-  photography Photography @relation(fields: [photographyId], references: [id], onDelete: Cascade)
-  taxonomy    Taxonomy    @relation(fields: [taxonomyId], references: [id], onDelete: Cascade)
-
-  @@id([photographyId, taxonomyId])
-  @@map("photography_taxonomies")
 }
 
 model SiteSetting {

@@ -99,18 +99,9 @@ MEDIA_LIBRARY_LOCAL_PATH=/path/to/storage/uploads
 - `PATCH /api/works/:id` - Update work
 - `DELETE /api/works/:id` - Delete work
 
-### Directors
-
-- `GET /api/directors` - List directors
-- `POST /api/directors` - Create director
-- `GET /api/directors/:id` - Get director
-- `PATCH /api/directors/:id` - Update director
-
 ### Public API
 
 - `GET /api/public/works` - Public works listing
-- `GET /api/public/directors` - Public directors listing
-- `GET /api/public/photography` - Public photography
 - `GET /api/public/homepage` - Homepage data
 
 ## Project Structure

@@ -19,30 +19,10 @@ export interface PresentationWork {
 	agencies: string[];
 }
 
-export interface PresentationPhotography {
-	id: number;
-	title: string;
-	slug: string;
-	description: string | null;
-	year: string | null;
-	location: string | null;
-	images: {
-		thumbnail?: string;
-		small?: string;
-		medium?: string;
-		large?: string;
-		original?: string;
-	} | null;
-	photographer: { id: number; title: string } | null;
-	clients: string[];
-	categories: string[];
-}
-
 export interface PresentationItem {
-	itemType: "WORK" | "PHOTOGRAPHY" | "EXTERNAL_LINK";
+	itemType: "WORK" | "EXTERNAL_LINK";
 	sortOrder: number;
 	work?: PresentationWork;
-	photography?: PresentationPhotography;
 	externalUrl?: string;
 	externalTitle?: string;
 	externalDescription?: string;

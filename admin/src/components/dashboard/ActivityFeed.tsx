@@ -134,7 +134,6 @@ export default function ActivityFeed({ type, className = "" }: ActivityFeedProps
 						<SelectContent>
 							<SelectItem value="all">All Modules</SelectItem>
 							<SelectItem value="works">Works</SelectItem>
-							<SelectItem value="photography">Photography</SelectItem>
 							<SelectItem value="media">Media Gallery</SelectItem>
 							<SelectItem value="homepage">Homepage</SelectItem>
 							<SelectItem value="content">Content Pages</SelectItem>
@@ -185,7 +184,7 @@ export default function ActivityFeed({ type, className = "" }: ActivityFeedProps
 						<div key={activity.id} className="group flex items-start gap-3 rounded-lg p-3 bg-muted/50">
 							<div
 								className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm ${DashboardService.getActivityColor(
-									activity.action
+									activity.action,
 								)}`}
 							>
 								{DashboardService.getActivityIcon(activity.action)}

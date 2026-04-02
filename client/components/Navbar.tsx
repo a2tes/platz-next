@@ -1,18 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { IconChevronDown } from "@tabler/icons-react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { useNavbarData } from "@/contexts/NavbarContext";
 
 export default function Navbar({ theme = "light", fixed = false }: { theme?: "light" | "dark"; fixed?: boolean }) {
 	const pathname = usePathname();
-	const router = useRouter();
-	const { photographers, categories, pages, loading } = useNavbarData();
+	const { pages, loading } = useNavbarData();
 	const [drawerOpen, setDrawerOpen] = useState(false);
-	const [photographyMenuOpen, setPhotographyMenuOpen] = useState(false);
 
 	// Helper to check if a page type exists
 	const hasPage = (type: "ABOUT" | "CONTACT") => pages.some((p) => p.type === type);
@@ -74,75 +71,6 @@ export default function Navbar({ theme = "light", fixed = false }: { theme?: "li
 						>
 							WORKS
 						</Link>
-						<button
-							className="w-full text-left py-2 text-lg font-semibold transition-opacity hover:opacity-70 flex items-center justify-between"
-							id="mobilePhotographyToggle"
-							onClick={() => setPhotographyMenuOpen(!photographyMenuOpen)}
-						>
-							PHOTOGRAPHY
-							<IconChevronDown
-								size={20}
-								className={`transition-transform ${photographyMenuOpen ? "rotate-180" : ""}`}
-							/>
-						</button>
-						<div
-							id="mobilePhotographyMenu"
-							style={{ display: photographyMenuOpen ? "block" : "none" }}
-							className="pl-4 space-y-2 border-l-2 border-gray-300 max-h-60 overflow-y-auto"
-						>
-							<div>
-								<h4 className="font-semibold text-base mb-2">Photographers</h4>
-								<ul className="space-y-2">
-									{loading ? (
-										<li className="text-gray-400 text-sm">Loading...</li>
-									) : photographers.length > 0 ? (
-										photographers.map((photographer) => (
-											<li key={`nav-${photographer.slug}`}>
-												<button
-													onClick={() => {
-														setPhotographyMenuOpen(false);
-														setDrawerOpen(false);
-														router.push(`/photography?p=${photographer.slug}`);
-													}}
-													data-categories={photographer.categories.join(",")}
-													className="text-sm hover:font-semibold text-left w-full"
-												>
-													{photographer.title}
-												</button>
-											</li>
-										))
-									) : (
-										<li className="text-gray-400 text-sm">No photographers found</li>
-									)}
-								</ul>
-							</div>
-							<div>
-								<h4 className="font-semibold text-base mb-2">Categories</h4>
-								<ul className="space-y-2">
-									{loading ? (
-										<li className="text-gray-400 text-sm">Loading...</li>
-									) : categories.length > 0 ? (
-										categories.map((category) => (
-											<li key={`nav-${category.slug}`}>
-												<button
-													onClick={() => {
-														setPhotographyMenuOpen(false);
-														setDrawerOpen(false);
-														router.push(`/photography?c=${category.slug}`);
-													}}
-													data-photographers={category.photographers.join(",")}
-													className="text-sm hover:font-semibold text-left w-full"
-												>
-													{category.title}
-												</button>
-											</li>
-										))
-									) : (
-										<li className="text-gray-400 text-sm">No categories found</li>
-									)}
-								</ul>
-							</div>
-						</div>
 						{hasPage("ABOUT") && (
 							<Link
 								href="/about"
@@ -175,54 +103,6 @@ export default function Navbar({ theme = "light", fixed = false }: { theme?: "li
 					<Link href="/works" className={`nav-link ${pathname === "/works" ? "active" : ""}`}>
 						WORKS<span></span>
 					</Link>
-				</li>
-				<li>
-					<a
-						className={`nav-link cursor-pointer ${pathname.startsWith("/photography") ? "active" : ""}`}
-						id="photographyMenu"
-						data-dropdown-toggle="photographyMenuDropdown"
-					>
-						PHOTOGRAPHY<span></span>
-					</a>
-					<div id="photographyMenuDropdown" style={{ display: "none" }}>
-						<div className="photographyMenuCol">
-							<h4 className="font-semibold text-lg mb-4">Photographers</h4>
-							<ul className="space-y-4" aria-labelledby="photographyMenu">
-								{loading ? (
-									<li className="text-gray-400">Loading...</li>
-								) : photographers.length > 0 ? (
-									photographers.map((photographer) => (
-										<li key={`nav-${photographer.slug}`}>
-											<a data-link={photographer.slug} data-categories={photographer.categories.join(",")}>
-												{photographer.title}
-											</a>
-										</li>
-									))
-								) : (
-									<li className="text-gray-400">No photographers found</li>
-								)}
-							</ul>
-						</div>
-						<div className="photographyMenuCol">
-							<h4 className="font-semibold text-lg mb-4">Categories</h4>
-							<ul className="space-y-4">
-								{loading ? (
-									<li className="text-gray-400">Loading...</li>
-								) : categories.length > 0 ? (
-									categories.map((category) => (
-										<li key={`nav-${category.slug}`}>
-											<a data-link={category.slug} data-photographers={category.photographers.join(",")}>
-												{category.title}
-											</a>
-										</li>
-									))
-								) : (
-									<li className="text-gray-400">No categories found</li>
-								)}
-							</ul>
-						</div>
-						<button id="resetSelection">Clear Selection</button>
-					</div>
 				</li>
 				{hasPage("ABOUT") && (
 					<li>

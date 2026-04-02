@@ -8,97 +8,6 @@ const router = Router();
 router.get(
 	"/",
 	asyncHandler(async (req: Request, res: Response) => {
-		// Fetch photographers with their categories
-		const photographers = await prisma.photographer.findMany({
-			where: {
-				status: "PUBLISHED",
-				purgedAt: null,
-				deletedAt: null,
-				photography: {
-					some: { status: "PUBLISHED", purgedAt: null, deletedAt: null },
-				},
-			},
-			orderBy: [{ sortOrder: "asc" }, { title: "asc" }],
-			select: {
-				title: true,
-				slug: true,
-				photography: {
-					where: { status: "PUBLISHED", purgedAt: null, deletedAt: null },
-					select: {
-						taxonomies: {
-							select: {
-								taxonomy: {
-									select: { type: true, slug: true },
-								},
-							},
-						},
-					},
-				},
-			},
-		});
-
-		// Transform photographers to include categories
-		const transformedPhotographers = photographers.map((item) => ({
-			title: item.title,
-			slug: item.slug,
-			categories: item.photography
-				.flatMap((p) => p.taxonomies.filter((t) => t.taxonomy?.type === "PHOTO_CATEGORY").map((t) => t.taxonomy?.slug))
-				.filter((slug): slug is string => slug !== null && slug !== undefined)
-				.filter((v: string, i: number, a: string[]) => a.indexOf(v) === i), // Remove duplicates
-		}));
-
-		// Fetch categories with their photographers
-		const categories = await prisma.taxonomy.findMany({
-			where: {
-				type: "PHOTO_CATEGORY",
-				status: "PUBLISHED",
-				purgedAt: null,
-				deletedAt: null,
-				photography: {
-					some: {
-						photography: {
-							status: "PUBLISHED",
-							purgedAt: null,
-							deletedAt: null,
-						},
-					},
-				},
-			},
-			orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-			select: {
-				name: true,
-				slug: true,
-				photography: {
-					where: {
-						photography: {
-							status: "PUBLISHED",
-							purgedAt: null,
-							deletedAt: null,
-						},
-					},
-					select: {
-						photography: {
-							select: {
-								photographer: {
-									select: { slug: true },
-								},
-							},
-						},
-					},
-				},
-			},
-		});
-
-		// Transform categories to include photographers
-		const transformedCategories = categories.map((item) => ({
-			title: item.name,
-			slug: item.slug,
-			photographers: item.photography
-				.map((p) => p.photography?.photographer?.slug)
-				.filter((slug): slug is string => slug !== null && slug !== undefined)
-				.filter((v: string, i: number, a: string[]) => a.indexOf(v) === i), // Remove duplicates
-		}));
-
 		// Fetch static pages for navbar
 		const pages = await prisma.contentPage.findMany({
 			where: {
@@ -116,8 +25,6 @@ router.get(
 		res.set("Cache-Control", "public, max-age=300, s-maxage=900");
 		res.json({
 			pages: pages,
-			photographers: transformedPhotographers,
-			categories: transformedCategories,
 		});
 	}),
 );

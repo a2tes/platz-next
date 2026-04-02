@@ -7,24 +7,21 @@ This directory contains the Prisma schema, migrations, and seeding scripts for t
 The database schema includes the following main models:
 
 ### Core Models
+
 - **User**: Admin users with role-based access control
 - **MediaFile**: File storage with AWS S3 and Imgix integration
 - **MediaFolder**: Hierarchical folder structure for media organization
 
 ### Content Models
-- **Work**: Creative works with director and starring relationships
-- **Director**: Director profiles with biography and avatar
-- **Starring**: Starring profiles with biography and avatar
-- **Photography**: Photography entries with metadata and categorization
-- **Photographer**: Photographer profiles
-- **PhotoCategory**: Photography categorization
+
+- **Work**: Creative works
 
 ### System Models
+
 - **Activity**: Activity tracking for audit trail
 - **Session**: User session management
 - **ApiKey**: API key management for external access
 - **ContentPage**: Static content pages (About, Contact, Legal)
-- **HomepageDirector**: Homepage director and work configuration
 
 ## Migration Commands
 
@@ -60,10 +57,10 @@ npm run db:reset
 ### Seeded Data
 
 The seed script creates:
+
 - 2 test users (admin@example.com / admin123, editor@example.com / editor123)
 - Sample media folders and files
-- Sample directors, starrings, and works
-- Sample photographers and photography entries
+- Sample works
 - Sample content pages
 - Sample activities and API keys
 
@@ -79,17 +76,14 @@ DATABASE_URL="mysql://username:password@localhost:3306/database_name"
 
 The schema includes the following key relationships:
 
-- **Works ↔ Directors**: Many-to-many relationship through `work_directors`
-- **Works ↔ Starrings**: Many-to-many relationship through `work_starrings`
-- **Photography → Photographer**: Many-to-one relationship
-- **Photography → PhotoCategory**: Many-to-one relationship
 - **MediaFile → MediaFolder**: Many-to-one relationship (hierarchical)
 - **All content models → MediaFile**: Optional relationships for images/files
 - **Activity → User**: Many-to-one relationship for audit trail
 
 ## Status and Publishing
 
-Content models (Work, Photography, ContentPage) support:
+Content models (Work, ContentPage) support:
+
 - **Draft/Published status**: Content can be saved as draft before publishing
 - **Publishing timestamps**: Automatic tracking of publication dates
 - **Sort ordering**: Manual ordering for display purposes

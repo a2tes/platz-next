@@ -77,37 +77,7 @@ export interface Work {
 	publishedAt?: string;
 }
 
-export interface Photography {
-	id: number;
-	title: string;
-	description: string;
-	image: MediaFile;
-	photographer: Photographer;
-	taxonomies?: Array<{ taxonomy: Taxonomy }>;
-	client: string;
-	year: number;
-	location: string;
-	metaDescription?: string;
-	metaKeywords?: string;
-	previewImage?: MediaFile;
-	status: "DRAFT" | "PUBLISHED";
-	sortOrder: number;
-	createdAt: string;
-	updatedAt: string;
-	publishedAt?: string;
-}
-
-export interface Photographer {
-	id: number;
-	name: string;
-	bio: string;
-	avatar?: MediaFile;
-	photography: Photography[];
-	createdAt: string;
-	updatedAt: string;
-}
-
-export type TaxonomyType = "CLIENT" | "SECTOR" | "DISCIPLINE" | "PHOTO_CATEGORY";
+export type TaxonomyType = \"CLIENT\" | \"SECTOR\" | \"DISCIPLINE\";
 
 export interface Taxonomy {
 	id: number;
@@ -127,7 +97,6 @@ export interface Taxonomy {
 	ogImage?: MediaFile | null;
 	_count?: {
 		works: number;
-		photography: number;
 	};
 }
 
@@ -178,17 +147,3 @@ export interface WorkForm {
 	status: "DRAFT" | "PUBLISHED";
 }
 
-export interface PhotographyForm {
-	title: string;
-	description: string;
-	imageId: number;
-	photographerId: number;
-	categoryId: number;
-	client: string;
-	year: number;
-	location: string;
-	metaDescription?: string;
-	metaKeywords?: string;
-	previewImageId?: number;
-	status: "DRAFT" | "PUBLISHED";
-}

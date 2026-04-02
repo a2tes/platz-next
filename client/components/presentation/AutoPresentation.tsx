@@ -77,7 +77,7 @@ export default function AutoPresentation({
 
 		const item = current.item;
 
-		if (item.itemType === "PHOTOGRAPHY" || item.itemType === "EXTERNAL_LINK") {
+		if (item.itemType === "EXTERNAL_LINK") {
 			const duration = (data.photoSlideDuration || 5) * 1000;
 			photoElapsedRef.current = 0;
 			photoDurationRef.current = duration;
@@ -212,7 +212,7 @@ export default function AutoPresentation({
 		const item = current?.item;
 		if (!item) return;
 
-		if (item.itemType === "PHOTOGRAPHY" || item.itemType === "EXTERNAL_LINK") {
+		if (item.itemType === "EXTERNAL_LINK") {
 			if (isPlaying) {
 				// Pause: clear timers
 				if (progressIntervalRef.current) {
@@ -283,25 +283,17 @@ export default function AutoPresentation({
 	if (!current) return null;
 
 	const item = current.item;
-	const isPhoto = item.itemType === "PHOTOGRAPHY";
 	const isExternalLink = item.itemType === "EXTERNAL_LINK";
-	const isTimedSlide = isPhoto || isExternalLink;
+	const isTimedSlide = isExternalLink;
 	const entity = item.work;
-	const photo = item.photography;
 
 	// Get display info
-	const itemTitle = entity?.title || photo?.title || item.externalTitle || item.externalUrl || "";
+	const itemTitle = entity?.title || item.externalTitle || item.externalUrl || "";
 	const itemSubtitle = (() => {
 		if (item.work) {
 			const parts: string[] = [];
 			if (item.work.clients.length) parts.push(item.work.clients[0]);
 			return parts.join(" · ");
-		}
-		if (item.photography) {
-			return item.photography.photographer?.title || "";
-		}
-		if (isExternalLink) {
-			return "";
 		}
 		return "";
 	})();
@@ -309,16 +301,11 @@ export default function AutoPresentation({
 	const nextTitle = (() => {
 		if (!next) return "";
 		const ni = next.item;
-		return ni.work?.title || ni.photography?.title || ni.externalTitle || "";
+		return ni.work?.title || ni.externalTitle || "";
 	})();
 
 	// Photo/external link background image
-	const photoUrl =
-		photo?.images?.large ||
-		photo?.images?.original ||
-		item.externalThumbnail?.images?.large ||
-		item.externalThumbnail?.images?.original ||
-		"";
+	const slideUrl = item.externalThumbnail?.images?.large || item.externalThumbnail?.images?.original || "";
 
 	const hasPrev = currentIndex > 0;
 	const hasNext = !!next;
@@ -335,21 +322,6 @@ export default function AutoPresentation({
 				/>
 			)}
 
-			{/* Photo layer */}
-			{isPhoto && photoUrl && (
-				<AnimatePresence mode="wait">
-					<motion.div
-						key={`photo-${currentIndex}`}
-						initial={{ opacity: 0, scale: 1.05 }}
-						animate={{ opacity: 1, scale: 1 }}
-						exit={{ opacity: 0 }}
-						transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-						className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-						style={{ backgroundImage: `url(${photoUrl})` }}
-					/>
-				</AnimatePresence>
-			)}
-
 			{/* External Link layer */}
 			{isExternalLink && (
 				<AnimatePresence mode="wait">
@@ -361,12 +333,12 @@ export default function AutoPresentation({
 						transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
 						className="absolute inset-0 flex items-center justify-center"
 						style={
-							photoUrl
-								? { backgroundImage: `url(${photoUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+							slideUrl
+								? { backgroundImage: `url(${slideUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
 								: undefined
 						}
 					>
-						{!photoUrl && <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-black" />}
+						{!slideUrl && <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-black" />}
 						<div className="relative z-10 flex flex-col items-center gap-6 p-8">
 							<div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
 								<svg
@@ -513,10 +485,7 @@ export default function AutoPresentation({
 							{/* Thumbnail */}
 							{(() => {
 								const ni = next.item;
-								const thumb =
-									ni.work?.images?.thumbnail ||
-									ni.photography?.images?.thumbnail ||
-									ni.externalThumbnail?.images?.thumbnail;
+								const thumb = ni.work?.images?.thumbnail || ni.externalThumbnail?.images?.thumbnail;
 								return thumb ? (
 									<img src={thumb} alt="" className="w-16 h-10 object-cover rounded" />
 								) : (

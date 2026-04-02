@@ -16,9 +16,6 @@ const ScrollProgress = dynamic(() => import("@/components/ScrollProgress"), {
 const MouseTrail = dynamic(() => import("@/components/MouseTrail"), {
 	ssr: false,
 });
-const DropdownMenu = dynamic(() => import("@/components/DropdownMenu"), {
-	ssr: false,
-});
 
 interface Work {
 	id: number;
@@ -119,7 +116,6 @@ export default function WorkDetailPage() {
 				<ScrollProgress />
 				<MouseTrail />
 				<Navbar theme="light" fixed />
-				<DropdownMenu />
 
 				<main className="min-h-screen bg-black text-white flex items-center justify-center px-4">
 					<div className="max-w-2xl mx-auto text-center">
@@ -167,7 +163,6 @@ export default function WorkDetailPage() {
 			<ScrollProgress />
 			<MouseTrail />
 			<Navbar theme="light" fixed />
-			<DropdownMenu />
 
 			{/* Hero Work */}
 			{work && (

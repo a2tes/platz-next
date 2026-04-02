@@ -96,28 +96,6 @@ export const getPresentationByToken = async (req: Request, res: Response) => {
 					};
 				}
 
-				if (item.itemType === "PHOTOGRAPHY" && item.photography) {
-					const ph = item.photography;
-					const image = serializeMediaFile(ph.image);
-					result.photography = {
-						id: ph.id,
-						title: ph.title,
-						slug: ph.slug,
-						description: ph.description,
-						year: ph.year,
-						location: ph.location,
-						images: image?.images || null,
-						photographer: ph.photographer
-							? {
-									id: ph.photographer.id,
-									title: ph.photographer.title,
-								}
-							: null,
-						clients: ph.clients?.map((pc: any) => pc.client?.title).filter(Boolean) || [],
-						categories: ph.categories?.map((pcat: any) => pcat.category?.title).filter(Boolean) || [],
-					};
-				}
-
 				if (item.itemType === "EXTERNAL_LINK") {
 					result.externalUrl = item.externalUrl;
 					result.externalTitle = item.externalTitle;
@@ -211,25 +189,5 @@ export const purgePresentation = async (req: Request, res: Response) => {
 	} catch (error) {
 		console.error("Error purging presentation:", error);
 		res.status(500).json({ error: "Failed to purge presentation" });
-	}
-};
-
-export const getPhotographyOptions = async (req: Request, res: Response) => {
-	try {
-		const photographerId = req.query.photographerId ? parseInt(req.query.photographerId as string) : undefined;
-		const categoryId = req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined;
-		const clientId = req.query.clientId ? parseInt(req.query.clientId as string) : undefined;
-		const search = req.query.search as string;
-
-		const photos = await presentationService.getPhotographyOptions({
-			photographerId,
-			categoryId,
-			clientId,
-			search,
-		});
-		res.json(serializeBigInt(photos));
-	} catch (error) {
-		console.error("Error getting photography options:", error);
-		res.status(500).json({ error: "Failed to fetch photography options" });
 	}
 };

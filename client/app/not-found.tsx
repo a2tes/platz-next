@@ -12,9 +12,6 @@ const ScrollProgress = dynamic(() => import("@/components/ScrollProgress"), {
 const MouseTrail = dynamic(() => import("@/components/MouseTrail"), {
 	ssr: false,
 });
-const DropdownMenu = dynamic(() => import("@/components/DropdownMenu"), {
-	ssr: false,
-});
 
 export default function NotFound() {
 	useEffect(() => {
@@ -56,7 +53,6 @@ export default function NotFound() {
 			<ScrollProgress />
 			<MouseTrail />
 			<Navbar theme="light" fixed />
-			<DropdownMenu />
 
 			<main className="min-h-screen bg-black text-white flex items-center justify-center px-4">
 				<div className="max-w-2xl mx-auto text-center">
@@ -69,19 +65,12 @@ export default function NotFound() {
 
 					{/* Subtext */}
 					<div id="notFoundSubtext" className="mb-12">
-						<h2 className="text-3xl md:text-4xl font-bold mb-4">
-							Page Not Found
-						</h2>
-						<p className="text-gray-400 text-lg">
-							The page you're looking for doesn't exist or has been moved.
-						</p>
+						<h2 className="text-3xl md:text-4xl font-bold mb-4">Page Not Found</h2>
+						<p className="text-gray-400 text-lg">The page you're looking for doesn't exist or has been moved.</p>
 					</div>
 
 					{/* Action Buttons */}
-					<div
-						id="notFoundButton"
-						className="flex flex-col sm:flex-row gap-4 justify-center"
-					>
+					<div id="notFoundButton" className="flex flex-col sm:flex-row gap-4 justify-center">
 						<Link
 							href="/"
 							className="px-8 py-3 border border-white text-white font-semibold rounded-2xl hover:bg-white/10 transition-colors duration-300"
@@ -91,13 +80,8 @@ export default function NotFound() {
 					</div>
 
 					{/* Decorative element */}
-					<div
-						id="notFoundDecorative"
-						className="mt-16 pt-8 border-t border-gray-800 max-w-fit mx-auto"
-					>
-						<p className="text-gray-500 text-sm">
-							If you believe this is a mistake, please contact support.
-						</p>
+					<div id="notFoundDecorative" className="mt-16 pt-8 border-t border-gray-800 max-w-fit mx-auto">
+						<p className="text-gray-500 text-sm">If you believe this is a mistake, please contact support.</p>
 					</div>
 				</div>
 			</main>

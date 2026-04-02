@@ -701,12 +701,7 @@ function MediaFileUsage() {
 
 	if (!usage) return null;
 
-	const hasUsage =
-		usage.works.length > 0 ||
-		usage.photography.length > 0 ||
-		usage.photographers.length > 0 ||
-		usage.contentPages.length > 0 ||
-		usage.other?.length > 0;
+	const hasUsage = usage.works.length > 0 || usage.contentPages.length > 0 || usage.other?.length > 0;
 
 	if (!hasUsage) {
 		return <div className="text-sm text-muted-foreground">Not used anywhere yet.</div>;
@@ -743,29 +738,6 @@ function MediaFileUsage() {
 						usage.works.filter((w: any) => w.usage === "Preview Image"),
 						"Preview Images",
 					)}
-				</div>
-			)}
-
-			{/* Photography */}
-			{usage.photography.length > 0 && (
-				<div className="space-y-1">
-					<div className="text-xs uppercase tracking-wide text-muted-foreground">Photography</div>
-					{renderList(
-						usage.photography.filter((p: any) => p.usage === "Image"),
-						"Images",
-					)}
-					{renderList(
-						usage.photography.filter((p: any) => p.usage === "Preview Image"),
-						"Preview Images",
-					)}
-				</div>
-			)}
-
-			{/* People */}
-			{usage.photographers.length > 0 && (
-				<div className="space-y-1">
-					<div className="text-xs uppercase tracking-wide text-muted-foreground">People</div>
-					{renderList(usage.photographers, "Photographers")}
 				</div>
 			)}
 

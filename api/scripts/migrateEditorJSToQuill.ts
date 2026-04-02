@@ -3,7 +3,6 @@
  *
  * This script converts existing EditorJS content to Quill format in:
  * - ContentPage.contentBlocks
- * - Photographer.bio
  *
  * Run with: npx ts-node scripts/migrateEditorJSToQuill.ts
  */
@@ -152,88 +151,6 @@ async function migrateContentPages() {
 	return { migrated, skipped };
 }
 
-async function migratePhotographers() {
-	console.log("\nMigrating Photographer records...");
-
-	const photographers = await prisma.photographer.findMany({
-		where: {
-			bio: {
-				not: null,
-			},
-		},
-	});
-
-	let migrated = 0;
-	let skipped = 0;
-
-	for (const photographer of photographers) {
-		if (!photographer.bio) {
-			skipped++;
-			continue;
-		}
-
-		try {
-			const parsed = JSON.parse(photographer.bio);
-
-			// Skip if already Quill format
-			if (isQuillData(parsed)) {
-				console.log(`  [SKIP] Photographer ${photographer.id} (${photographer.slug}): Already Quill format`);
-				skipped++;
-				continue;
-			}
-
-			// Convert EditorJS to Quill
-			if (isEditorJSData(parsed)) {
-				const quillData = convertEditorJSToQuill(parsed);
-
-				await prisma.photographer.update({
-					where: { id: photographer.id },
-					data: { bio: JSON.stringify(quillData) },
-				});
-
-				console.log(`  [MIGRATED] Photographer ${photographer.id} (${photographer.slug})`);
-				migrated++;
-			} else {
-				// Plain text - convert to Quill
-				const quillData: QuillData = {
-					html: `<p>${photographer.bio}</p>`,
-					format: "quill",
-				};
-
-				await prisma.photographer.update({
-					where: { id: photographer.id },
-					data: { bio: JSON.stringify(quillData) },
-				});
-
-				console.log(`  [MIGRATED] Photographer ${photographer.id} (${photographer.slug}): Plain text to Quill`);
-				migrated++;
-			}
-		} catch {
-			// Not JSON - treat as plain text or HTML
-			const bio = photographer.bio;
-			const isHtml = bio.includes("<") && bio.includes(">");
-
-			const quillData: QuillData = {
-				html: isHtml ? bio : `<p>${bio}</p>`,
-				format: "quill",
-			};
-
-			await prisma.photographer.update({
-				where: { id: photographer.id },
-				data: { bio: JSON.stringify(quillData) },
-			});
-
-			console.log(
-				`  [MIGRATED] Photographer ${photographer.id} (${photographer.slug}): ${isHtml ? "HTML" : "Plain text"} to Quill`,
-			);
-			migrated++;
-		}
-	}
-
-	console.log(`Photographer migration complete: ${migrated} migrated, ${skipped} skipped`);
-	return { migrated, skipped };
-}
-
 async function main() {
 	console.log("=".repeat(60));
 	console.log("EditorJS to Quill Migration Script");
@@ -242,14 +159,12 @@ async function main() {
 
 	try {
 		const contentResult = await migrateContentPages();
-		const photographerResult = await migratePhotographers();
 
 		console.log();
 		console.log("=".repeat(60));
 		console.log("Migration Summary");
 		console.log("=".repeat(60));
 		console.log(`ContentPages: ${contentResult.migrated} migrated, ${contentResult.skipped} skipped`);
-		console.log(`Photographers: ${photographerResult.migrated} migrated, ${photographerResult.skipped} skipped`);
 		console.log();
 		console.log("Migration complete!");
 	} catch (error) {

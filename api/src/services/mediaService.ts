@@ -278,9 +278,6 @@ export class MediaService {
 							// Count usage across different content types
 							worksVideoFile: true,
 							worksPreviewImage: true,
-							photographyImage: true,
-							photographyPreviewImage: true,
-							photographersAvatar: true,
 							contentPagesPreviewImage: true,
 						},
 					},
@@ -705,9 +702,6 @@ export class MediaService {
 							select: {
 								worksVideoFile: true,
 								worksPreviewImage: true,
-								photographyImage: true,
-								photographyPreviewImage: true,
-								photographersAvatar: true,
 								contentPagesPreviewImage: true,
 								clipJobs: true,
 							} as any,
@@ -876,9 +870,6 @@ export class MediaService {
 							select: {
 								worksVideoFile: true,
 								worksPreviewImage: true,
-								photographyImage: true,
-								photographyPreviewImage: true,
-								photographersAvatar: true,
 								clipJobs: true,
 							} as any,
 						} as any,
@@ -1299,11 +1290,6 @@ export class MediaService {
 			include: {
 				worksVideoFile: { select: { id: true, title: true } },
 				worksPreviewImage: { select: { id: true, title: true } },
-				photographyImage: { select: { id: true, title: true } },
-				photographyPreviewImage: { select: { id: true, title: true } },
-				photographersAvatar: { select: { id: true, title: true } },
-				photographersCoverImage: { select: { id: true, title: true } },
-				photographersPreviewImage: { select: { id: true, title: true } },
 				contentPagesPreviewImage: { select: { id: true, title: true } },
 				mediables: {
 					select: {
@@ -1323,15 +1309,6 @@ export class MediaService {
 			works: [
 				...file.worksVideoFile.map((w: any) => ({ ...w, usage: "Video" })),
 				...file.worksPreviewImage.map((w: any) => ({ ...w, usage: "Preview Image" })),
-			],
-			photography: [
-				...file.photographyImage.map((p: any) => ({ ...p, usage: "Image" })),
-				...file.photographyPreviewImage.map((p: any) => ({ ...p, usage: "Preview Image" })),
-			],
-			photographers: [
-				...file.photographersAvatar.map((p: any) => ({ ...p, usage: "Avatar" })),
-				...file.photographersCoverImage.map((p: any) => ({ ...p, usage: "Cover Image" })),
-				...file.photographersPreviewImage.map((p: any) => ({ ...p, usage: "Preview Image" })),
 			],
 			contentPages: file.contentPagesPreviewImage.map((c: any) => ({ ...c, usage: "Preview Image" })),
 			// other: file.mediables.map((m: any) => ({
@@ -1441,9 +1418,6 @@ export class MediaService {
 							select: {
 								worksVideoFile: true,
 								worksPreviewImage: true,
-								photographyImage: true,
-								photographyPreviewImage: true,
-								photographersAvatar: true,
 								contentPagesPreviewImage: true,
 							},
 						},

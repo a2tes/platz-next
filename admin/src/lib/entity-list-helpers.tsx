@@ -59,8 +59,8 @@ export function createStandardActions<T extends BaseEntity>(): (config: {
 	onTogglePublish: (item: T) => void;
 	onDelete: (item: T) => void;
 	onRestore?: (item: T) => void;
-	viewItemBasePath?: string; // e.g., "/work", "/photographer"
-	viewBasePath?: string; // e.g., "/works", "/photographers"
+	viewItemBasePath?: string; // e.g., "/work"
+	viewBasePath?: string; // e.g., "/works"
 }) => Action<T>[] {
 	return ({ filterTab, onEdit, onTogglePublish, onDelete, onRestore, viewItemBasePath, viewBasePath }) => {
 		const publicUrl =
@@ -149,33 +149,6 @@ export function createTaxonomiesNavigation(config: TaxonomiesNavigationConfig): 
 			label: "Sectors",
 			href: "/taxonomies/sectors",
 			isActive: config.currentPath === "/taxonomies/sectors",
-		},
-	];
-}
-
-/**
- * Create standard navigation for Photographer/Categories
- */
-export interface PhotographyNavigationConfig {
-	currentPath: "/photography" | "/photography/photographers" | "/photography/categories";
-}
-
-export function createPhotographyNavigation(config: PhotographyNavigationConfig): NavigationItem[] {
-	return [
-		{
-			label: "Photography",
-			href: "/photography",
-			isActive: config.currentPath === "/photography",
-		},
-		{
-			label: "Photographers",
-			href: "/photography/photographers",
-			isActive: config.currentPath === "/photography/photographers",
-		},
-		{
-			label: "Categories",
-			href: "/photography/categories",
-			isActive: config.currentPath === "/photography/categories",
 		},
 	];
 }

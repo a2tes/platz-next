@@ -56,10 +56,8 @@ NEXT_PUBLIC_IMGIX_URL=your-source.imgix.net
 
 ### Pages
 
-- **Home**: Hero video carousel with directors
+- **Home**: Hero video carousel
 - **Works**: Video project listings with modal player
-- **Directors**: Director portfolios with their works
-- **Photography**: Photo galleries with lightbox
 - **About**: Company information
 - **Contact**: Contact details
 
@@ -80,17 +78,13 @@ client/
 │   ├── page.tsx             # Homepage
 │   ├── layout.tsx           # Root layout
 │   ├── works/               # Works listing & detail
-│   ├── directors/           # Directors & their works
-│   ├── photography/         # Photo gallery
 │   ├── about/               # About page
 │   └── contact/             # Contact page
 ├── components/
 │   ├── Navbar.tsx           # Navigation
-│   ├── DropdownMenu.tsx     # Mobile menu
 │   ├── ScrollProgress.tsx   # Scroll indicator
 │   ├── MouseTrail.tsx       # Cursor effect
 │   ├── works/               # Work components
-│   ├── photography/         # Photo components
 │   └── ui/                  # UI components
 ├── contexts/
 │   └── NavbarContext.tsx    # Navbar data caching
@@ -117,14 +111,6 @@ Video thumbnail with hover preview:
 - Shows image by default
 - Plays muted video on hover
 - Click opens WorkModal
-
-### PhotoModal
-
-Lightbox for photography:
-
-- Keyboard navigation
-- Swipe gestures
-- Zoom support
 
 ## Production Deployment
 

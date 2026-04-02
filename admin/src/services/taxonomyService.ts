@@ -1,10 +1,10 @@
 import api from "@/lib/api";
 
-export type TaxonomyTypeSlug = "clients" | "sectors" | "disciplines" | "photo-categories";
+export type TaxonomyTypeSlug = "clients" | "sectors" | "disciplines";
 
 export interface Taxonomy {
 	id: number;
-	type: "CLIENT" | "SECTOR" | "DISCIPLINE" | "PHOTO_CATEGORY";
+	type: "CLIENT" | "SECTOR" | "DISCIPLINE";
 	name: string;
 	slug: string;
 	status: "DRAFT" | "PUBLISHED";
@@ -20,7 +20,6 @@ export interface Taxonomy {
 	ogImage?: any | null;
 	_count?: {
 		works: number;
-		photography: number;
 	};
 	// Added for BaseEntity compatibility (mapped from name)
 	title?: string;
@@ -180,7 +179,6 @@ export const taxonomyServices = {
 	clients: buildTaxonomyService("clients"),
 	sectors: buildTaxonomyService("sectors"),
 	disciplines: buildTaxonomyService("disciplines"),
-	"photo-categories": buildTaxonomyService("photo-categories"),
 } as const;
 
 // Helper to get service by type slug

@@ -24,7 +24,7 @@ const router = Router();
 // All routes require authentication
 router.use(authenticateToken);
 
-// Taxonomy routes (type is a URL param: clients, sectors, disciplines, photo-categories)
+// Taxonomy routes (type is a URL param: clients, sectors, disciplines)
 router.get("/:type", getTaxonomies);
 router.get("/:type/search", searchTaxonomies);
 router.get("/:type/trash", getTrashedTaxonomies);

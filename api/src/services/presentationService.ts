@@ -19,14 +19,13 @@ interface GetAllPresentationsOptions {
 
 interface SectionInput {
 	title: string;
-	type: "PHOTOGRAPHY" | "MIXED";
+	type: "MIXED";
 	items: ItemInput[];
 }
 
 interface ItemInput {
-	itemType: "WORK" | "PHOTOGRAPHY" | "EXTERNAL_LINK";
+	itemType: "WORK" | "EXTERNAL_LINK";
 	workId?: number;
-	photographyId?: number;
 	externalUrl?: string;
 	externalTitle?: string;
 	externalDescription?: string;
@@ -148,12 +147,6 @@ export const getPresentationById = async (id: number) => {
 									previewImage: true,
 								},
 							},
-							photography: {
-								include: {
-									image: true,
-									photographer: true,
-								},
-							},
 						},
 						orderBy: { sortOrder: "asc" },
 					},
@@ -178,18 +171,6 @@ export const getPresentationByToken = async (token: string) => {
 									videoFile: true,
 									clients: {
 										include: { client: true },
-									},
-								},
-							},
-							photography: {
-								include: {
-									image: true,
-									photographer: true,
-									clients: {
-										include: { client: true },
-									},
-									categories: {
-										include: { category: true },
 									},
 								},
 							},
@@ -243,7 +224,7 @@ export const createPresentation = async (data: CreatePresentationData) => {
 					create: section.items.map((item, iIndex) => ({
 						itemType: item.itemType,
 						workId: item.workId || null,
-						photographyId: item.photographyId || null,
+
 						sortOrder: iIndex,
 					})),
 				},
@@ -347,53 +328,5 @@ export const purgePresentation = async (id: number) => {
 	return db.presentation.update({
 		where: { id },
 		data: { purgedAt: new Date() },
-	});
-};
-
-// ============================================
-// PHOTOGRAPHY OPTIONS FOR PRESENTATION
-// ============================================
-
-export const getPhotographyOptions = async (options: {
-	photographerId?: number;
-	categoryId?: number;
-	clientId?: number;
-	search?: string;
-}) => {
-	const where: any = {
-		status: "PUBLISHED",
-		deletedAt: null,
-	};
-
-	if (options.photographerId) {
-		where.photographerId = options.photographerId;
-	}
-
-	if (options.categoryId) {
-		where.categories = {
-			some: { categoryId: options.categoryId },
-		};
-	}
-
-	if (options.clientId) {
-		where.clients = {
-			some: { clientId: options.clientId },
-		};
-	}
-
-	if (options.search) {
-		where.title = { contains: options.search };
-	}
-
-	return db.photography.findMany({
-		where,
-		include: {
-			image: true,
-			photographer: { select: { id: true, title: true } },
-			clients: { include: { client: { select: { id: true, name: true } } } },
-			categories: { include: { category: { select: { id: true, title: true } } } },
-		},
-		orderBy: { sortOrder: "asc" },
-		take: 200,
 	});
 };

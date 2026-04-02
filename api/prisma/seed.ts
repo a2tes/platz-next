@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { PrismaClient, UserRole, Status, PageType, TaxonomyType } from "@prisma/client";
+import { PrismaClient, UserRole, Status, PageType } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 import path from "path";
 import { config as loadEnv } from "dotenv";
@@ -247,103 +247,12 @@ async function main() {
 
 	console.log("ℹ️  Starrings removed (model no longer exists)");
 
-	// Create photo categories as taxonomies
-	const categories = [
-		{ name: "Architecture", slug: "architecture" },
-		{ name: "Commercial", slug: "commercial" },
-		{ name: "Documentary", slug: "documentary" },
-		{ name: "Editorial", slug: "editorial" },
-		{ name: "Fashion", slug: "fashion" },
-		{ name: "Fine Art", slug: "fine-art" },
-		{ name: "Lifestyle", slug: "lifestyle" },
-		{ name: "Nature & Wildlife", slug: "nature-wildlife" },
-		{ name: "Portrait", slug: "portrait" },
-		{ name: "Street", slug: "street" },
-	];
-
-	const categoryMap: { [key: string]: any } = {};
-	for (const cat of categories) {
-		const createdCat = await prisma.taxonomy.upsert({
-			where: { type_slug: { type: TaxonomyType.PHOTO_CATEGORY, slug: cat.slug } },
-			update: {},
-			create: {
-				type: TaxonomyType.PHOTO_CATEGORY,
-				name: cat.name,
-				slug: cat.slug,
-				status: Status.PUBLISHED,
-				createdBy: admin.id,
-			},
-		});
-		categoryMap[cat.slug] = createdCat;
-	}
-
-	console.log("✅ Photo categories created (as taxonomies)");
-
-	// Create directors as taxonomies (replacing old Director model)
-	const directors = [
-		"André F. Martins",
-		"Çağrı Ark",
-		"Derhan - Irmak",
-		"Drago Sholev",
-		"Eddy Schwartz",
-		"Emil S. Zakhariev",
-		"İlay Alpgiray",
-		"Neda Morfova",
-		"Oğuz Uydu",
-		"Ozan Köse",
-		"Sarp Yaman",
-		"Silvyo Behmoaras",
-		"Vural Uzundağ",
-	];
-
-	// Note: Directors no longer have their own model.
-	// If you need director taxonomies, create them here.
-	// For now, directors are just used as metadata in works.
-	console.log("ℹ️  Directors list defined (no Director model — referenced as metadata only)");
-
-	// Create photographers (Turkish alphabetical order)
-	const photographers = [
-		"Arden Hale",
-		"Elara Quinn",
-		"Evan Kessler",
-		"Jonas Arkwright",
-		"Kai Monroe",
-		"Lina Moretti",
-		"Mira Solberg",
-		"Noah Vantrell",
-		"Siena Volkova",
-		"Taro Whitman",
-	];
-
-	const photographerMap: { [key: string]: any } = {};
-	for (let i = 0; i < photographers.length; i++) {
-		const photographer = await prisma.photographer.upsert({
-			where: { slug: slugify(photographers[i]) },
-			update: {},
-			create: {
-				title: photographers[i],
-				slug: slugify(photographers[i]),
-				bio: `Professional photographer specializing in various photography styles.`,
-				status: Status.PUBLISHED,
-				publishedAt: new Date(),
-				createdBy: admin.id,
-			},
-		});
-		photographerMap[photographers[i]] = photographer;
-	}
-
-	console.log("✅ Photographers created");
-
-	// Store references for directors for works assignment
-	// Note: directorsList is no longer DB models, just string names
-	console.log("ℹ️  Director references are string-only (no Director model)");
-
 	// Upload media files from sample-files
 	const otherFolder = await ensureFolder("Other", "/other", rootFolder.id);
 	const mediaMap = await uploadMediaFiles(imagesFolder, videosFolder, documentsFolder, otherFolder);
 	console.log("✅ Media files uploaded");
 
-	// Create works with specific titles and assigned directors
+	// Create works with specific titles
 	const works = [
 		{ title: "Pepsi", client: "Pepsi", videoFile: "pepsi.mp4" },
 		{ title: "Go Good", client: "Go Good", videoFile: "go-good.mp4" },
@@ -415,7 +324,7 @@ async function main() {
 			create: {
 				title: work.title,
 				slug,
-				shortDescription: `${work.client} project directed by ${directors[i % directors.length]}`,
+				shortDescription: `${work.client} project`,
 				tags: tags[i],
 				status: isPublished ? Status.PUBLISHED : Status.DRAFT,
 				publishedAt: isPublished ? new Date() : null,
@@ -432,114 +341,6 @@ async function main() {
 	}
 
 	console.log("✅ Works created (12 items)");
-
-	// Create photography entries (idempotent via slug)
-	// Get sample images for photography
-	const imageFiles = Object.keys(mediaMap).filter((key) => mediaMap[key].mimeType.startsWith("image/"));
-
-	// Get all photographers and categories
-	const photographersList = Object.values(photographerMap);
-	const categoriesList = Object.values(categoryMap);
-
-	// Photography titles and descriptions
-	const photographyTitles = [
-		{
-			title: "Urban Perspectives",
-			description: "A collection of striking urban photography",
-			location: "Downtown",
-		},
-		{
-			title: "Nature Awakening",
-			description: "Environmental photography exploring themes of renewal",
-			location: "Mountains",
-		},
-		{
-			title: "Street Stories",
-			description: "Candid moments captured in urban streets",
-			location: "City Streets",
-		},
-		{
-			title: "Portrait Sessions",
-			description: "Intimate portrait photography series",
-			location: "Studio",
-		},
-		{
-			title: "Architectural Forms",
-			description: "Modern and contemporary architecture",
-			location: "Downtown",
-		},
-		{
-			title: "Lifestyle Moments",
-			description: "Authentic lifestyle and everyday moments",
-			location: "Various",
-		},
-		{
-			title: "Fashion Editorial",
-			description: "High fashion editorial photography",
-			location: "Studio",
-		},
-		{
-			title: "Documentary Focus",
-			description: "Documentary-style photography series",
-			location: "Field",
-		},
-		{
-			title: "Fine Art Series",
-			description: "Artistic and fine art photography",
-			location: "Landscape",
-		},
-		{
-			title: "Wildlife Collection",
-			description: "Wildlife and nature photography",
-			location: "Nature",
-		},
-	];
-
-	// Create 10 photography entries
-	for (let i = 0; i < photographyTitles.length; i++) {
-		const photoData = photographyTitles[i];
-		const imageId = imageFiles.length > 0 ? mediaMap[imageFiles[i % imageFiles.length]].id : null;
-		const photographerId = photographersList[i % photographersList.length].id;
-		const categoryTaxonomy = categoriesList[i % categoriesList.length];
-
-		if (imageId) {
-			const slug = slugify(photoData.title);
-			const photo = await prisma.photography.upsert({
-				where: { slug },
-				update: {},
-				create: {
-					title: photoData.title,
-					slug,
-					description: photoData.description,
-					imageId,
-					photographerId,
-					year: 2024,
-					location: photoData.location,
-					status: Status.PUBLISHED,
-					publishedAt: new Date(),
-				},
-			});
-
-			// Link photography to category taxonomy
-			if (categoryTaxonomy) {
-				await prisma.photographyTaxonomy.upsert({
-					where: {
-						photographyId_taxonomyId: {
-							photographyId: photo.id,
-							taxonomyId: categoryTaxonomy.id,
-						},
-					},
-					update: {},
-					create: {
-						photographyId: photo.id,
-						taxonomyId: categoryTaxonomy.id,
-					},
-				});
-			}
-		}
-	}
-
-	console.log("✅ Photography entries created (10 items)");
 
 	// Create content pages (ensure one per type)
 	const ensureContentPage = async (
@@ -617,11 +418,8 @@ async function main() {
 	console.log("\n📋 Seeded data summary (approx):");
 	console.log("- Users: 2 (admin@example.com / admin123, editor@example.com / editor123)");
 	console.log("- Media folders: Root, Images, Videos, Documents, Uncategorized");
-	console.log("- Taxonomies: Client taxonomies for works, Photo categories");
+	console.log("- Taxonomies: Client taxonomies for works");
 	console.log("- Works: 12 (with client taxonomy links)");
-	console.log("- Photographers: 10");
-	console.log("- Photo categories: 10 (as PHOTO_CATEGORY taxonomies)");
-	console.log("- Photography entries: 10 (with taxonomy links)");
 	console.log("- Content pages: About, Contact, Privacy Policy");
 	console.log("- API key: Development API Key");
 	console.log("\n💡 Note: Block pages are seeded separately via 'pnpm run db:seed-blockpages'");

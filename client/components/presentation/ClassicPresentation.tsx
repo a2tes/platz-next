@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import WorkModal from "@/components/works/WorkModal";
-import PhotoModal, { type Photo } from "@/components/photography/PhotoModal";
 import type { PresentationData, PresentationSection, PresentationItem } from "./types";
 
 interface ClassicPresentationProps {
@@ -21,11 +20,6 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 	// Work modal state
 	const [selectedWork, setSelectedWork] = useState<any>(null);
 	const [workCardRect, setWorkCardRect] = useState<CardRect | null>(null);
-
-	// Photo modal state
-	const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-	const [photoCardRect, setPhotoCardRect] = useState<CardRect | null>(null);
-	const [allPhotosInSection, setAllPhotosInSection] = useState<Photo[]>([]);
 
 	const handleWorkClick = (item: PresentationItem, rect: CardRect) => {
 		if (!item.work) return;
@@ -46,30 +40,11 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 		setWorkCardRect(rect);
 	};
 
-	const handlePhotoClick = (item: PresentationItem, rect: CardRect, sectionPhotos: Photo[]) => {
-		if (!item.photography) return;
-		const p = item.photography;
-		const photo: Photo = {
-			title: p.title,
-			slug: p.slug,
-			year: p.year || undefined,
-			description: p.description || undefined,
-			location: p.location || undefined,
-			client: p.clients[0] || undefined,
-			images: p.images as any,
-			photographer: p.photographer ? { title: p.photographer.title, slug: "" } : { title: "", slug: "" },
-			category: { title: p.categories[0] || "", slug: "" },
-		};
-		setSelectedPhoto(photo);
-		setPhotoCardRect(rect);
-		setAllPhotosInSection(sectionPhotos);
-	};
-
 	return (
 		<div className="min-h-screen bg-black pt-20 pb-20">
 			{/* Sections */}
 			{data.sections.map((section, sIdx) => (
-				<SectionBlock key={sIdx} section={section} onWorkClick={handleWorkClick} onPhotoClick={handlePhotoClick} />
+				<SectionBlock key={sIdx} section={section} onWorkClick={handleWorkClick} />
 			))}
 
 			{/* End */}
@@ -90,21 +65,6 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 					/>
 				)}
 			</AnimatePresence>
-
-			<AnimatePresence>
-				{selectedPhoto && (
-					<PhotoModal
-						photo={selectedPhoto}
-						cardRect={photoCardRect}
-						onClose={() => {
-							setSelectedPhoto(null);
-							setPhotoCardRect(null);
-						}}
-						allPhotos={allPhotosInSection}
-						onNavigate={(p) => setSelectedPhoto(p)}
-					/>
-				)}
-			</AnimatePresence>
 		</div>
 	);
 }
@@ -114,32 +74,12 @@ export default function ClassicPresentation({ data }: ClassicPresentationProps) 
 interface SectionBlockProps {
 	section: PresentationSection;
 	onWorkClick: (item: PresentationItem, rect: CardRect) => void;
-	onPhotoClick: (item: PresentationItem, rect: CardRect, photos: Photo[]) => void;
 }
 
-function SectionBlock({ section, onWorkClick, onPhotoClick }: SectionBlockProps) {
+function SectionBlock({ section, onWorkClick }: SectionBlockProps) {
 	// Separate items by type for rendering
-	const hasPhotos = section.items.some((i) => i.itemType === "PHOTOGRAPHY");
 	const hasVideos = section.items.some((i) => i.itemType === "WORK");
 	const hasExternalLinks = section.items.some((i) => i.itemType === "EXTERNAL_LINK");
-
-	// Convert photography items to Photo[] for modal navigation
-	const sectionPhotos: Photo[] = section.items
-		.filter((i) => i.itemType === "PHOTOGRAPHY" && i.photography)
-		.map((i) => {
-			const p = i.photography!;
-			return {
-				title: p.title,
-				slug: p.slug,
-				year: p.year || undefined,
-				description: p.description || undefined,
-				location: p.location || undefined,
-				client: p.clients[0] || undefined,
-				images: p.images as any,
-				photographer: p.photographer ? { title: p.photographer.title, slug: "" } : { title: "", slug: "" },
-				category: { title: p.categories[0] || "", slug: "" },
-			};
-		});
 
 	return (
 		<section className="mb-16 px-6 md:px-12">
@@ -165,21 +105,10 @@ function SectionBlock({ section, onWorkClick, onPhotoClick }: SectionBlockProps)
 				</div>
 			)}
 
-			{/* Photography items - grid */}
-			{hasPhotos && (
-				<div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 ${hasVideos ? "mt-8" : ""}`}>
-					{section.items
-						.filter((i) => i.itemType === "PHOTOGRAPHY")
-						.map((item, idx) => (
-							<PhotoCard key={idx} item={item} onClick={(rect) => onPhotoClick(item, rect, sectionPhotos)} />
-						))}
-				</div>
-			)}
-
 			{/* External Link items */}
 			{hasExternalLinks && (
 				<div
-					className={`flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory -mx-6 px-6 md:-mx-12 md:px-12 ${hasVideos || hasPhotos ? "mt-8" : ""}`}
+					className={`flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory -mx-6 px-6 md:-mx-12 md:px-12 ${hasVideos ? "mt-8" : ""}`}
 				>
 					{section.items
 						.filter((i) => i.itemType === "EXTERNAL_LINK")
@@ -293,55 +222,6 @@ function VideoCard({ item, onWorkClick }: VideoCardProps) {
 			<div className="mt-3">
 				<p className="text-white text-sm font-light truncate">{title}</p>
 				{subtitle && <p className="text-white/40 text-xs font-light truncate mt-0.5">{subtitle}</p>}
-			</div>
-		</motion.div>
-	);
-}
-
-// --- Photo Card ---
-
-interface PhotoCardProps {
-	item: PresentationItem;
-	onClick: (rect: CardRect) => void;
-}
-
-function PhotoCard({ item, onClick }: PhotoCardProps) {
-	const cardRef = useRef<HTMLDivElement>(null);
-	const photo = item.photography;
-	if (!photo) return null;
-
-	const imageUrl = photo.images?.medium || photo.images?.large || photo.images?.thumbnail || "";
-
-	const handleClick = () => {
-		if (!cardRef.current) return;
-		const rect = cardRef.current.getBoundingClientRect();
-		onClick({ top: rect.top, left: rect.left, width: rect.width, height: rect.height });
-	};
-
-	return (
-		<motion.div
-			ref={cardRef}
-			initial={{ opacity: 0, scale: 0.95 }}
-			whileInView={{ opacity: 1, scale: 1 }}
-			viewport={{ once: true, margin: "-30px" }}
-			transition={{ duration: 0.5 }}
-			className="relative aspect-[3/4] rounded-lg overflow-hidden bg-white/5 cursor-pointer group"
-			onClick={handleClick}
-		>
-			{imageUrl && (
-				<img
-					src={imageUrl}
-					alt={photo.title}
-					className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-					loading="lazy"
-				/>
-			)}
-			{/* Hover overlay */}
-			<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-				<div className="absolute bottom-3 left-3 right-3">
-					<p className="text-white text-sm font-light truncate">{photo.title}</p>
-					{photo.photographer && <p className="text-white/50 text-xs truncate mt-0.5">{photo.photographer.title}</p>}
-				</div>
 			</div>
 		</motion.div>
 	);

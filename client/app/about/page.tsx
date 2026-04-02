@@ -6,13 +6,8 @@ import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
 import MouseTrail from "@/components/MouseTrail";
 import EditorContent from "@/components/EditorContent";
-import dynamic from "next/dynamic";
 import { getApiUrl } from "@/lib/utils";
 import PageFooter from "@/components/PageFooter";
-
-const DropdownMenu = dynamic(() => import("@/components/DropdownMenu"), {
-	ssr: false,
-});
 
 export default function About() {
 	const [contentBlocks, setContentBlocks] = useState<any>(null);
@@ -65,7 +60,6 @@ export default function About() {
 			<ScrollProgress />
 			<MouseTrail />
 			<Navbar theme="dark" />
-			<DropdownMenu />
 			<PageFooter />
 
 			<div className="content">

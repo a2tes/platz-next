@@ -58,16 +58,8 @@ NEXT_PUBLIC_IMGIX_URL=your-source.imgix.net
 
 ### Content Management
 
-- **Works**: Video projects with metadata, directors, and starring
-- **Directors**: Director profiles and portfolio management
-- **Starrings**: Talent/actor profiles
+- **Works**: Video projects with metadata
 - **Presentations**: Custom shareable links for clients
-
-### Photography
-
-- **Items**: Photo management with multi-image support
-- **Categories**: Photo categorization
-- **Photographers**: Photographer profiles
 
 ### Media Library
 
@@ -95,8 +87,7 @@ admin/
 ├── src/
 │   ├── app/                 # Next.js App Router pages
 │   │   ├── dashboard/       # Dashboard
-│   │   ├── works/           # Works, Directors, Starrings, Presentations
-│   │   ├── photography/     # Photography items, categories
+	│   │   ├── works/           # Works, Presentations
 │   │   ├── media/           # Media library
 │   │   ├── homepage/        # Homepage settings
 │   │   ├── settings/        # Site settings

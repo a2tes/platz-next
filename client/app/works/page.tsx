@@ -14,9 +14,6 @@ const ScrollProgress = dynamic(() => import("@/components/ScrollProgress"), {
 const MouseTrail = dynamic(() => import("@/components/MouseTrail"), {
 	ssr: false,
 });
-const DropdownMenu = dynamic(() => import("@/components/DropdownMenu"), {
-	ssr: false,
-});
 
 interface Work {
 	title: string;
@@ -137,7 +134,6 @@ export default function Works() {
 			<ScrollProgress />
 			<MouseTrail />
 			<Navbar theme="dark" />
-			<DropdownMenu />
 
 			{/* Block Layout Section */}
 			{blocks.length > 0 && (

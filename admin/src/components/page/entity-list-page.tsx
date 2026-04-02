@@ -143,7 +143,7 @@ export interface EntityListConfig<T extends BaseEntity> {
 		onDelete: (item: T) => void;
 		onRestore?: (item: T) => void;
 		onPurge?: (item: T) => void;
-		// Singular item view base path (preferred), e.g. "/work", "/photographer"
+		// Singular item view base path (preferred), e.g. "/work"
 		viewItemBasePath?: string;
 		viewBasePath?: string;
 	}) => Action<T>[];
@@ -172,7 +172,7 @@ export interface EntityListConfig<T extends BaseEntity> {
 	navigation?: NavigationItem[];
 
 	// Optional: View base path for public frontend
-	// Singular item base path, e.g. "/work", "/photographer"
+	// Singular item base path, e.g. "/work"
 	viewItemBasePath?: string;
 	viewBasePath?: string;
 

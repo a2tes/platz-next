@@ -119,19 +119,6 @@ function SidebarContent({ pathname, user }: { pathname: string; user: { role?: s
 			</Link>
 			{user?.role === "ADMIN" && (
 				<Link
-					href="/photography"
-					className={cn(
-						"rounded-md px-3 py-2 text-sm font-medium transition-colors",
-						pathname.startsWith("/photography")
-							? "bg-accent text-accent-foreground"
-							: "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-					)}
-				>
-					Photography
-				</Link>
-			)}
-			{user?.role === "ADMIN" && (
-				<Link
 					href="/presentations"
 					className={cn(
 						"rounded-md px-3 py-2 text-sm font-medium transition-colors",

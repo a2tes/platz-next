@@ -11,16 +11,10 @@ import authRoutes from "./routes/auth";
 import mediaRoutes from "./routes/media";
 import dashboardRoutes from "./routes/dashboard";
 import worksRoutes from "./routes/works";
-import homepageRoutes from "./routes/homepage";
 import contentRoutes from "./routes/content";
 import usersRoutes from "./routes/users";
-import photographyRoutes from "./routes/photography";
 import publicWorksRoutes from "./routes/public/works";
-import publicHomepageRoutes from "./routes/public/homepage";
 import publicPagesRoutes from "./routes/public/pages";
-import publicPhotographyRoutes from "./routes/public/photography";
-import publicPhotographersRoutes from "./routes/public/photographers";
-import publicPhotoCategoriesRoutes from "./routes/public/photoCategories";
 import publicNavbarRoutes from "./routes/public/navbar";
 import presentationRoutes from "./routes/presentation";
 import publicPresentationRoutes from "./routes/public/presentation";
@@ -164,8 +158,6 @@ app.get("/api", (req, res) => {
 			media: "/api/media",
 			dashboard: "/api/dashboard",
 			works: "/api/works",
-			homepage: "/api/homepage",
-			photography: "/api/photography",
 			content: "/api/content",
 			users: "/api/users",
 			api: "/api",
@@ -184,12 +176,6 @@ app.use("/api/dashboard", dashboardRoutes);
 
 // Works routes
 app.use("/api/works", worksRoutes);
-
-// Homepage routes
-app.use("/api/homepage", homepageRoutes);
-
-// Photography routes
-app.use("/api/photography", photographyRoutes);
 
 // Content routes
 app.use("/api/content", contentRoutes);
@@ -226,11 +212,7 @@ const publicRate = rateLimit({
 });
 app.use("/api/public", publicRate);
 app.use("/api/public/works", publicWorksRoutes);
-app.use("/api/public/homepage", publicHomepageRoutes);
 app.use("/api/public/pages", publicPagesRoutes);
-app.use("/api/public/photography", publicPhotographyRoutes);
-app.use("/api/public/photographers", publicPhotographersRoutes);
-app.use("/api/public/photo-categories", publicPhotoCategoriesRoutes);
 app.use("/api/public/navbar", publicNavbarRoutes);
 app.use("/api/public/page-seo", publicPageSeoRoutes);
 app.use("/api/public/settings", publicSettingsRoutes);
