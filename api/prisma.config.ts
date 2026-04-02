@@ -6,4 +6,8 @@ import { config as loadEnv } from "dotenv";
 // Load backend/.env explicitly (Prisma skips automatic env loading when prisma.config.ts exists)
 loadEnv({ path: path.resolve(__dirname, ".env") });
 
-export default defineConfig({});
+export default defineConfig({
+	seed: {
+		command: "npx ts-node prisma/seed.ts",
+	},
+});
