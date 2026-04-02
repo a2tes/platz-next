@@ -77,7 +77,7 @@ export interface Work {
 	publishedAt?: string;
 }
 
-export type TaxonomyType = \"CLIENT\" | \"SECTOR\" | \"DISCIPLINE\";
+export type TaxonomyType = "CLIENT" | "SECTOR" | "DISCIPLINE";
 
 export interface Taxonomy {
 	id: number;
@@ -146,4 +146,3 @@ export interface WorkForm {
 	previewImageId?: number;
 	status: "DRAFT" | "PUBLISHED";
 }
-
